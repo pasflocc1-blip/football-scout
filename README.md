@@ -377,3 +377,4 @@ docker compose up --build
 ```bash
 chmod +x setup.sh
 ```
+"# football-scout" 
