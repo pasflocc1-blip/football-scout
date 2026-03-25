@@ -1,0 +1,8 @@
+Mi serve un riepilogo perche devo capire:
+1-Come modifico-inserisco le ricerche intelligenti;
+2-I dati da cui ricavi i dati a quale campionato e anno appartengono;
+3-Abbiamo anche parlato di servizi aggiornano da soli i dati, quali sono e come si attivano;
+4-scrivimi tutti i comandi GIT per caricare i sorgenti;
+5-Verifica che i file per consentire di scaricare su MAC, dalla sezione Action siano corretti;
+6-Scrivimi i passi per installare Postgress su MAC.
+7-se accedo da localhost, vedo i dati demo, mentre se accedo da: http://192.168.1.186:5173/, non mi fa vedere i dati.

@@ -1,0 +1,70 @@
+# ─── Ambiente ────────────────────────────────────────────────────
+.env
+*.env.local
+*.env.*.local
+
+# ─── Python / FastAPI ────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# ─── Node / Vue ──────────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.local
+
+# ─── Docker ──────────────────────────────────────────────────────
+# (non ignorare i Dockerfile)
+
+# ─── Database ────────────────────────────────────────────────────
+*.sqlite
+*.db
+postgres_data/
+
+# ─── Editor ──────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store          # MacOS
+Thumbs.db          # Windows
+desktop.ini        # Windows
+$RECYCLE.BIN/      # Windows
+
+# ─── OS ──────────────────────────────────────────────────────────
+# Windows
+ehthumbs.db
+ehthumbs_vista.db
+
+# MacOS
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+
+# ─── Log ─────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Dataset CSV (troppo grandi per git) ─────────────────────────
+data/*.csv
+data/*.json
+!data/.gitkeep

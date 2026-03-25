@@ -1,0 +1,41 @@
+# ─────────────────────────────────────────────────────────────────
+# .gitattributes — gestione cross-platform dei line endings
+# Windows usa CRLF, Mac/Linux usano LF.
+# Questo file normalizza tutto a LF nel repository.
+# ─────────────────────────────────────────────────────────────────
+
+# Imposta default: normalizza a LF
+* text=auto eol=lf
+
+# Forza LF esplicito per i file di codice
+*.py    text eol=lf
+*.js    text eol=lf
+*.ts    text eol=lf
+*.vue   text eol=lf
+*.json  text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.toml  text eol=lf
+*.md    text eol=lf
+*.sh    text eol=lf
+*.sql   text eol=lf
+*.env*  text eol=lf
+*.txt   text eol=lf
+*.html  text eol=lf
+*.css   text eol=lf
+
+# Script bash: DEVE avere LF altrimenti fallisce su Mac/Linux
+*.sh    text eol=lf
+
+# File binari: NON toccare i line endings
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.pdf   binary
+*.zip   binary
