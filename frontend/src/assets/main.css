@@ -1,14 +1,82 @@
-/* Importato da main.js — stili globali aggiuntivi */
+/* =========================
+   🌞 LIGHT THEME
+   ========================= */
+:root {
+  --bg: #f9fafb;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+
+  --text: #111827;
+  --text-muted: #4b5563;
+
+  --primary: #2563eb;
+
+  /* Compatibilità con variabili esistenti */
+  --color-bg: var(--bg);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+}
+
+/* =========================
+   🌙 DARK THEME (auto)
+   ========================= */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1220;
+    --surface: #111827;
+    --border: #1f2937;
+
+    --text: #f9fafb;
+    --text-muted: #9ca3af;
+
+    --primary: #3b82f6;
+
+    /* Compatibilità */
+    --color-bg: var(--bg);
+    --color-border: var(--border);
+    --color-primary: var(--primary);
+  }
+}
+
+/* =========================
+   BASE GLOBAL STYLE
+   ========================= */
 html, body {
   height: 100%;
+  background: var(--bg);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
 
-a { color: var(--color-primary); }
+/* Links */
+a { 
+  color: var(--primary);
+}
 
+/* =========================
+   COMPONENTI GLOBALI
+   ========================= */
+
+/* Card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar       { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--color-bg); }
-::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+/* Details */
 details summary { user-select: none; }
 details[open] summary { margin-bottom: .5rem; }

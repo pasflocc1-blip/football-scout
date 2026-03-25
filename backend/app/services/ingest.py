@@ -1,279 +1,195 @@
 """
 services/ingest.py
 ------------------
-Due modalità di ingestion:
+Orchestratore ingestion — delega a ogni sorgente specifica.
 
-1. KAGGLE (sviluppo / prototipo)
-   - Scarica il dataset FIFA da Kaggle (CSV)
-   - Non richiede API key esterne
-   - Ottimo per iniziare a sviluppare senza costi
+Sorgenti disponibili:
+  kaggle       → CSV Kaggle FIFA 22/23 (gratis, 18k giocatori)
+  api          → API-Football v3 (live, richiede API_FOOTBALL_KEY)
+  statsbomb    → StatsBomb Open Data (xG/xA event-level, gratis)
+  fbref        → FBref scraping (xG/xA alternativo, gratis)
+  football-data → Football-Data.org (struttura campionati, richiede FOOTBALL_DATA_KEY)
+  all          → Esegue tutte le sorgenti in sequenza
 
-2. API-FOOTBALL (produzione)
-   - Dati live aggiornati
-   - Richiede API key (free tier: 100 req/giorno)
-
-Uso da terminale (dentro il container):
-    docker compose exec backend python -m app.services.ingest --source kaggle --file /data/players.csv
-    docker compose exec backend python -m app.services.ingest --source api --league 135 --season 2024
+Uso da terminale (dentro container):
+  python -m app.services.ingest --source kaggle --file /app/data/players_22.csv --limit 5000
+  python -m app.services.ingest --source api --league 135 --season 2024
+  python -m app.services.ingest --source statsbomb --comp 12 --season-id 27 --max-matches 100
+  python -m app.services.ingest --source fbref --fbref-league serie_a --fbref-season 2023-2024
+  python -m app.services.ingest --source football-data --fd-comp SA --season 2024
+  python -m app.services.ingest --source all --file /app/data/players_22.csv --season 2024
 """
 
-import os
-import csv
-import httpx
 import argparse
-from sqlalchemy.orm import Session
+import asyncio
+import os
 
 from app.database import SessionLocal
-from app.models.models import ScoutingPlayer
-from app.services.scoring import compute_scores
-
-from dotenv import load_dotenv
-
-# path assoluto del file corrente
-current_file = os.path.abspath(__file__)
-
-# risali fino alla root del progetto (football-scout)
-project_root = os.path.abspath(os.path.join(current_file, "../../../.."))
-env_path = os.path.join(project_root, ".env")
-
-print("Cerco .env in:", env_path)  # DEBUG
-
-load_dotenv(env_path)
-print("API KEY:", os.getenv("API_FOOTBALL_KEY"))  # DEBUG
-
-# ── Mappatura colonne CSV Kaggle FIFA → nostro modello ────────────
-# Adatta i nomi colonna a seconda della versione del dataset scaricato
-KAGGLE_COLUMN_MAP = {
-    # colonna CSV          →  campo modello
-    "short_name":            "name",
-    "player_positions":      "position",   # es. "ST, CF" → prendiamo il primo
-    "club_name":             "club",
-    "nationality_name":      "nationality",
-    "age":                   "age",
-    "preferred_foot":        "preferred_foot",
-    "pace":                  "pace",
-    "shooting":              "shooting",
-    "passing":               "passing",
-    "dribbling":             "dribbling",
-    "defending":             "defending",
-    "physic":                "physical",   # 'physic' nel CSV Kaggle
-    "attacking_heading_accuracy": "aerial_duels_won_pct",  # proxy
-}
+from app.services.sources.kaggle_source import import_from_kaggle_csv
+from app.services.sources.api_football_source import fetch_from_api_football
+from app.services.sources.statsbomb_source import fetch_from_statsbomb
+from app.services.sources.fbref_source import scrape_standard_stats
+from app.services.sources.football_data_source import sync_player_clubs
 
 
-def import_from_kaggle_csv(db: Session, filepath: str, limit: int = 2000) -> int:
+async def run_all(
+    kaggle_file: str | None = None,
+    kaggle_limit: int = 2000,
+    api_league: int = 135,
+    season: int = 2024,
+    statsbomb_comp: int = 12,
+    statsbomb_season_id: int = 27,
+    statsbomb_max_matches: int = 50,
+    fbref_league: str = "serie_a",
+    fbref_season: str = "2023-2024",
+    football_data_comp: str = "SA",
+) -> dict:
     """
-    Importa giocatori da un CSV Kaggle FIFA.
-
-    Scarica il dataset da:
-    https://www.kaggle.com/datasets/stefanoleone992/fifa-22-complete-player-dataset
-    File da usare: players_22.csv (o players_23.csv)
-
-    Ritorna il numero di record importati.
+    Esegue tutte le sorgenti in sequenza.
+    Le sorgenti che richiedono API key vengono saltate se la chiave non è presente.
+    Ritorna un dict {sorgente: risultato}.
     """
-    if not os.path.exists(filepath):
-        raise FileNotFoundError(f"File non trovato: {filepath}\n"
-                                f"Scarica da Kaggle e copialo in: {filepath}")
+    results = {}
+    db = SessionLocal()
 
-    imported = 0
-    with open(filepath, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
+    try:
+        # ── 1. Kaggle ──
+        if kaggle_file and os.path.exists(kaggle_file):
+            print("\n[1/5] ▶ Kaggle CSV...")
+            n = import_from_kaggle_csv(db, kaggle_file, limit=kaggle_limit)
+            results["kaggle"] = {"status": "ok", "imported": n}
+        else:
+            reason = "file non specificato" if not kaggle_file else f"file non trovato: {kaggle_file}"
+            results["kaggle"] = {"status": "skipped", "reason": reason}
+            print(f"\n[1/5] ⏭ Kaggle saltato — {reason}")
 
-        for i, row in enumerate(reader):
-            if i >= limit:
-                break
+        # ── 2. API-Football ──
+        if os.getenv("API_FOOTBALL_KEY"):
+            print(f"\n[2/5] ▶ API-Football (lega {api_league}, stagione {season})...")
+            try:
+                n = await fetch_from_api_football(db, api_league, season)
+                results["api_football"] = {"status": "ok", "imported": n}
+            except Exception as e:
+                results["api_football"] = {"status": "error", "error": str(e)}
+                print(f"  ✗ API-Football: {e}")
+        else:
+            results["api_football"] = {"status": "skipped", "reason": "API_FOOTBALL_KEY non impostata"}
+            print("\n[2/5] ⏭ API-Football saltato — API_FOOTBALL_KEY mancante")
 
-            # Posizione: prende solo il primo ruolo (es. "ST, CF" → "ST")
-            raw_pos = row.get("player_positions", "")
-            position = raw_pos.split(",")[0].strip() if raw_pos else None
-
-            player_data = {
-                "external_id":    f"kaggle_{row.get('sofifa_id', i)}",
-                "name":           row.get("short_name", f"Player_{i}"),
-                "position":       position,
-                "club":           row.get("club_name"),
-                "nationality":    row.get("nationality_name"),
-                "age":            _int(row.get("age")),
-                "preferred_foot": row.get("preferred_foot"),
-                "pace":           _int(row.get("pace")),
-                "shooting":       _int(row.get("shooting")),
-                "passing":        _int(row.get("passing")),
-                "dribbling":      _int(row.get("dribbling")),
-                "defending":      _int(row.get("defending")),
-                "physical":       _int(row.get("physic")),
-                "aerial_duels_won_pct": _float(row.get("attacking_heading_accuracy")),
-            }
-
-            # Upsert: aggiorna se esiste, inserisce se no
-            existing = db.query(ScoutingPlayer).filter_by(
-                external_id=player_data["external_id"]
-            ).first()
-
-            if existing:
-                for k, v in player_data.items():
-                    setattr(existing, k, v)
-                p = existing
-            else:
-                p = ScoutingPlayer(**player_data)
-                db.add(p)
-                db.flush()  # ottieni l'id prima del commit
-
-            # Calcola gli score compositi
-            scores = compute_scores(p)
-            for k, v in scores.items():
-                setattr(p, k, v)
-
-            imported += 1
-
-            # Commit a batch di 200 per non saturare la memoria
-            if imported % 200 == 0:
-                db.commit()
-                print(f"  → {imported} giocatori importati...")
-
-    db.commit()
-    return imported
-
-
-async def fetch_from_api_football(db: Session, league_id: int, season: int) -> int:
-    """
-    Scarica i giocatori attivi da API-Football.
-    Richiede FOOTBALL_DATA_KEY nel file .env
-
-    https://api-football.com/documentation-v3#tag/Players/operation/get-players
-    """
-    print("API KEY:", os.getenv("API_FOOTBALL_KEY"))
-
-    api_key = os.getenv("API_FOOTBALL_KEY")
-    if not api_key:
-        raise ValueError("API_FOOTBALL_KEY non impostata nel file .env")
-
-    imported = 0
-    page = 1
-
-    async with httpx.AsyncClient(timeout=15) as client:
-        while True:
-            response = await client.get(
-                "https://v3.football.api-sports.io/players",
-                headers={"x-apisports-key": api_key},
-                params={"league": league_id, "season": season, "page": page},
+        # ── 3. StatsBomb ──
+        print(f"\n[3/5] ▶ StatsBomb (comp {statsbomb_comp}, season_id {statsbomb_season_id})...")
+        try:
+            sb_result = await fetch_from_statsbomb(
+                db, statsbomb_comp, statsbomb_season_id, statsbomb_max_matches
             )
-            response.raise_for_status()
-            data = response.json()
+            results["statsbomb"] = {"status": "ok", **sb_result}
+        except Exception as e:
+            results["statsbomb"] = {"status": "error", "error": str(e)}
+            print(f"  ✗ StatsBomb: {e}")
 
-            players = data.get("response", [])
-            if not players:
-                break
+        # ── 4. FBref ──
+        print(f"\n[4/5] ▶ FBref ({fbref_league} {fbref_season})...")
+        try:
+            fbref_result = scrape_standard_stats(db, fbref_league, fbref_season)
+            results["fbref"] = {"status": "ok", **fbref_result}
+        except Exception as e:
+            results["fbref"] = {"status": "error", "error": str(e)}
+            print(f"  ✗ FBref: {e}")
 
-            for entry in players:
-                p_data  = entry.get("player", {})
-                stats   = entry.get("statistics", [{}])[0]
-                team    = stats.get("team", {})
-                games   = stats.get("games", {})
-                goals   = stats.get("goals", {})
-                passes  = stats.get("passes", {})
-                duels   = stats.get("duels", {})
+        # ── 5. Football-Data.org ──
+        if os.getenv("FOOTBALL_DATA_KEY"):
+            print(f"\n[5/5] ▶ Football-Data.org (comp {football_data_comp}, stagione {season})...")
+            try:
+                fd_result = await sync_player_clubs(db, football_data_comp, season)
+                results["football_data"] = {"status": "ok", **fd_result}
+            except Exception as e:
+                results["football_data"] = {"status": "error", "error": str(e)}
+                print(f"  ✗ Football-Data: {e}")
+        else:
+            results["football_data"] = {"status": "skipped", "reason": "FOOTBALL_DATA_KEY non impostata"}
+            print("\n[5/5] ⏭ Football-Data.org saltato — FOOTBALL_DATA_KEY mancante")
 
-                external_id = f"apif_{p_data.get('id')}"
+    finally:
+        db.close()
 
-                # Duelli aerei: percentuale vinti
-                aerial_total = duels.get("total") or 0
-                aerial_won   = duels.get("won")   or 0
-                aerial_pct   = (aerial_won / aerial_total * 100) if aerial_total else None
-
-                player_data = {
-                    "external_id":           external_id,
-                    "name":                  p_data.get("name"),
-                    "position":              _map_position(games.get("position")),
-                    "club":                  team.get("name"),
-                    "nationality":           p_data.get("nationality"),
-                    "age":                   p_data.get("age"),
-                    "preferred_foot":        None,   # non disponibile in API-Football
-                    "aerial_duels_won_pct":  aerial_pct,
-                    "xg_per90":              _float(goals.get("total")),   # proxy
-                    "xa_per90":              _float(passes.get("key")),    # proxy
-                }
-
-                existing = db.query(ScoutingPlayer).filter_by(
-                    external_id=external_id
-                ).first()
-
-                if existing:
-                    for k, v in player_data.items():
-                        if v is not None:
-                            setattr(existing, k, v)
-                    p = existing
-                else:
-                    p = ScoutingPlayer(**player_data)
-                    db.add(p)
-                    db.flush()
-
-                scores = compute_scores(p)
-                for k, v in scores.items():
-                    setattr(p, k, v)
-
-                imported += 1
-
-            # Paginazione
-            total_pages = data.get("paging", {}).get("total", 1)
-            if page >= total_pages:
-                break
-            page += 1
-            print(f"  → Pagina {page}/{total_pages} — {imported} giocatori...")
-
-    db.commit()
-    return imported
-
-
-# ── Helper privati ────────────────────────────────────────────────
-
-def _int(val) -> int | None:
-    try:
-        return int(float(val)) if val not in (None, "", "N/A") else None
-    except (ValueError, TypeError):
-        return None
-
-
-def _float(val) -> float | None:
-    try:
-        return float(val) if val not in (None, "", "N/A") else None
-    except (ValueError, TypeError):
-        return None
-
-
-def _map_position(api_pos: str | None) -> str | None:
-    """Converte le posizioni di API-Football nel nostro schema."""
-    mapping = {
-        "Goalkeeper":     "GK",
-        "Defender":       "CB",
-        "Midfielder":     "CM",
-        "Attacker":       "ST",
-    }
-    return mapping.get(api_pos)
+    print("\n✅ Import completo!")
+    return results
 
 
 # ── Entry point CLI ───────────────────────────────────────────────
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Importa giocatori nel DB")
-    parser.add_argument("--source", choices=["kaggle", "api"], required=True)
-    parser.add_argument("--file",   help="Path CSV Kaggle (es. /data/players_22.csv)")
-    parser.add_argument("--league", type=int, default=135, help="ID lega API-Football (135=Serie A)")
+    parser = argparse.ArgumentParser(description="Importa dati calciatori nel DB")
+    parser.add_argument(
+        "--source",
+        choices=["kaggle", "api", "statsbomb", "fbref", "football-data", "all"],
+        required=True,
+    )
+    # Kaggle
+    parser.add_argument("--file", help="Path CSV Kaggle nel container")
+    parser.add_argument("--limit", type=int, default=2000)
+    # API-Football
+    parser.add_argument("--league", type=int, default=135, help="135=Serie A, 39=PL, 140=La Liga")
     parser.add_argument("--season", type=int, default=2024)
-    parser.add_argument("--limit",  type=int, default=2000, help="Max giocatori da importare")
+    # StatsBomb
+    parser.add_argument("--comp", type=int, default=12, help="Competition ID StatsBomb")
+    parser.add_argument("--season-id", type=int, default=27, dest="season_id")
+    parser.add_argument("--max-matches", type=int, default=50, dest="max_matches")
+    # FBref
+    parser.add_argument("--fbref-league", default="serie_a", dest="fbref_league",
+                        choices=["serie_a", "premier_league", "la_liga", "bundesliga",
+                                 "ligue_1", "champions_league"])
+    parser.add_argument("--fbref-season", default="2023-2024", dest="fbref_season")
+    # Football-Data.org
+    parser.add_argument("--fd-comp", default="SA", dest="fd_comp",
+                        help="SA=Serie A, PL=Premier League, PD=La Liga, BL1=Bundesliga")
     args = parser.parse_args()
 
     db = SessionLocal()
     try:
         if args.source == "kaggle":
-            csv_path = args.file or "D:\Progetti\football-scout\data\players_22.csv"
-            print(f"Importazione da Kaggle CSV: {csv_path}")
+            csv_path = args.file or "data/players_22.csv"
+            print(f"Importazione da Kaggle: {csv_path}")
             n = import_from_kaggle_csv(db, csv_path, limit=args.limit)
-            print(f"✅ Importati {n} giocatori dal dataset FIFA/Kaggle")
+            print(f"✅ Importati {n} giocatori da Kaggle")
 
         elif args.source == "api":
-            import asyncio
-            print(f"Importazione da API-Football (lega {args.league}, stagione {args.season})")
+            print(f"API-Football — lega {args.league}, stagione {args.season}")
             n = asyncio.run(fetch_from_api_football(db, args.league, args.season))
             print(f"✅ Importati {n} giocatori da API-Football")
+
+        elif args.source == "statsbomb":
+            print(f"StatsBomb — comp {args.comp}, season_id {args.season_id}")
+            result = asyncio.run(
+                fetch_from_statsbomb(db, args.comp, args.season_id, args.max_matches)
+            )
+            print(f"✅ StatsBomb: {result}")
+
+        elif args.source == "fbref":
+            print(f"FBref — {args.fbref_league} {args.fbref_season}")
+            result = scrape_standard_stats(db, args.fbref_league, args.fbref_season)
+            print(f"✅ FBref: {result}")
+
+        elif args.source == "football-data":
+            print(f"Football-Data.org — comp {args.fd_comp}, stagione {args.season}")
+            result = asyncio.run(sync_player_clubs(db, args.fd_comp, args.season))
+            print(f"✅ Football-Data: {result}")
+
+        elif args.source == "all":
+            print("Esecuzione di tutte le sorgenti...")
+            result = asyncio.run(run_all(
+                kaggle_file=args.file,
+                kaggle_limit=args.limit,
+                api_league=args.league,
+                season=args.season,
+                statsbomb_comp=args.comp,
+                statsbomb_season_id=args.season_id,
+                statsbomb_max_matches=args.max_matches,
+                fbref_league=args.fbref_league,
+                fbref_season=args.fbref_season,
+                football_data_comp=args.fd_comp,
+            ))
+            print(f"✅ Risultati: {result}")
+
     finally:
         db.close()

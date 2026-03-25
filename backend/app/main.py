@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import team, players, scouting, admin
 from app.database import engine, Base
+from app.routers import ingest as ingest_router
+from app.routers import db_explorer as db_explorer_router
 
 # Crea tutte le tabelle all'avvio (in prod usa Alembic)
 Base.metadata.create_all(bind=engine)
@@ -33,7 +35,8 @@ app.include_router(team.router)
 app.include_router(players.router)
 app.include_router(scouting.router)
 app.include_router(admin.router)
-
+app.include_router(ingest_router.router)
+app.include_router(db_explorer_router.router)
 
 @app.get("/", tags=["health"])
 def health_check():

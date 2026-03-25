@@ -13,6 +13,12 @@
         <RouterLink to="/traits"    class="nav-item"><span>📋</span> Caratteristiche</RouterLink>
         <RouterLink to="/roster"    class="nav-item"><span>👥</span> Rosa</RouterLink>
         <RouterLink to="/scouting"  class="nav-item"><span>🔍</span> Scouting</RouterLink>
+        <router-link to="/data-ingestion" class="nav-item">
+          <span>🔄</span> Gestione Dati
+        </router-link>
+        <router-link to="/db-explorer" class="nav-item">
+          <span>🗄️</span> Database Explorer
+        </router-link>
       </nav>
 
       <!-- Squadra attiva -->
