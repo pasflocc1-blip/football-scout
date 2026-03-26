@@ -8,14 +8,23 @@ Cosa scarica:
   - Standard Stats per stagione/campionato (gol, assist, xG, xAG, min)
   - Arricchisce i ScoutingPlayer esistenti con xg_per90 e xa_per90
 
-Requisiti (da aggiungere a requirements.txt se non presenti):
+Requisiti (da aggiungere a requirements.txt):
   requests>=2.31
   beautifulsoup4>=4.12
   pandas>=2.0
   lxml>=4.9
+  cloudscraper>=1.2.71      ← NUOVO: bypass protezione Cloudflare/bot
+
+FIX 403 Forbidden:
+  FBref usa Cloudflare e rilevamento bot avanzato.
+  Il modulo ora usa cloudscraper come client HTTP principale.
+  Installare con:  pip install cloudscraper
+
+  Se cloudscraper non è disponibile, si fa fallback a requests standard
+  con headers realistici (può ancora ricevere 403 saltuariamente).
 
 Attenzione:
-  FBref applica rate limiting. Usa delay_seconds (default 4s) tra richieste.
+  FBref applica rate limiting. Usa delay_seconds (default 6s) tra richieste.
   Scraping per uso personale/ricerca è tollerato; non abusare.
 
 Campionati supportati:
@@ -28,16 +37,31 @@ from sqlalchemy.orm import Session
 
 from app.models.models import ScoutingPlayer
 
+# ── Dipendenze opzionali ──────────────────────────────────────────
+_DEPS_OK       = False
+_CLOUDSCRAPER  = False
+
 try:
-    import requests
     from bs4 import BeautifulSoup
     import pandas as pd
     _DEPS_OK = True
 except ImportError:
-    _DEPS_OK = False
+    pass
+
+try:
+    import cloudscraper
+    _CLOUDSCRAPER = True
+except ImportError:
+    pass
+
+if _DEPS_OK and not _CLOUDSCRAPER:
+    try:
+        import requests
+    except ImportError:
+        _DEPS_OK = False
 
 
-# FBref URL schema: /en/comps/{id}/{season}/stats/{season}-{slug}-Stats
+# ── Configurazione campionati ─────────────────────────────────────
 FBREF_LEAGUES = {
     "serie_a":          {"id": 11,  "slug": "Serie-A"},
     "premier_league":   {"id": 9,   "slug": "Premier-League"},
@@ -49,22 +73,54 @@ FBREF_LEAGUES = {
     "primeira_liga":    {"id": 32,  "slug": "Primeira-Liga"},
 }
 
+# Headers browser realistici (fallback senza cloudscraper)
 _HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/122.0.0.0 Safari/537.36"
+        "Chrome/123.0.0.0 Safari/537.36"
     ),
-    "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://fbref.com/",
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;"
+        "q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"
+    ),
+    "Accept-Language":  "en-US,en;q=0.9,it;q=0.8",
+    "Accept-Encoding":  "gzip, deflate, br",
+    "Connection":       "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest":   "document",
+    "Sec-Fetch-Mode":   "navigate",
+    "Sec-Fetch-Site":   "none",
+    "Sec-Fetch-User":   "?1",
+    "Cache-Control":    "max-age=0",
+    "Referer":          "https://fbref.com/en/",
+    "DNT":              "1",
 }
+
+
+def _get_session():
+    """
+    Ritorna un session HTTP che bypassa il bot-detection di FBref.
+    Priorità: cloudscraper > requests standard.
+    """
+    if _CLOUDSCRAPER:
+        # cloudscraper gestisce automaticamente i challenge Cloudflare
+        return cloudscraper.create_scraper(
+            browser={"browser": "chrome", "platform": "windows", "mobile": False}
+        )
+
+    # Fallback: requests con headers manuali
+    import requests as req
+    session = req.Session()
+    session.headers.update(_HEADERS)
+    return session
 
 
 def scrape_standard_stats(
     db: Session,
     league_key: str = "serie_a",
     season: str = "2023-2024",
-    delay_seconds: float = 4.0,
+    delay_seconds: float = 6.0,
 ) -> dict:
     """
     Scarica Standard Stats da FBref e aggiorna xg_per90/xa_per90 nel DB.
@@ -80,11 +136,13 @@ def scrape_standard_stats(
     if not _DEPS_OK:
         raise ImportError(
             "Dipendenze FBref non installate.\n"
-            "Aggiungi a requirements.txt:\n"
-            "  requests>=2.31\n"
+            "Aggiungi a requirements.txt e reinstalla:\n"
             "  beautifulsoup4>=4.12\n"
             "  pandas>=2.0\n"
-            "  lxml>=4.9"
+            "  lxml>=4.9\n"
+            "  cloudscraper>=1.2.71    ← consigliato per evitare 403\n\n"
+            "Installazione rapida:\n"
+            "  pip install beautifulsoup4 pandas lxml cloudscraper"
         )
 
     if league_key not in FBREF_LEAGUES:
@@ -98,12 +156,30 @@ def scrape_standard_stats(
         f"https://fbref.com/en/comps/{league['id']}"
         f"/{season}/stats/{season}-{league['slug']}-Stats"
     )
-    print(f"  → FBref: scarico {url}")
 
-    time.sleep(delay_seconds)  # rispetta il rate limit
+    method = "cloudscraper" if _CLOUDSCRAPER else "requests (senza cloudscraper)"
+    print(f"  → FBref [{method}]: scarico {url}")
 
-    resp = requests.get(url, headers=_HEADERS, timeout=25)
-    resp.raise_for_status()
+    time.sleep(delay_seconds)  # rispetta il rate limit di FBref
+
+    session = _get_session()
+
+    try:
+        resp = session.get(url, timeout=30)
+        resp.raise_for_status()
+    except Exception as e:
+        status = getattr(getattr(e, "response", None), "status_code", "?")
+        raise RuntimeError(
+            f"Errore HTTP {status} su FBref.\n"
+            f"URL: {url}\n\n"
+            f"Soluzioni:\n"
+            f"  1. Installa cloudscraper:  pip install cloudscraper\n"
+            f"  2. Aumenta delay_seconds (es. 10)\n"
+            f"  3. FBref potrebbe bloccare richieste da IP datacenter/VPS;\n"
+            f"     prova da una rete residenziale.\n"
+            f"  4. Attendi qualche ora se sei stato bloccato per rate-limit.\n\n"
+            f"Errore originale: {e}"
+        ) from e
 
     soup = BeautifulSoup(resp.text, "lxml")
 
@@ -120,7 +196,7 @@ def scrape_standard_stats(
     if table is None:
         raise RuntimeError(
             "Tabella 'stats_standard' non trovata su FBref.\n"
-            "FBref potrebbe aver cambiato struttura o ti sta bloccando (rate limit).\n"
+            "FBref potrebbe aver cambiato struttura della pagina.\n"
             f"URL tentato: {url}"
         )
 
@@ -168,7 +244,6 @@ def scrape_standard_stats(
             xg_per90 = round(xg_val * per90, 4) if xg_val is not None else None
             xa_per90 = round(xa_val * per90, 4) if xa_val is not None else None
         else:
-            # Nessun dato minuti → valori già normalizzati su FBref
             xg_per90 = xg_val
             xa_per90 = xa_val
 

@@ -18,7 +18,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-football}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-football} -d ${POSTGRES_DB:-football_scout}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,13 +35,13 @@ services:
     container_name: football_backend
     restart: unless-stopped
     env_file:
-      - .env
+      - ./backend/.env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-football}:${POSTGRES_PASSWORD:-football123}@db:5432/${POSTGRES_DB:-football_scout}
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app          # hot-reload in sviluppo
+      - ./backend:/app
     depends_on:
       db:
         condition: service_healthy
@@ -56,13 +56,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: development
     container_name: football_frontend
     restart: unless-stopped
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend:/app         # hot-reload in sviluppo
-      - /app/node_modules       # evita sovrascrittura node_modules host
+      - ./frontend:/app
+      - /app/node_modules
     environment:
       VITE_API_URL: http://localhost:8000
     depends_on:

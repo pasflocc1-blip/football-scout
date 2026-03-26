@@ -461,9 +461,24 @@ watch(selectedTable, () => {
   padding: 1.5rem 2rem;
   max-width: 1400px;
   margin: 0 auto;
-  height: calc(100vh - 4rem);
+  /*
+   * FIX OVERFLOW VERTICALE
+   * --
+   * Invece di calc(100vh - 4rem) che dipende dall'altezza esatta
+   * della navbar, usiamo height: 100% e lasciamo che sia il
+   * contenitore genitore (router-view / layout wrapper) a
+   * definire l'altezza disponibile.
+   *
+   * Se il genitore non ha altezza fissa, lo forziamo qui con
+   * max-height + 100dvh (che su mobile esclude le barre browser).
+   * Cambia il valore 64px con l'altezza reale della tua navbar.
+   */
+  height: 100%;
+  max-height: calc(100dvh - 64px);   /* 64px = altezza navbar; modifica se diversa */
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .page-header { margin-bottom: 1.25rem; flex-shrink: 0; }
@@ -484,6 +499,7 @@ watch(selectedTable, () => {
   gap: 1rem;
   flex: 1;
   overflow: hidden;
+  min-height: 0; /* fix: i children flex non si restringono senza questo */
 }
 
 /* Sidebar */
@@ -491,7 +507,11 @@ watch(selectedTable, () => {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  /* FIX: height: 100% assicura che la sidebar non sfori il grid row */
+  height: 100%;
 }
+
 .sidebar-header {
   display: flex;
   justify-content: space-between;
@@ -540,6 +560,9 @@ watch(selectedTable, () => {
   flex-direction: column;
   gap: 1rem;
   overflow: hidden;
+  min-height: 0;
+  /* FIX: garantisce che il main non cresca oltre lo spazio disponibile */
+  height: 100%;
 }
 
 /* Tabs */
@@ -568,10 +591,16 @@ watch(selectedTable, () => {
 /* Tab content */
 .tab-content {
   flex: 1;
-  overflow: auto;
+  /*
+   * FIX OVERFLOW: overflow:auto sul contenitore esterno non basta
+   * se i figli non hanno altezza limitata. Usiamo overflow:hidden
+   * sul wrapper e lasciamo che solo .table-scroll scorra.
+   */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-height: 0;
 }
 
 .empty-state {
@@ -600,7 +629,11 @@ watch(selectedTable, () => {
   color: var(--text-muted, #888);
 }
 
-.table-scroll { overflow: auto; flex: 1; }
+.table-scroll {
+  overflow: auto;
+  flex: 1;         /* FIX: cresce per riempire lo spazio residuo in .tab-content */
+  min-height: 0;   /* FIX: senza questo flex:1 non funziona in un flex column */
+}
 
 .data-table {
   width: 100%;

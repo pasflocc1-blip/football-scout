@@ -1,0 +1,5 @@
+# Questa cartella contiene i dataset CSV (es. players_22.csv da Kaggle).
+# I file CSV NON vengono committati nel repository (vedi .gitignore).
+# Scarica il dataset da:
+#   https://www.kaggle.com/datasets/stefanoleone992/fifa-22-complete-player-dataset
+# e metti qui il file players_22.csv prima di eseguire l'import.

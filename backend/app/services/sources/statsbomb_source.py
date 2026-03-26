@@ -26,10 +26,15 @@ Competizioni open data disponibili (esempi):
   competition_id=7   → Ligue 1
 
 Usa list_competitions() per vedere tutte le combinazioni disponibili.
+
+FIX: migliorato l'algoritmo di name matching per abbinare i nomi
+     StatsBomb (nomi completi) con i nomi nel DB (spesso abbreviati).
 """
 
+import unicodedata
 import httpx
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.models.models import ScoutingPlayer
 
@@ -65,7 +70,7 @@ async def fetch_from_statsbomb(
     db: Session,
     competition_id: int,
     season_id: int,
-    max_matches: int = 50,
+    max_matches: int = 300,
     progress_cb=None,
 ) -> dict:
     """
@@ -177,29 +182,115 @@ async def fetch_from_statsbomb(
 
         # ── 4. Arricchisci nel DB ──
         enriched = 0
-        for pid, stats in player_stats.items():
-            minutes = stats["minutes"] or 90
-            per90   = 90 / minutes
+        not_found = 0
 
+        for pid, stats in player_stats.items():
+            minutes  = stats["minutes"] or 90
+            per90    = 90 / minutes
             xg_per90 = round(stats["xg"] * per90, 4)
             xa_per90 = round(stats["xa"] * per90, 4)
 
-            name = stats["name"]
-            player = (
-                db.query(ScoutingPlayer)
-                .filter(ScoutingPlayer.name.ilike(f"%{name}%"))
-                .first()
-            )
+            player = _find_player(db, stats["name"])
             if player:
                 player.xg_per90 = xg_per90
                 player.xa_per90 = xa_per90
                 enriched += 1
+            else:
+                not_found += 1
 
         db.commit()
-        print(f"  → StatsBomb: {enriched} giocatori arricchiti con xG/xA")
+        print(
+            f"  → StatsBomb: {enriched} giocatori arricchiti con xG/xA "
+            f"({not_found} non abbinati al DB)"
+        )
 
         return {
             "matches_processed":   len(matches),
             "players_with_stats":  len(player_stats),
             "players_enriched":    enriched,
+            "players_not_matched": not_found,
         }
+
+
+# ── Name matching ─────────────────────────────────────────────────────────────
+#
+# PROBLEMA: StatsBomb usa nomi completi (es. "Lionel Andrés Messi Cuccittini")
+# mentre il DB (Kaggle) usa nomi brevi (es. "L. Messi").
+#
+# Strategia a cascata:
+#   1. Match esatto (case-insensitive, accent-insensitive)
+#   2. Match sul cognome (ultima parola)
+#   3. Match su iniziale + cognome (es. "L. Messi" ← "Lionel Messi")
+#   4. Match parziale LIKE su ogni token significativo
+#
+
+def _normalize(s: str) -> str:
+    """Rimuove accenti e porta in lowercase."""
+    return "".join(
+        c for c in unicodedata.normalize("NFD", s.lower())
+        if unicodedata.category(c) != "Mn"
+    )
+
+
+def _find_player(db: Session, full_name: str) -> ScoutingPlayer | None:
+    if not full_name or full_name.strip() == "":
+        return None
+
+    full_name = full_name.strip()
+    parts     = full_name.split()
+
+    # ── 1. Match esatto (insensibile ad accenti) ──
+    player = (
+        db.query(ScoutingPlayer)
+        .filter(func.lower(ScoutingPlayer.name) == full_name.lower())
+        .first()
+    )
+    if player:
+        return player
+
+    # ── 2. Match LIKE sul nome completo ──
+    player = (
+        db.query(ScoutingPlayer)
+        .filter(ScoutingPlayer.name.ilike(f"%{full_name}%"))
+        .first()
+    )
+    if player:
+        return player
+
+    # ── 3. Match sull'ultimo token (cognome) ──
+    #    Evita token troppo corti (es. "De", "Van") che generano falsi positivi
+    last_name = parts[-1] if parts else ""
+    if len(last_name) >= 4:
+        player = (
+            db.query(ScoutingPlayer)
+            .filter(ScoutingPlayer.name.ilike(f"%{last_name}%"))
+            .first()
+        )
+        if player:
+            return player
+
+    # ── 4. Match "Iniziale. Cognome" (es. "L. Messi" per "Lionel Messi") ──
+    if len(parts) >= 2:
+        initial   = parts[0][0].upper()   # "L"
+        last_name = parts[-1]             # "Messi"
+        short     = f"{initial}. {last_name}"
+        player = (
+            db.query(ScoutingPlayer)
+            .filter(ScoutingPlayer.name.ilike(f"%{short}%"))
+            .first()
+        )
+        if player:
+            return player
+
+    # ── 5. Match su ogni token con 5+ caratteri (primo abbinamento vince) ──
+    for token in parts:
+        if len(token) >= 5:
+            player = (
+                db.query(ScoutingPlayer)
+                .filter(ScoutingPlayer.name.ilike(f"%{token}%"))
+                .first()
+            )
+            if player:
+                return player
+
+    return None

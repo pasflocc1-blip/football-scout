@@ -5,7 +5,7 @@ Scarica giocatori attivi da API-Football v3.
 https://www.api-football.com/documentation-v3
 
 Richiede: API_FOOTBALL_KEY nel .env
-Free tier: 100 req/giorno
+Free tier: 100 req/giorno, max 3 pagine per richiesta
 Copertura: giocatori attivi, squadre reali, statistiche live
 
 Leghe principali:
@@ -23,6 +23,14 @@ from sqlalchemy.orm import Session
 from app.models.models import ScoutingPlayer
 from app.services.scoring import compute_scores
 
+# Piano Free: supporta al massimo le ultime stagioni disponibili.
+# Aggiorna questi valori se il piano cambia.
+_FREE_SEASON_MIN = 2022
+_FREE_SEASON_MAX = 2024
+
+# Piano Free: massimo 3 pagine per richiesta
+_FREE_PAGE_LIMIT = 3
+
 
 async def fetch_from_api_football(
     db: Session,
@@ -37,7 +45,7 @@ async def fetch_from_api_football(
     Ritorna il numero di record importati/aggiornati.
 
     Raises:
-        ValueError: se API_FOOTBALL_KEY non è impostata.
+        ValueError: se API_FOOTBALL_KEY non è impostata o la stagione non è supportata.
         httpx.HTTPStatusError: su errori HTTP dall'API.
     """
     api_key = os.getenv("API_FOOTBALL_KEY")
@@ -47,11 +55,30 @@ async def fetch_from_api_football(
             "Registrati su https://dashboard.api-football.com/register"
         )
 
+    # Il free tier supporta solo un range limitato di stagioni
+    if season < _FREE_SEASON_MIN or season > _FREE_SEASON_MAX:
+        raise ValueError(
+            f"Stagione {season} non supportata dal free tier di API-Football.\n"
+            f"Il piano gratuito supporta solo stagioni dalla {_FREE_SEASON_MIN} "
+            f"alla {_FREE_SEASON_MAX}.\n"
+            f"Seleziona una stagione nell'intervallo corretto nella configurazione."
+        )
+
     imported = 0
     page = 1
 
     async with httpx.AsyncClient(timeout=20) as client:
         while True:
+
+            # Rispetta il limite di paginazione del piano Free
+            # prima ancora di fare la richiesta
+            if page > _FREE_PAGE_LIMIT:
+                print(
+                    f"  ⚠ Limite paginazione piano Free ({_FREE_PAGE_LIMIT} pagine). "
+                    f"Totale importati finora: {imported}"
+                )
+                break
+
             response = await client.get(
                 "https://v3.football.api-sports.io/players",
                 headers={"x-apisports-key": api_key},
@@ -60,9 +87,23 @@ async def fetch_from_api_football(
             response.raise_for_status()
             data = response.json()
 
-            # Controlla errori API-Football (ritornano 200 con corpo errore)
+            # ── Gestione errori nel body della risposta ─────────────────
+            # API-Football ritorna HTTP 200 anche in caso di errore,
+            # con un dict "errors" nel corpo.
             errors = data.get("errors", {})
             if errors:
+                err_str = str(errors).lower()
+
+                # Errore di paginazione → stop silenzioso, non eccezione.
+                # "Free plans are limited to a maximum value of 3 for the Page parameter"
+                if "page" in err_str or "plan" in err_str:
+                    print(
+                        f"  ⚠ Limite piano Free raggiunto alla pagina {page}: {errors}\n"
+                        f"  → Salvo i {imported} giocatori già importati."
+                    )
+                    break
+
+                # Errori autenticazione o altri → eccezione
                 raise ValueError(f"Errore API-Football: {errors}")
 
             players = data.get("response", [])
