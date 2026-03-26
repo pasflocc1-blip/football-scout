@@ -114,11 +114,11 @@
         </div>
         <div v-if="configOpen.api_football" class="config-fields">
           <div class="config-note-warning">
-            ⚠️ Free tier: 100 req/giorno · Max 3 pagine · Stagioni 2022–2024
+            ⚠️ Free tier: 100 req/giorno · Max 3 pagine (~60 giocatori) · Stagioni 2022–2024
           </div>
           <div class="config-group">
             <label>Campionato</label>
-            <select v-model="config.league_id">
+            <select v-model="config.league_id" @change="config.team_id = null">
               <option :value="135">🇮🇹 Serie A</option>
               <option :value="39">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</option>
               <option :value="140">🇪🇸 La Liga</option>
@@ -132,6 +132,31 @@
               <option v-for="y in apifSeasons" :key="y" :value="y">{{ y }}/{{ y + 1 }}</option>
             </select>
             <small style="color:#b45309">Solo 2022–2024 supportate dal free tier</small>
+          </div>
+          <div class="config-group">
+            <label>
+              Modalità import
+              <span class="hint-icon" title="Singola squadra usa meno richieste API e non ha limite di pagine">ℹ️</span>
+            </label>
+            <select v-model="config.import_mode">
+              <option value="league">🌍 Tutto il campionato (max 3 pag. ≈ 60 giocatori)</option>
+              <option value="team">🎯 Singola squadra (nessun limite di pagine)</option>
+            </select>
+          </div>
+          <div v-if="config.import_mode === 'team'" class="config-group">
+            <label>Team ID</label>
+            <input v-model.number="config.team_id" type="number" placeholder="es. 489 (AC Milan)" />
+            <small style="color:var(--text-muted,#6b7280)">
+              Trova l'ID su
+              <a href="https://dashboard.api-football.com" target="_blank">dashboard.api-football.com</a>
+              → Ids → Teams
+            </small>
+            <div class="team-id-hints">
+              <span v-for="t in (APIF_TEAM_HINTS[config.league_id] || [])" :key="t.id"
+                class="team-hint-chip" @click="config.team_id = t.id">
+                {{ t.name }} ({{ t.id }})
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -322,6 +347,9 @@
         <div class="source-status" v-if="jobs.api_football">
           <JobStatus :job="jobs.api_football" />
         </div>
+        <div v-if="isPageLimited && dialogSource === 'api-football'" class="source-page-limit-badge">
+          ⚠️ Fermato a 3 pag. (free tier)
+        </div>
         <button
           class="btn btn-source"
           :disabled="jobs.api_football?.status === 'running'"
@@ -503,6 +531,14 @@
             </div>
           </div>
 
+          <!-- Avviso limite pagine free tier -->
+          <div v-if="isPageLimited" class="page-limit-warning">
+            ⚠️ <strong>Limite free tier raggiunto:</strong> importate solo 3 pagine (~60 giocatori).
+            Passa alla modalità <em>Singola squadra</em> per ottenere la rosa completa,
+            oppure acquista un piano a pagamento su
+            <a href="https://dashboard.api-football.com" target="_blank">api-football.com</a>.
+          </div>
+
           <button class="btn btn-close-dialog" @click="dialogVisible = false">Chiudi</button>
         </div>
 
@@ -643,6 +679,33 @@ async function loadEnvStatus() {
 }
 
 // ── Config ─────────────────────────────────────────────────────
+// Quick team IDs per campionato (utili come shortcut nella UI)
+const APIF_TEAM_HINTS = {
+  135: [ // Serie A
+    { id: 489, name: 'AC Milan' }, { id: 496, name: 'Juventus' },
+    { id: 505, name: 'Inter' },    { id: 492, name: 'Napoli' },
+    { id: 497, name: 'Roma' },     { id: 487, name: 'Lazio' },
+    { id: 500, name: 'Fiorentina' }, { id: 499, name: 'Atalanta' },
+  ],
+  39: [ // Premier League
+    { id: 33, name: 'Manchester United' }, { id: 40, name: 'Liverpool' },
+    { id: 42, name: 'Arsenal' },           { id: 50, name: 'Manchester City' },
+    { id: 49, name: 'Chelsea' },           { id: 47, name: 'Tottenham' },
+  ],
+  140: [ // La Liga
+    { id: 529, name: 'Barcelona' }, { id: 541, name: 'Real Madrid' },
+    { id: 530, name: 'Atletico' },  { id: 548, name: 'Real Sociedad' },
+  ],
+  78: [ // Bundesliga
+    { id: 157, name: 'Bayern' }, { id: 165, name: 'Borussia Dortmund' },
+    { id: 168, name: 'RB Leipzig' }, { id: 161, name: 'Freiburg' },
+  ],
+  61: [ // Ligue 1
+    { id: 85, name: 'Paris SG' }, { id: 80, name: 'Lyon' },
+    { id: 91, name: 'Monaco' },   { id: 81, name: 'Marseille' },
+  ],
+}
+
 // API-Football free tier: solo 2022-2024
 const apifSeasons = [2024, 2023, 2022]
 // Football-Data: stagioni recenti
@@ -662,6 +725,10 @@ const config = ref({
   statsbomb_comp:        12,
   statsbomb_season_id:   12,   // Serie A 2019/20
   statsbomb_max_matches: 50,
+
+  // API-Football: modalità import
+  import_mode: 'league',   // 'league' | 'team'
+  team_id: null,            // se import_mode === 'team'
 
   // Kaggle
   kaggle_file:  '/app/app/data/players_22.csv',
@@ -744,6 +811,14 @@ const isAnyRunning = computed(() =>
   Object.values(jobs.value).some(j => j?.status === 'running')
 )
 
+// Rileva se API-Football si è fermato al limite delle 3 pagine del free tier
+// (il backend imposta pages_fetched nel result)
+const isPageLimited = computed(() => {
+  const job = jobs.value['api_football']
+  if (!job || job.status !== 'done') return false
+  return job.result?.pages_fetched >= 3 && job.result?.pages_total > 3
+})
+
 const activeDialogJob = computed(() => {
   if (!dialogSource.value) return null
   const key = SOURCE_KEY_MAP[dialogSource.value] ?? dialogSource.value
@@ -808,6 +883,9 @@ async function runSource(source) {
     'api-football': {
       league_id: config.value.league_id,
       season:    config.value.season,
+      ...(config.value.import_mode === 'team' && config.value.team_id
+        ? { team_id: config.value.team_id }
+        : {}),
     },
     'statsbomb': {
       competition_id: config.value.statsbomb_comp,
@@ -1457,4 +1535,48 @@ export default {
 /* Spin animation per il bottone refresh */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { display: inline-block; animation: spin 0.8s linear infinite; }
+
+/* ── Team hint chips ───────────────────────────────────────── */
+.team-id-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+.team-hint-chip {
+  background: var(--bg, #f3f4f6);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 20px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+  color: var(--primary, #3b82f6);
+  transition: background 0.15s;
+}
+.team-hint-chip:hover { background: #dbeafe; border-color: #93c5fd; }
+
+/* ── Avviso limite 3 pagine ────────────────────────────────── */
+.page-limit-warning {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.82rem;
+  color: #92400e;
+  width: 100%;
+  text-align: left;
+  line-height: 1.5;
+}
+.page-limit-warning a { color: #b45309; font-weight: 600; }
+
+.source-page-limit-badge {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  color: #92400e;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+}
 </style>

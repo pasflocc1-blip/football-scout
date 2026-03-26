@@ -5,7 +5,7 @@ from app.database import get_db
 from app.models.models import MyTeam, TeamTrait
 from app.schemas.schemas import TeamCreate, TeamOut, TeamUpdate, TraitCreate, TraitOut
 
-router = APIRouter(prefix="/teams", tags=["Squadra"])
+router = APIRouter(prefix="/teams", tags=["Squadra"], redirect_slashes=False)
 
 
 @router.post("/", response_model=TeamOut, status_code=201)

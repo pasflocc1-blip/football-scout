@@ -60,6 +60,7 @@ class ScoutingPlayer(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     external_id = Column(String(50), unique=True, index=True)
+    fbref_id = Column(String(50), unique=True, index=True, nullable=True)
     name = Column(String(100), nullable=False)
     position = Column(String(20))
     club = Column(String(100))

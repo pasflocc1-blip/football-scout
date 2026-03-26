@@ -1,0 +1,2913 @@
+PROGETTO: D:\Progetti\football-scout\backend
+TOTALE FILE: 30
+============================================================
+
+============================================================
+FILE: alembic\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: alembic\env.py
+============================================================
+import os
+from logging.config import fileConfig
+from sqlalchemy import engine_from_config, pool
+from alembic import context
+
+# Importa i modelli per permettere ad Alembic di rilevare le tabelle
+from app.database import Base
+from app.models import models  # noqa: F401 — necessario per registrare i modelli
+
+config = context.config
+
+# Legge DATABASE_URL dall'ambiente (sovrascrive alembic.ini in produzione)
+db_url = os.getenv("DATABASE_URL")
+if db_url:
+    config.set_main_option("sqlalchemy.url", db_url)
+
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+target_metadata = Base.metadata
+
+
+def run_migrations_offline() -> None:
+    url = config.get_main_option("sqlalchemy.url")
+    context.configure(url=url, target_metadata=target_metadata,
+                      literal_binds=True, dialect_opts={"paramstyle": "named"})
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def run_migrations_online() -> None:
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
+    with connectable.connect() as connection:
+        context.configure(connection=connection, target_metadata=target_metadata)
+        with context.begin_transaction():
+            context.run_migrations()
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()
+
+
+============================================================
+FILE: alembic\versions\0001_create_initial_tables.py
+============================================================
+"""create initial tables
+
+Revision ID: 0001
+Revises:
+Create Date: 2024-01-01 00:00:00
+"""
+from alembic import op
+import sqlalchemy as sa
+
+revision = '0001'
+down_revision = None
+branch_labels = None
+depends_on = None
+
+
+def upgrade() -> None:
+    op.create_table(
+        'my_team',
+        sa.Column('id',         sa.Integer,     primary_key=True),
+        sa.Column('name',       sa.String(100), nullable=False),
+        sa.Column('formation',  sa.String(20)),
+        sa.Column('league',     sa.String(100)),
+        sa.Column('season',     sa.String(20)),
+        sa.Column('coach',      sa.String(100)),
+        sa.Column('budget',     sa.Float),
+        sa.Column('notes',      sa.Text),
+        sa.Column('created_at', sa.DateTime, server_default=sa.text('now()')),
+        sa.Column('updated_at', sa.DateTime, server_default=sa.text('now()')),
+    )
+
+    op.create_table(
+        'team_traits',
+        sa.Column('id',          sa.Integer,     primary_key=True),
+        sa.Column('team_id',     sa.Integer,     sa.ForeignKey('my_team.id', ondelete='CASCADE'), nullable=False),
+        sa.Column('trait_type',  sa.Enum('positive', 'negative', name='traittype'), nullable=False),
+        sa.Column('description', sa.Text,        nullable=False),
+        sa.Column('priority',    sa.Integer,     server_default='1'),
+    )
+
+    op.create_table(
+        'my_players',
+        sa.Column('id',             sa.Integer,     primary_key=True),
+        sa.Column('team_id',        sa.Integer,     sa.ForeignKey('my_team.id', ondelete='CASCADE')),
+        sa.Column('name',           sa.String(100), nullable=False),
+        sa.Column('position',       sa.String(20)),
+        sa.Column('age',            sa.Integer),
+        sa.Column('preferred_foot', sa.String(10)),
+        sa.Column('rating',         sa.Float),
+    )
+
+    op.create_table(
+        'scouting_players',
+        sa.Column('id',                    sa.Integer,     primary_key=True),
+        sa.Column('external_id',           sa.String(50),  unique=True, index=True),
+        sa.Column('name',                  sa.String(100), nullable=False),
+        sa.Column('position',              sa.String(20)),
+        sa.Column('club',                  sa.String(100)),
+        sa.Column('nationality',           sa.String(50)),
+        sa.Column('age',                   sa.Integer),
+        sa.Column('preferred_foot',        sa.String(10)),
+        sa.Column('pace',                  sa.Integer),
+        sa.Column('shooting',              sa.Integer),
+        sa.Column('passing',               sa.Integer),
+        sa.Column('dribbling',             sa.Integer),
+        sa.Column('defending',             sa.Integer),
+        sa.Column('physical',              sa.Integer),
+        sa.Column('xg_per90',              sa.Float),
+        sa.Column('xa_per90',              sa.Float),
+        sa.Column('progressive_passes',    sa.Integer),
+        sa.Column('aerial_duels_won_pct',  sa.Float),
+        sa.Column('heading_score',         sa.Float),
+        sa.Column('build_up_score',        sa.Float),
+        sa.Column('defensive_score',       sa.Float),
+        sa.Column('updated_at',            sa.DateTime, server_default=sa.text('now()')),
+    )
+
+
+def downgrade() -> None:
+    op.drop_table('scouting_players')
+    op.drop_table('my_players')
+    op.drop_table('team_traits')
+    op.drop_table('my_team')
+    op.execute("DROP TYPE IF EXISTS traittype")
+
+
+============================================================
+FILE: alembic\versions\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: app\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: app\database.py
+============================================================
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://football:football123@localhost:5432/football_scout"
+)
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+
+def get_db():
+    """Dependency injection per le route FastAPI."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+============================================================
+FILE: app\main.py
+============================================================
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.routers import team, players, scouting, admin
+from app.database import engine, Base
+from app.routers import ingest as ingest_router
+from app.routers import db_explorer as db_explorer_router
+
+# Crea tutte le tabelle all'avvio (in prod usa Alembic)
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="Football Scout API",
+    description="API per la gestione e lo scouting della squadra",
+    version="1.0.0",
+)
+
+# ── CORS ────────────────────────────────────────────────────────
+# Permette chiamate dal frontend Vue in sviluppo e produzione
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",   # Vue dev server
+        "http://localhost:4173",   # Vue preview
+        "http://frontend:5173",    # nome servizio Docker
+        "http://192.168.1.186:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ── Router ──────────────────────────────────────────────────────
+app.include_router(team.router)
+app.include_router(players.router)
+app.include_router(scouting.router)
+app.include_router(admin.router)
+app.include_router(ingest_router.router)
+app.include_router(db_explorer_router.router)
+
+@app.get("/", tags=["health"])
+def health_check():
+    return {"status": "ok", "message": "Football Scout API attiva"}
+
+
+============================================================
+FILE: app\models\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: app\models\models.py
+============================================================
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, DateTime, Enum
+from sqlalchemy.orm import relationship
+import enum
+
+from app.database import Base
+
+
+class TraitType(str, enum.Enum):
+    positive = "positive"
+    negative = "negative"
+
+
+class MyTeam(Base):
+    __tablename__ = "my_team"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    formation = Column(String(20))            # es. "4-3-3"
+    league = Column(String(100))
+    season = Column(String(20))              # es. "2024/2025"
+    coach = Column(String(100))
+    budget = Column(Float)
+    notes = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    traits = relationship("TeamTrait", back_populates="team", cascade="all, delete")
+    players = relationship("MyPlayer", back_populates="team", cascade="all, delete")
+
+
+class TeamTrait(Base):
+    __tablename__ = "team_traits"
+
+    id = Column(Integer, primary_key=True, index=True)
+    team_id = Column(Integer, ForeignKey("my_team.id", ondelete="CASCADE"), nullable=False)
+    trait_type = Column(Enum(TraitType), nullable=False)
+    description = Column(Text, nullable=False)
+    priority = Column(Integer, default=1)
+
+    team = relationship("MyTeam", back_populates="traits")
+
+
+class MyPlayer(Base):
+    __tablename__ = "my_players"
+
+    id = Column(Integer, primary_key=True, index=True)
+    team_id = Column(Integer, ForeignKey("my_team.id", ondelete="CASCADE"))
+    name = Column(String(100), nullable=False)
+    position = Column(String(20))
+    age = Column(Integer)
+    preferred_foot = Column(String(10))
+    rating = Column(Float)
+
+    team = relationship("MyTeam", back_populates="players")
+
+
+class ScoutingPlayer(Base):
+    __tablename__ = "scouting_players"
+
+    id = Column(Integer, primary_key=True, index=True)
+    external_id = Column(String(50), unique=True, index=True)
+    name = Column(String(100), nullable=False)
+    position = Column(String(20))
+    club = Column(String(100))
+    nationality = Column(String(50))
+    age = Column(Integer)
+    preferred_foot = Column(String(10))
+
+    # Stats base (stile FIFA/FBref)
+    pace = Column(Integer)
+    shooting = Column(Integer)
+    passing = Column(Integer)
+    dribbling = Column(Integer)
+    defending = Column(Integer)
+    physical = Column(Integer)
+
+    # Stats avanzate (da StatsBomb / API-Football)
+    xg_per90 = Column(Float)
+    xa_per90 = Column(Float)
+    progressive_passes = Column(Integer)
+    aerial_duels_won_pct = Column(Float)
+
+    # Scores calcolati dalla nostra logica
+    heading_score = Column(Float)
+    build_up_score = Column(Float)
+    defensive_score = Column(Float)
+
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+============================================================
+FILE: app\routers\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: app\routers\admin.py
+============================================================
+from fastapi import APIRouter, Depends, BackgroundTasks
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.services.scoring import recalculate_all
+
+router = APIRouter(prefix="/admin", tags=["Admin"])
+
+
+@router.post("/recalculate-scores")
+def recalculate_scores(db: Session = Depends(get_db)):
+    """
+    Ricalcola heading_score, build_up_score, defensive_score
+    per tutti i giocatori nel database.
+    Da eseguire dopo ogni importazione dati.
+    """
+    updated = recalculate_all(db)
+    return {"message": f"Score ricalcolati per {updated} giocatori"}
+
+
+@router.get("/stats")
+def db_stats(db: Session = Depends(get_db)):
+    """Statistiche rapide sul contenuto del database."""
+    from app.models.models import ScoutingPlayer, MyTeam, MyPlayer
+    return {
+        "scouting_players": db.query(ScoutingPlayer).count(),
+        "teams":            db.query(MyTeam).count(),
+        "roster_players":   db.query(MyPlayer).count(),
+    }
+
+
+============================================================
+FILE: app\routers\db_explorer.py
+============================================================
+"""
+routers/db_explorer.py
+-----------------------
+Endpoint REST per esplorare il database dal frontend.
+Solo operazioni di lettura (SELECT) — nessuna modifica consentita.
+
+Endpoints:
+  GET  /db/tables              → lista di tutte le tabelle
+  GET  /db/tables/{table}      → schema della tabella (colonne + tipi)
+  GET  /db/tables/{table}/data → prime N righe della tabella
+  POST /db/query               → esegue una query SELECT custom
+"""
+
+import re
+from typing import Any, Optional
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy import text, inspect
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+
+from app.database import get_db
+
+router = APIRouter(prefix="/db", tags=["db-explorer"])
+
+# ── Sicurezza: whitelist SQL statement ────────────────────────────
+
+_FORBIDDEN_PATTERN = re.compile(
+    r"\b(INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|GRANT|REVOKE|EXEC|EXECUTE|"
+    r"CALL|COPY|VACUUM|ANALYZE|EXPLAIN\s+ANALYZE)\b",
+    re.IGNORECASE,
+)
+
+
+def _validate_select_only(sql: str):
+    """
+    Rifiuta qualsiasi query che non sia un SELECT puro.
+    Raises HTTPException 400 se la query contiene istruzioni non permesse.
+    """
+    stripped = sql.strip()
+    if not re.match(r"^\s*(SELECT|WITH)\b", stripped, re.IGNORECASE):
+        raise HTTPException(
+            400,
+            "Solo query SELECT e WITH…SELECT sono permesse nel DB Explorer."
+        )
+    if _FORBIDDEN_PATTERN.search(stripped):
+        raise HTTPException(
+            400,
+            "La query contiene istruzioni non permesse (INSERT, UPDATE, DELETE, DROP, ecc.)."
+        )
+
+
+# ── Request models ────────────────────────────────────────────────
+
+class QueryRequest(BaseModel):
+    sql: str
+    limit: int = 100   # max righe restituite
+
+
+# ── Endpoints ─────────────────────────────────────────────────────
+
+@router.get("/tables")
+def list_tables(db: Session = Depends(get_db)):
+    """Lista tutte le tabelle presenti nel database."""
+    inspector = inspect(db.bind)
+    tables = inspector.get_table_names()
+    result = []
+    for table in sorted(tables):
+        try:
+            count_row = db.execute(
+                text(f"SELECT COUNT(*) FROM {table}")
+            ).scalar()
+        except Exception:
+            count_row = None
+        result.append({"name": table, "row_count": count_row})
+    return result
+
+
+@router.get("/tables/{table_name}")
+def get_table_schema(table_name: str, db: Session = Depends(get_db)):
+    """
+    Ritorna lo schema (colonne, tipi, nullable, default, primary key)
+    di una tabella specifica.
+    """
+    inspector = inspect(db.bind)
+    tables = inspector.get_table_names()
+
+    if table_name not in tables:
+        raise HTTPException(404, f"Tabella '{table_name}' non trovata")
+
+    columns = inspector.get_columns(table_name)
+    pk_cols  = {c for c in inspector.get_pk_constraint(table_name).get("constrained_columns", [])}
+    indexes  = inspector.get_indexes(table_name)
+
+    return {
+        "table":   table_name,
+        "columns": [
+            {
+                "name":       c["name"],
+                "type":       str(c["type"]),
+                "nullable":   c.get("nullable", True),
+                "default":    str(c.get("default", "")) if c.get("default") is not None else None,
+                "primary_key": c["name"] in pk_cols,
+            }
+            for c in columns
+        ],
+        "indexes": [
+            {
+                "name":    idx.get("name"),
+                "columns": idx.get("column_names", []),
+                "unique":  idx.get("unique", False),
+            }
+            for idx in indexes
+        ],
+    }
+
+
+@router.get("/tables/{table_name}/data")
+def get_table_data(
+    table_name: str,
+    limit: int = 50,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+):
+    """
+    Ritorna le prime N righe di una tabella con paginazione.
+    Max limit: 500.
+    """
+    limit = min(limit, 500)
+
+    inspector = inspect(db.bind)
+    if table_name not in inspector.get_table_names():
+        raise HTTPException(404, f"Tabella '{table_name}' non trovata")
+
+    try:
+        rows = db.execute(
+            text(f"SELECT * FROM {table_name} LIMIT :limit OFFSET :offset"),
+            {"limit": limit, "offset": offset},
+        ).mappings().all()
+
+        total = db.execute(
+            text(f"SELECT COUNT(*) FROM {table_name}")
+        ).scalar()
+
+        return {
+            "table":  table_name,
+            "total":  total,
+            "offset": offset,
+            "limit":  limit,
+            "rows":   [dict(r) for r in rows],
+        }
+    except SQLAlchemyError as e:
+        raise HTTPException(500, f"Errore database: {e}")
+
+
+@router.post("/query")
+def execute_query(req: QueryRequest, db: Session = Depends(get_db)):
+    """
+    Esegue una query SELECT custom.
+    Solo SELECT e WITH…SELECT sono permessi.
+    Il risultato è limitato a req.limit righe (max 500).
+    """
+    limit = min(req.limit, 500)
+    _validate_select_only(req.sql)
+
+    # Wrappa la query per forzare il limite di sicurezza
+    safe_sql = f"SELECT * FROM ({req.sql.rstrip(';')}) AS _q LIMIT :limit"
+
+    try:
+        rows = db.execute(text(safe_sql), {"limit": limit}).mappings().all()
+        # Conta righe senza il limite (per mostrare "X di Y risultati")
+        count_sql = f"SELECT COUNT(*) FROM ({req.sql.rstrip(';')}) AS _q"
+        try:
+            total = db.execute(text(count_sql)).scalar()
+        except Exception:
+            total = len(rows)
+
+        return {
+            "total":   total,
+            "showing": len(rows),
+            "columns": list(rows[0].keys()) if rows else [],
+            "rows":    [dict(r) for r in rows],
+        }
+    except SQLAlchemyError as e:
+        raise HTTPException(400, f"Errore SQL: {e}")
+
+
+============================================================
+FILE: app\routers\ingest.py
+============================================================
+"""
+routers/ingest.py
+-----------------
+Endpoint REST per triggerare i job di ingestion dal frontend.
+Usa BackgroundTasks di FastAPI per eseguire i job in modo asincrono.
+
+Endpoints:
+  POST /ingest/kaggle          → importa CSV Kaggle
+  POST /ingest/api-football    → importa da API-Football
+  POST /ingest/statsbomb       → arricchisce con StatsBomb open data
+  POST /ingest/fbref           → arricchisce con FBref scraping
+  POST /ingest/football-data   → sincronizza club da Football-Data.org
+  POST /ingest/all             → esegue tutte le sorgenti
+  GET  /ingest/status          → stato degli ultimi job
+  GET  /ingest/statsbomb/competitions → lista competizioni StatsBomb disponibili
+  GET  /ingest/football-data/competitions → lista competizioni Football-Data.org
+"""
+
+import asyncio
+import threading
+from datetime import datetime
+from typing import Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.services.sources.kaggle_source import import_from_kaggle_csv
+from app.services.sources.api_football_source import fetch_from_api_football
+from app.services.sources.statsbomb_source import fetch_from_statsbomb, list_competitions as sb_list
+from app.services.sources.fbref_source import scrape_standard_stats, FBREF_LEAGUES
+from app.services.sources.football_data_source import (
+    sync_player_clubs,
+    fetch_competitions as fd_list,
+    COMPETITION_CODES,
+)
+from app.services.ingest import run_all  # mantenuto per compatibilità CLI
+
+router = APIRouter(prefix="/ingest", tags=["ingest"])
+
+# ── In-memory job status store ────────────────────────────────────
+# { source_key: { status, started_at, finished_at, result, error } }
+_job_status: dict[str, dict] = {}
+
+
+def _set_running(source: str):
+    _job_status[source] = {
+        "status": "running",
+        "started_at": datetime.utcnow().isoformat(),
+        "finished_at": None,
+        "result": None,
+        "error": None,
+        "progress": None,        # contatore avanzamento (es. giocatori processati)
+        "progress_total": None,  # totale se noto (es. partite StatsBomb)
+    }
+
+
+def _set_done(source: str, result):
+    if source in _job_status:
+        _job_status[source].update({
+            "status": "done",
+            "finished_at": datetime.utcnow().isoformat(),
+            "result": result,
+            "progress": None,
+            "progress_total": None,
+        })
+
+
+def _set_error(source: str, error: str):
+    if source in _job_status:
+        _job_status[source].update({
+            "status": "error",
+            "finished_at": datetime.utcnow().isoformat(),
+            "error": error,
+            "progress": None,
+            "progress_total": None,
+        })
+
+
+# ── Request models ────────────────────────────────────────────────
+
+class KaggleRequest(BaseModel):
+    file_path: str = "/app/data/players_22.csv"
+    limit: int = 2000
+
+
+class ApiFootballRequest(BaseModel):
+    league_id: int = 135   # 135=Serie A, 39=PL, 140=La Liga
+    season: int = 2024
+
+
+class StatsBombRequest(BaseModel):
+    competition_id: int = 12   # 12=Serie A
+    season_id: int = 27
+    max_matches: int = 50
+
+
+class FBrefRequest(BaseModel):
+    league_key: str = "serie_a"
+    season: str = "2023-2024"
+
+
+class FootballDataRequest(BaseModel):
+    competition_code: str = "SA"
+    season: int = 2024
+
+
+class RunAllRequest(BaseModel):
+    kaggle_file: Optional[str] = None
+    kaggle_limit: int = 2000
+    api_league: int = 135
+    season: int = 2024
+    statsbomb_comp: int = 12
+    statsbomb_season_id: int = 27
+    statsbomb_max_matches: int = 50
+    fbref_league: str = "serie_a"
+    fbref_season: str = "2023-2024"
+    football_data_comp: str = "SA"
+
+
+# ── Helper per eseguire coroutine in background thread ────────────
+
+def _run_async_in_thread(coro):
+    """Esegue una coroutine in un nuovo event loop in un thread separato."""
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(coro)
+    finally:
+        loop.close()
+
+
+# ── Endpoints ─────────────────────────────────────────────────────
+
+@router.get("/env-status", tags=["ingest"])
+def env_status():
+    """Ritorna quali variabili d'ambiente critiche sono configurate."""
+    import os
+    keys = ["API_FOOTBALL_KEY", "FOOTBALL_DATA_KEY", "DATABASE_URL",
+            "POSTGRES_USER", "POSTGRES_PASSWORD"]
+    return {k: bool(os.getenv(k)) for k in keys}
+
+@router.get("/status")
+def get_status():
+    """Ritorna lo stato di tutti i job di ingestion."""
+    return _job_status
+
+
+@router.post("/kaggle")
+def run_kaggle(req: KaggleRequest, background_tasks: BackgroundTasks):
+    """Importa giocatori da CSV Kaggle FIFA."""
+    if _job_status.get("kaggle", {}).get("status") == "running":
+        raise HTTPException(409, "Job Kaggle già in esecuzione")
+
+    # ✅ FIX: _set_running PRIMA di add_task — il client vede subito "running"
+    _set_running("kaggle")
+
+    def _task():
+        from app.database import SessionLocal
+        db = SessionLocal()
+        try:
+            # ✅ FIX: progress_cb aggiorna il contatore in tempo reale
+            def _progress(imported: int):
+                if "kaggle" in _job_status:
+                    _job_status["kaggle"]["progress"] = imported
+
+            n = import_from_kaggle_csv(db, req.file_path, limit=req.limit, progress_cb=_progress)
+            _set_done("kaggle", {"imported": n})
+        except Exception as e:
+            _set_error("kaggle", str(e))
+        finally:
+            db.close()
+
+    background_tasks.add_task(_task)
+    return {"message": "Job Kaggle avviato", "file": req.file_path}
+
+
+@router.post("/api-football")
+def run_api_football(req: ApiFootballRequest, background_tasks: BackgroundTasks):
+    """Importa giocatori da API-Football."""
+    if _job_status.get("api_football", {}).get("status") == "running":
+        raise HTTPException(409, "Job API-Football già in esecuzione")
+
+    # ✅ FIX
+    _set_running("api_football")
+
+    def _task():
+        from app.database import SessionLocal
+        db = SessionLocal()
+        try:
+            def _progress(imported: int):
+                if "api_football" in _job_status:
+                    _job_status["api_football"]["progress"] = imported
+
+            n = _run_async_in_thread(
+                fetch_from_api_football(db, req.league_id, req.season, progress_cb=_progress)
+            )
+            _set_done("api_football", {"imported": n})
+        except Exception as e:
+            _set_error("api_football", str(e))
+        finally:
+            db.close()
+
+    background_tasks.add_task(_task)
+    return {"message": "Job API-Football avviato", "league": req.league_id, "season": req.season}
+
+
+@router.post("/statsbomb")
+def run_statsbomb(req: StatsBombRequest, background_tasks: BackgroundTasks):
+    """Arricchisce giocatori con StatsBomb open data (xG/xA)."""
+    if _job_status.get("statsbomb", {}).get("status") == "running":
+        raise HTTPException(409, "Job StatsBomb già in esecuzione")
+
+    # ✅ FIX
+    _set_running("statsbomb")
+
+    def _task():
+        from app.database import SessionLocal
+        db = SessionLocal()
+        try:
+            def _progress(done: int, total: int):
+                if "statsbomb" in _job_status:
+                    _job_status["statsbomb"]["progress"] = done
+                    _job_status["statsbomb"]["progress_total"] = total
+
+            result = _run_async_in_thread(
+                fetch_from_statsbomb(
+                    db, req.competition_id, req.season_id, req.max_matches,
+                    progress_cb=_progress,
+                )
+            )
+            _set_done("statsbomb", result)
+        except Exception as e:
+            _set_error("statsbomb", str(e))
+        finally:
+            db.close()
+
+    background_tasks.add_task(_task)
+    return {
+        "message": "Job StatsBomb avviato",
+        "competition_id": req.competition_id,
+        "season_id": req.season_id,
+    }
+
+
+@router.post("/fbref")
+def run_fbref(req: FBrefRequest, background_tasks: BackgroundTasks):
+    """Arricchisce giocatori con FBref scraping (xG/xA)."""
+    if req.league_key not in FBREF_LEAGUES:
+        raise HTTPException(400, f"league_key non valido. Disponibili: {list(FBREF_LEAGUES.keys())}")
+    if _job_status.get("fbref", {}).get("status") == "running":
+        raise HTTPException(409, "Job FBref già in esecuzione")
+
+    # ✅ FIX
+    _set_running("fbref")
+
+    def _task():
+        from app.database import SessionLocal
+        db = SessionLocal()
+        try:
+            result = scrape_standard_stats(db, req.league_key, req.season)
+            _set_done("fbref", result)
+        except Exception as e:
+            _set_error("fbref", str(e))
+        finally:
+            db.close()
+
+    background_tasks.add_task(_task)
+    return {"message": "Job FBref avviato", "league": req.league_key, "season": req.season}
+
+
+@router.post("/football-data")
+def run_football_data(req: FootballDataRequest, background_tasks: BackgroundTasks):
+    """Sincronizza club dei giocatori da Football-Data.org."""
+    if _job_status.get("football_data", {}).get("status") == "running":
+        raise HTTPException(409, "Job Football-Data già in esecuzione")
+
+    # ✅ FIX
+    _set_running("football_data")
+
+    def _task():
+        from app.database import SessionLocal
+        db = SessionLocal()
+        try:
+            def _progress(done: int, total: int):
+                if "football_data" in _job_status:
+                    _job_status["football_data"]["progress"] = done
+                    _job_status["football_data"]["progress_total"] = total
+
+            result = _run_async_in_thread(
+                sync_player_clubs(db, req.competition_code, req.season, progress_cb=_progress)
+            )
+            _set_done("football_data", result)
+        except Exception as e:
+            _set_error("football_data", str(e))
+        finally:
+            db.close()
+
+    background_tasks.add_task(_task)
+    return {
+        "message": "Job Football-Data avviato",
+        "competition": req.competition_code,
+        "season": req.season,
+    }
+
+
+@router.post("/all")
+def run_all_sources(req: RunAllRequest, background_tasks: BackgroundTasks):
+    """Esegue tutte le sorgenti in sequenza."""
+    if _job_status.get("all", {}).get("status") == "running":
+        raise HTTPException(409, "Job 'all' già in esecuzione")
+
+    # ✅ FIX: stato visibile immediatamente al client
+    _set_running("all")
+    # Segna anche i singoli job come "pending" così le card si aggiornano
+    for key in ("kaggle", "api_football", "statsbomb", "fbref", "football_data"):
+        _job_status[key] = {
+            "status": "pending",
+            "started_at": None,
+            "finished_at": None,
+            "result": None,
+            "error": None,
+            "progress": None,
+            "progress_total": None,
+        }
+
+    def _task():
+        results = {}
+
+        # ── 1. Kaggle ──
+        import os
+        from app.database import SessionLocal
+        kaggle_file = req.kaggle_file or "/app/data/players_22.csv"
+        if os.path.exists(kaggle_file):
+            _set_running("kaggle")
+            db = SessionLocal()
+            try:
+                def _kprogress(n: int):
+                    _job_status["kaggle"]["progress"] = n
+                n = import_from_kaggle_csv(db, kaggle_file, limit=req.kaggle_limit, progress_cb=_kprogress)
+                _set_done("kaggle", {"imported": n})
+                results["kaggle"] = {"status": "ok", "imported": n}
+            except Exception as e:
+                _set_error("kaggle", str(e))
+                results["kaggle"] = {"status": "error", "error": str(e)}
+            finally:
+                db.close()
+        else:
+            _job_status["kaggle"]["status"] = "skipped"
+            results["kaggle"] = {"status": "skipped", "reason": f"file non trovato: {kaggle_file}"}
+
+        # ── 2. API-Football ──
+        if os.getenv("API_FOOTBALL_KEY"):
+            _set_running("api_football")
+            db = SessionLocal()
+            try:
+                def _aprogress(n: int):
+                    _job_status["api_football"]["progress"] = n
+                n = _run_async_in_thread(
+                    fetch_from_api_football(db, req.api_league, req.season, progress_cb=_aprogress)
+                )
+                _set_done("api_football", {"imported": n})
+                results["api_football"] = {"status": "ok", "imported": n}
+            except Exception as e:
+                _set_error("api_football", str(e))
+                results["api_football"] = {"status": "error", "error": str(e)}
+            finally:
+                db.close()
+        else:
+            _job_status["api_football"]["status"] = "skipped"
+            results["api_football"] = {"status": "skipped", "reason": "API_FOOTBALL_KEY mancante"}
+
+        # ── 3. StatsBomb ──
+        _set_running("statsbomb")
+        db = SessionLocal()
+        try:
+            def _sbprogress(done: int, total: int):
+                _job_status["statsbomb"]["progress"] = done
+                _job_status["statsbomb"]["progress_total"] = total
+            sb_result = _run_async_in_thread(
+                fetch_from_statsbomb(
+                    db, req.statsbomb_comp, req.statsbomb_season_id,
+                    req.statsbomb_max_matches, progress_cb=_sbprogress,
+                )
+            )
+            _set_done("statsbomb", sb_result)
+            results["statsbomb"] = {"status": "ok", **sb_result}
+        except Exception as e:
+            _set_error("statsbomb", str(e))
+            results["statsbomb"] = {"status": "error", "error": str(e)}
+        finally:
+            db.close()
+
+        # ── 4. FBref ──
+        _set_running("fbref")
+        db = SessionLocal()
+        try:
+            fb_result = scrape_standard_stats(db, req.fbref_league, req.fbref_season)
+            _set_done("fbref", fb_result)
+            results["fbref"] = {"status": "ok", **fb_result}
+        except Exception as e:
+            _set_error("fbref", str(e))
+            results["fbref"] = {"status": "error", "error": str(e)}
+        finally:
+            db.close()
+
+        # ── 5. Football-Data.org ──
+        if os.getenv("FOOTBALL_DATA_KEY"):
+            _set_running("football_data")
+            db = SessionLocal()
+            try:
+                def _fdprogress(done: int, total: int):
+                    _job_status["football_data"]["progress"] = done
+                    _job_status["football_data"]["progress_total"] = total
+                fd_result = _run_async_in_thread(
+                    sync_player_clubs(
+                        db, req.football_data_comp, req.season, progress_cb=_fdprogress
+                    )
+                )
+                _set_done("football_data", fd_result)
+                results["football_data"] = {"status": "ok", **fd_result}
+            except Exception as e:
+                _set_error("football_data", str(e))
+                results["football_data"] = {"status": "error", "error": str(e)}
+            finally:
+                db.close()
+        else:
+            _job_status["football_data"]["status"] = "skipped"
+            results["football_data"] = {"status": "skipped", "reason": "FOOTBALL_DATA_KEY mancante"}
+
+        # ── Completato ──
+        _set_done("all", {"sources": results})
+
+    background_tasks.add_task(_task)
+    return {"message": "Job 'all' avviato — tutte le sorgenti in sequenza"}
+
+
+# ── Utilità: lista competizioni ───────────────────────────────────
+
+@router.get("/statsbomb/competitions")
+async def get_statsbomb_competitions():
+    """Lista competizioni/stagioni disponibili in StatsBomb Open Data."""
+    try:
+        return await sb_list()
+    except Exception as e:
+        raise HTTPException(500, f"Errore StatsBomb: {e}")
+
+
+@router.get("/football-data/competitions")
+async def get_football_data_competitions():
+    """Lista competizioni Football-Data.org disponibili nel piano attivo."""
+    try:
+        return await fd_list()
+    except Exception as e:
+        raise HTTPException(500, f"Errore Football-Data: {e}")
+
+
+@router.get("/fbref/leagues")
+def get_fbref_leagues():
+    """Lista campionati supportati da FBref."""
+    return [
+        {"key": k, "fbref_id": v["id"], "slug": v["slug"]}
+        for k, v in FBREF_LEAGUES.items()
+    ]
+
+
+============================================================
+FILE: app\routers\players.py
+============================================================
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.models.models import MyPlayer
+from app.schemas.schemas import PlayerCreate, PlayerOut
+
+router = APIRouter(prefix="/teams", tags=["Rosa"])
+
+
+@router.post("/{team_id}/players", response_model=PlayerOut, status_code=201)
+def add_player(team_id: int, player: PlayerCreate, db: Session = Depends(get_db)):
+    db_player = MyPlayer(team_id=team_id, **player.model_dump())
+    db.add(db_player)
+    db.commit()
+    db.refresh(db_player)
+    return db_player
+
+
+@router.get("/{team_id}/players", response_model=list[PlayerOut])
+def list_players(team_id: int, db: Session = Depends(get_db)):
+    return db.query(MyPlayer).filter(MyPlayer.team_id == team_id).all()
+
+
+@router.delete("/{team_id}/players/{player_id}", status_code=204)
+def remove_player(team_id: int, player_id: int, db: Session = Depends(get_db)):
+    player = db.query(MyPlayer).filter(
+        MyPlayer.id == player_id,
+        MyPlayer.team_id == team_id
+    ).first()
+    if not player:
+        raise HTTPException(status_code=404, detail="Giocatore non trovato")
+    db.delete(player)
+    db.commit()
+
+
+============================================================
+FILE: app\routers\scouting.py
+============================================================
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+from typing import Optional
+
+from app.database import get_db
+from app.services.search import search_players
+from app.schemas.schemas import ScoutingPlayerOut
+
+router = APIRouter(prefix="/scouting", tags=["Scouting"])
+
+
+@router.get("/search", response_model=list[ScoutingPlayerOut])
+def search(
+    q: str = Query(..., description="Es: centravanti mancino bravo di testa under 25"),
+    position: Optional[str] = Query(None, description="Es: ST, CM, CB"),
+    min_age: Optional[int] = Query(None, ge=15, le=45),
+    max_age: Optional[int] = Query(None, ge=15, le=45),
+    nationality: Optional[str] = Query(None),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    """
+    Ricerca semantica in linguaggio naturale + filtri opzionali.
+
+    Esempi:
+    - /scouting/search?q=centravanti mancino bravo di testa
+    - /scouting/search?q=veloce&position=LW&max_age=25
+    - /scouting/search?q=portiere esperto&nationality=italiana
+    """
+    return search_players(
+        db=db,
+        text=q,
+        position=position,
+        min_age=min_age,
+        max_age=max_age,
+        nationality=nationality,
+        limit=limit,
+    )
+
+
+============================================================
+FILE: app\routers\team.py
+============================================================
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.models.models import MyTeam, TeamTrait
+from app.schemas.schemas import TeamCreate, TeamOut, TeamUpdate, TraitCreate, TraitOut
+
+router = APIRouter(prefix="/teams", tags=["Squadra"], redirect_slashes=False)
+
+
+@router.post("/", response_model=TeamOut, status_code=201)
+def create_team(team: TeamCreate, db: Session = Depends(get_db)):
+    db_team = MyTeam(**team.model_dump())
+    db.add(db_team)
+    db.commit()
+    db.refresh(db_team)
+    return db_team
+
+
+@router.get("/", response_model=list[TeamOut])
+def list_teams(db: Session = Depends(get_db)):
+    return db.query(MyTeam).all()
+
+
+@router.get("/{team_id}", response_model=TeamOut)
+def get_team(team_id: int, db: Session = Depends(get_db)):
+    team = db.query(MyTeam).filter(MyTeam.id == team_id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="Squadra non trovata")
+    return team
+
+
+@router.put("/{team_id}", response_model=TeamOut)
+def update_team(team_id: int, data: TeamUpdate, db: Session = Depends(get_db)):
+    team = db.query(MyTeam).filter(MyTeam.id == team_id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="Squadra non trovata")
+    for key, val in data.model_dump(exclude_unset=True).items():
+        setattr(team, key, val)
+    db.commit()
+    db.refresh(team)
+    return team
+
+
+@router.delete("/{team_id}", status_code=204)
+def delete_team(team_id: int, db: Session = Depends(get_db)):
+    team = db.query(MyTeam).filter(MyTeam.id == team_id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="Squadra non trovata")
+    db.delete(team)
+    db.commit()
+
+
+# ── Traits (caratteristiche positive / negative) ─────────────────
+
+@router.post("/{team_id}/traits", response_model=TraitOut, status_code=201)
+def add_trait(team_id: int, trait: TraitCreate, db: Session = Depends(get_db)):
+    team = db.query(MyTeam).filter(MyTeam.id == team_id).first()
+    if not team:
+        raise HTTPException(status_code=404, detail="Squadra non trovata")
+    db_trait = TeamTrait(team_id=team_id, **trait.model_dump())
+    db.add(db_trait)
+    db.commit()
+    db.refresh(db_trait)
+    return db_trait
+
+
+@router.delete("/{team_id}/traits/{trait_id}", status_code=204)
+def delete_trait(team_id: int, trait_id: int, db: Session = Depends(get_db)):
+    trait = db.query(TeamTrait).filter(
+        TeamTrait.id == trait_id,
+        TeamTrait.team_id == team_id
+    ).first()
+    if not trait:
+        raise HTTPException(status_code=404, detail="Caratteristica non trovata")
+    db.delete(trait)
+    db.commit()
+
+
+============================================================
+FILE: app\schemas\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: app\schemas\schemas.py
+============================================================
+from typing import Optional, List
+from pydantic import BaseModel
+from datetime import datetime
+from app.models.models import TraitType
+
+
+# ── TeamTrait ────────────────────────────────────────────────────
+class TraitCreate(BaseModel):
+    trait_type: TraitType
+    description: str
+    priority: int = 1
+
+
+class TraitOut(TraitCreate):
+    id: int
+    team_id: int
+
+    class Config:
+        from_attributes = True
+
+
+# ── MyTeam ───────────────────────────────────────────────────────
+class TeamCreate(BaseModel):
+    name: str
+    formation: Optional[str] = None
+    league: Optional[str] = None
+    season: Optional[str] = None
+    coach: Optional[str] = None
+    budget: Optional[float] = None
+    notes: Optional[str] = None
+
+
+class TeamUpdate(TeamCreate):
+    pass
+
+
+class TeamOut(TeamCreate):
+    id: int
+    created_at: datetime
+    traits: List[TraitOut] = []
+
+    class Config:
+        from_attributes = True
+
+
+# ── MyPlayer ─────────────────────────────────────────────────────
+class PlayerCreate(BaseModel):
+    name: str
+    position: Optional[str] = None
+    age: Optional[int] = None
+    preferred_foot: Optional[str] = None
+    rating: Optional[float] = None
+
+
+class PlayerOut(PlayerCreate):
+    id: int
+    team_id: int
+
+    class Config:
+        from_attributes = True
+
+
+# ── ScoutingPlayer ───────────────────────────────────────────────
+class ScoutingPlayerOut(BaseModel):
+    id: int
+    name: str
+    position: Optional[str]
+    club: Optional[str]
+    nationality: Optional[str]
+    age: Optional[int]
+    preferred_foot: Optional[str]
+    pace: Optional[int]
+    shooting: Optional[int]
+    passing: Optional[int]
+    dribbling: Optional[int]
+    defending: Optional[int]
+    physical: Optional[int]
+    heading_score: Optional[float]
+    build_up_score: Optional[float]
+    defensive_score: Optional[float]
+    xg_per90: Optional[float]
+    xa_per90: Optional[float]
+
+    class Config:
+        from_attributes = True
+
+
+============================================================
+FILE: app\services\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: app\services\ingest.py
+============================================================
+"""
+services/ingest.py
+------------------
+Orchestratore ingestion — delega a ogni sorgente specifica.
+
+Sorgenti disponibili:
+  kaggle       → CSV Kaggle FIFA 22/23 (gratis, 18k giocatori)
+  api          → API-Football v3 (live, richiede API_FOOTBALL_KEY)
+  statsbomb    → StatsBomb Open Data (xG/xA event-level, gratis)
+  fbref        → FBref scraping (xG/xA alternativo, gratis)
+  football-data → Football-Data.org (struttura campionati, richiede FOOTBALL_DATA_KEY)
+  all          → Esegue tutte le sorgenti in sequenza
+
+Uso da terminale (dentro container):
+  python -m app.services.ingest --source kaggle --file /app/data/players_22.csv --limit 5000
+  python -m app.services.ingest --source api --league 135 --season 2024
+  python -m app.services.ingest --source statsbomb --comp 12 --season-id 27 --max-matches 100
+  python -m app.services.ingest --source fbref --fbref-league serie_a --fbref-season 2023-2024
+  python -m app.services.ingest --source football-data --fd-comp SA --season 2024
+  python -m app.services.ingest --source all --file /app/data/players_22.csv --season 2024
+"""
+
+import argparse
+import asyncio
+import os
+
+from app.database import SessionLocal
+from app.services.sources.kaggle_source import import_from_kaggle_csv
+from app.services.sources.api_football_source import fetch_from_api_football
+from app.services.sources.statsbomb_source import fetch_from_statsbomb
+from app.services.sources.fbref_source import scrape_standard_stats
+from app.services.sources.football_data_source import sync_player_clubs
+
+
+async def run_all(
+    kaggle_file: str | None = None,
+    kaggle_limit: int = 2000,
+    api_league: int = 135,
+    season: int = 2024,
+    statsbomb_comp: int = 12,
+    statsbomb_season_id: int = 27,
+    statsbomb_max_matches: int = 50,
+    fbref_league: str = "serie_a",
+    fbref_season: str = "2023-2024",
+    football_data_comp: str = "SA",
+) -> dict:
+    """
+    Esegue tutte le sorgenti in sequenza.
+    Le sorgenti che richiedono API key vengono saltate se la chiave non è presente.
+    Ritorna un dict {sorgente: risultato}.
+    """
+    results = {}
+    db = SessionLocal()
+
+    try:
+        # ── 1. Kaggle ──
+        if kaggle_file and os.path.exists(kaggle_file):
+            print("\n[1/5] ▶ Kaggle CSV...")
+            n = import_from_kaggle_csv(db, kaggle_file, limit=kaggle_limit)
+            results["kaggle"] = {"status": "ok", "imported": n}
+        else:
+            reason = "file non specificato" if not kaggle_file else f"file non trovato: {kaggle_file}"
+            results["kaggle"] = {"status": "skipped", "reason": reason}
+            print(f"\n[1/5] ⏭ Kaggle saltato — {reason}")
+
+        # ── 2. API-Football ──
+        if os.getenv("API_FOOTBALL_KEY"):
+            print(f"\n[2/5] ▶ API-Football (lega {api_league}, stagione {season})...")
+            try:
+                n = await fetch_from_api_football(db, api_league, season)
+                results["api_football"] = {"status": "ok", "imported": n}
+            except Exception as e:
+                results["api_football"] = {"status": "error", "error": str(e)}
+                print(f"  ✗ API-Football: {e}")
+        else:
+            results["api_football"] = {"status": "skipped", "reason": "API_FOOTBALL_KEY non impostata"}
+            print("\n[2/5] ⏭ API-Football saltato — API_FOOTBALL_KEY mancante")
+
+        # ── 3. StatsBomb ──
+        print(f"\n[3/5] ▶ StatsBomb (comp {statsbomb_comp}, season_id {statsbomb_season_id})...")
+        try:
+            sb_result = await fetch_from_statsbomb(
+                db, statsbomb_comp, statsbomb_season_id, statsbomb_max_matches
+            )
+            results["statsbomb"] = {"status": "ok", **sb_result}
+        except Exception as e:
+            results["statsbomb"] = {"status": "error", "error": str(e)}
+            print(f"  ✗ StatsBomb: {e}")
+
+        # ── 4. FBref ──
+        print(f"\n[4/5] ▶ FBref ({fbref_league} {fbref_season})...")
+        try:
+            fbref_result = scrape_standard_stats(db, fbref_league, fbref_season)
+            results["fbref"] = {"status": "ok", **fbref_result}
+        except Exception as e:
+            results["fbref"] = {"status": "error", "error": str(e)}
+            print(f"  ✗ FBref: {e}")
+
+        # ── 5. Football-Data.org ──
+        if os.getenv("FOOTBALL_DATA_KEY"):
+            print(f"\n[5/5] ▶ Football-Data.org (comp {football_data_comp}, stagione {season})...")
+            try:
+                fd_result = await sync_player_clubs(db, football_data_comp, season)
+                results["football_data"] = {"status": "ok", **fd_result}
+            except Exception as e:
+                results["football_data"] = {"status": "error", "error": str(e)}
+                print(f"  ✗ Football-Data: {e}")
+        else:
+            results["football_data"] = {"status": "skipped", "reason": "FOOTBALL_DATA_KEY non impostata"}
+            print("\n[5/5] ⏭ Football-Data.org saltato — FOOTBALL_DATA_KEY mancante")
+
+    finally:
+        db.close()
+
+    print("\n✅ Import completo!")
+    return results
+
+
+# ── Entry point CLI ───────────────────────────────────────────────
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Importa dati calciatori nel DB")
+    parser.add_argument(
+        "--source",
+        choices=["kaggle", "api", "statsbomb", "fbref", "football-data", "all"],
+        required=True,
+    )
+    # Kaggle
+    parser.add_argument("--file", help="Path CSV Kaggle nel container")
+    parser.add_argument("--limit", type=int, default=2000)
+    # API-Football
+    parser.add_argument("--league", type=int, default=135, help="135=Serie A, 39=PL, 140=La Liga")
+    parser.add_argument("--season", type=int, default=2024)
+    # StatsBomb
+    parser.add_argument("--comp", type=int, default=12, help="Competition ID StatsBomb")
+    parser.add_argument("--season-id", type=int, default=27, dest="season_id")
+    parser.add_argument("--max-matches", type=int, default=50, dest="max_matches")
+    # FBref
+    parser.add_argument("--fbref-league", default="serie_a", dest="fbref_league",
+                        choices=["serie_a", "premier_league", "la_liga", "bundesliga",
+                                 "ligue_1", "champions_league"])
+    parser.add_argument("--fbref-season", default="2023-2024", dest="fbref_season")
+    # Football-Data.org
+    parser.add_argument("--fd-comp", default="SA", dest="fd_comp",
+                        help="SA=Serie A, PL=Premier League, PD=La Liga, BL1=Bundesliga")
+    args = parser.parse_args()
+
+    db = SessionLocal()
+    try:
+        if args.source == "kaggle":
+            csv_path = args.file or "data/players_22.csv"
+            print(f"Importazione da Kaggle: {csv_path}")
+            n = import_from_kaggle_csv(db, csv_path, limit=args.limit)
+            print(f"✅ Importati {n} giocatori da Kaggle")
+
+        elif args.source == "api":
+            print(f"API-Football — lega {args.league}, stagione {args.season}")
+            n = asyncio.run(fetch_from_api_football(db, args.league, args.season))
+            print(f"✅ Importati {n} giocatori da API-Football")
+
+        elif args.source == "statsbomb":
+            print(f"StatsBomb — comp {args.comp}, season_id {args.season_id}")
+            result = asyncio.run(
+                fetch_from_statsbomb(db, args.comp, args.season_id, args.max_matches)
+            )
+            print(f"✅ StatsBomb: {result}")
+
+        elif args.source == "fbref":
+            print(f"FBref — {args.fbref_league} {args.fbref_season}")
+            result = scrape_standard_stats(db, args.fbref_league, args.fbref_season)
+            print(f"✅ FBref: {result}")
+
+        elif args.source == "football-data":
+            print(f"Football-Data.org — comp {args.fd_comp}, stagione {args.season}")
+            result = asyncio.run(sync_player_clubs(db, args.fd_comp, args.season))
+            print(f"✅ Football-Data: {result}")
+
+        elif args.source == "all":
+            print("Esecuzione di tutte le sorgenti...")
+            result = asyncio.run(run_all(
+                kaggle_file=args.file,
+                kaggle_limit=args.limit,
+                api_league=args.league,
+                season=args.season,
+                statsbomb_comp=args.comp,
+                statsbomb_season_id=args.season_id,
+                statsbomb_max_matches=args.max_matches,
+                fbref_league=args.fbref_league,
+                fbref_season=args.fbref_season,
+                football_data_comp=args.fd_comp,
+            ))
+            print(f"✅ Risultati: {result}")
+
+    finally:
+        db.close()
+
+
+============================================================
+FILE: app\services\scoring.py
+============================================================
+"""
+services/scoring.py
+-------------------
+Calcola i punteggi compositi per ogni giocatore a partire dalle stat base.
+Questi score vengono salvati nel DB e usati dalla ricerca semantica.
+
+Come aggiungere un nuovo score:
+1. Aggiungi la formula in compute_scores()
+2. Aggiorna il modello ScoutingPlayer (models.py)
+3. Aggiorna il SEMANTIC_MAP in search.py
+4. Riesegui: POST /scouting/recalculate
+"""
+
+from app.models.models import ScoutingPlayer
+
+
+def _safe(val, default: float = 0.0) -> float:
+    """Restituisce il valore se non è None, altrimenti il default."""
+    return float(val) if val is not None else default
+
+
+def compute_scores(p: ScoutingPlayer) -> dict:
+    """
+    Calcola heading_score, build_up_score, defensive_score
+    a partire dalle stat base del giocatore.
+
+    Ritorna un dizionario con i valori calcolati (0–100).
+    """
+
+    # ── Heading Score ────────────────────────────────────────────
+    # Misura la pericolosità aerea: dominio nei duelli + fisico
+    heading_score = (
+        _safe(p.aerial_duels_won_pct) * 0.60 +
+        _safe(p.physical) * 0.40
+    )
+
+    # ── Build-Up Score ───────────────────────────────────────────
+    # Misura la capacità di far salire la squadra:
+    # controllo palla + passaggi + fisico
+    build_up_score = (
+        _safe(p.dribbling) * 0.35 +
+        _safe(p.passing)   * 0.45 +
+        _safe(p.physical)  * 0.20
+    )
+
+    # ── Defensive Score ──────────────────────────────────────────
+    # Misura l'efficacia difensiva: pressing + contrasto + fisico
+    defensive_score = (
+        _safe(p.defending) * 0.60 +
+        _safe(p.physical)  * 0.25 +
+        _safe(p.pace)      * 0.15
+    )
+
+    # Clamp a 100
+    return {
+        "heading_score":   min(round(heading_score,   1), 100.0),
+        "build_up_score":  min(round(build_up_score,  1), 100.0),
+        "defensive_score": min(round(defensive_score, 1), 100.0),
+    }
+
+
+def recalculate_all(db) -> int:
+    """
+    Ricalcola i punteggi per tutti i giocatori nel DB.
+    Ritorna il numero di giocatori aggiornati.
+    """
+    players = db.query(ScoutingPlayer).all()
+    updated = 0
+    for p in players:
+        scores = compute_scores(p)
+        for key, val in scores.items():
+            setattr(p, key, val)
+        updated += 1
+
+    db.commit()
+    return updated
+
+
+============================================================
+FILE: app\services\search.py
+============================================================
+from sqlalchemy.orm import Session
+from sqlalchemy import and_
+from app.models.models import ScoutingPlayer as M
+
+
+# ── Mappa semantica: keyword → condizione SQLAlchemy ─────────────
+# NON usiamo f-string (vulnerabili a SQL injection).
+# Usiamo l'ORM che parametrizza automaticamente le query.
+SEMANTIC_MAP: dict = {
+    # Fisico
+    "bravo di testa":       lambda: M.heading_score > 75,
+    "forte fisicamente":    lambda: M.physical > 80,
+    "veloce":               lambda: M.pace > 80,
+    "resistente":           lambda: M.physical > 75,
+
+    # Tecnica
+    "bravo col pallone":    lambda: M.dribbling > 78,
+    "ottimo passatore":     lambda: M.passing > 80,
+    "tiratore":             lambda: M.shooting > 80,
+
+    # Ruolo tattico
+    "fa salire la squadra": lambda: M.build_up_score > 70,
+    "difensore solido":     lambda: M.defensive_score > 75,
+    "bravo in difesa":      lambda: M.defending > 78,
+
+    # Piede
+    "mancino":              lambda: M.preferred_foot == "Left",
+    "destro":               lambda: M.preferred_foot == "Right",
+
+    # Posizione
+    "centravanti":          lambda: M.position == "ST",
+    "trequartista":         lambda: M.position == "AM",
+    "ala":                  lambda: M.position.in_(["LW", "RW"]),
+    "terzino":              lambda: M.position.in_(["LB", "RB"]),
+    "centrocampista":       lambda: M.position.in_(["CM", "DM", "AM"]),
+    "difensore centrale":   lambda: M.position == "CB",
+    "portiere":             lambda: M.position == "GK",
+
+    # Età
+    "giovane":              lambda: M.age <= 23,
+    "under 21":             lambda: M.age <= 21,
+    "under 25":             lambda: M.age <= 25,
+    "esperto":              lambda: M.age >= 30,
+
+    # xG / statistiche avanzate
+    "realizzatore":         lambda: M.xg_per90 > 0.4,
+    "assist man":           lambda: M.xa_per90 > 0.3,
+
+    # Aggiunte
+    "tecnico":        lambda: M.dribbling > 82,
+    "forte in area":  lambda: M.shooting > 78,
+    "under 23":       lambda: M.age <= 23,
+    "italiano":       lambda: M.nationality.ilike("%italian%")
+}
+
+
+def build_conditions(text: str) -> list:
+    """Converte testo libero in lista di condizioni SQLAlchemy."""
+    text_lower = text.lower()
+    conditions = []
+    for keyword, condition_fn in SEMANTIC_MAP.items():
+        if keyword in text_lower:
+            conditions.append(condition_fn())
+    return conditions
+
+
+def search_players(
+    db: Session,
+    text: str,
+    position: str | None = None,
+    min_age: int | None = None,
+    max_age: int | None = None,
+    nationality: str | None = None,
+    limit: int = 20,
+) -> list:
+    """
+    Ricerca semantica + filtri strutturati opzionali.
+    Tutti i parametri sono sicuri: usa ORM, nessuna f-string.
+    """
+    conditions = build_conditions(text)
+
+    # Filtri strutturati aggiuntivi
+    if position:
+        conditions.append(M.position == position)
+    if min_age is not None:
+        conditions.append(M.age >= min_age)
+    if max_age is not None:
+        conditions.append(M.age <= max_age)
+    if nationality:
+        conditions.append(M.nationality.ilike(f"%{nationality}%"))
+
+    query = db.query(M)
+    if conditions:
+        query = query.filter(and_(*conditions))
+
+    # Ordina per score complessivo decrescente
+    return (
+        query
+        .order_by(
+            (M.heading_score + M.build_up_score + M.defensive_score).desc()
+        )
+        .limit(limit)
+        .all()
+    )
+
+
+============================================================
+FILE: app\services\sources\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: app\services\sources\api_football_source.py
+============================================================
+"""
+sources/api_football_source.py
+-------------------------------
+Scarica giocatori attivi da API-Football v3.
+https://www.api-football.com/documentation-v3
+
+Richiede: API_FOOTBALL_KEY nel .env
+Free tier: 100 req/giorno, max 3 pagine per richiesta
+Copertura: giocatori attivi, squadre reali, statistiche live
+
+Leghe principali:
+  135 → Serie A
+  39  → Premier League
+  140 → La Liga
+  78  → Bundesliga
+  61  → Ligue 1
+"""
+
+import os
+import httpx
+from sqlalchemy.orm import Session
+
+from app.models.models import ScoutingPlayer
+from app.services.scoring import compute_scores
+
+# Piano Free: supporta al massimo le ultime stagioni disponibili.
+# Aggiorna questi valori se il piano cambia.
+_FREE_SEASON_MIN = 2022
+_FREE_SEASON_MAX = 2024
+
+# Piano Free: massimo 3 pagine per richiesta
+_FREE_PAGE_LIMIT = 3
+
+
+async def fetch_from_api_football(
+    db: Session,
+    league_id: int,
+    season: int,
+    progress_cb=None,
+) -> int:
+    """
+    Scarica tutti i giocatori di una lega/stagione da API-Football.
+    Gestisce la paginazione automaticamente.
+
+    Ritorna il numero di record importati/aggiornati.
+
+    Raises:
+        ValueError: se API_FOOTBALL_KEY non è impostata o la stagione non è supportata.
+        httpx.HTTPStatusError: su errori HTTP dall'API.
+    """
+    api_key = os.getenv("API_FOOTBALL_KEY")
+    if not api_key:
+        raise ValueError(
+            "API_FOOTBALL_KEY non impostata nel file .env\n"
+            "Registrati su https://dashboard.api-football.com/register"
+        )
+
+    # Il free tier supporta solo un range limitato di stagioni
+    if season < _FREE_SEASON_MIN or season > _FREE_SEASON_MAX:
+        raise ValueError(
+            f"Stagione {season} non supportata dal free tier di API-Football.\n"
+            f"Il piano gratuito supporta solo stagioni dalla {_FREE_SEASON_MIN} "
+            f"alla {_FREE_SEASON_MAX}.\n"
+            f"Seleziona una stagione nell'intervallo corretto nella configurazione."
+        )
+
+    imported = 0
+    page = 1
+
+    async with httpx.AsyncClient(timeout=20) as client:
+        while True:
+
+            # Rispetta il limite di paginazione del piano Free
+            # prima ancora di fare la richiesta
+            if page > _FREE_PAGE_LIMIT:
+                print(
+                    f"  ⚠ Limite paginazione piano Free ({_FREE_PAGE_LIMIT} pagine). "
+                    f"Totale importati finora: {imported}"
+                )
+                break
+
+            response = await client.get(
+                "https://v3.football.api-sports.io/players",
+                headers={"x-apisports-key": api_key},
+                params={"league": league_id, "season": season, "page": page},
+            )
+            response.raise_for_status()
+            data = response.json()
+
+            # ── Gestione errori nel body della risposta ─────────────────
+            # API-Football ritorna HTTP 200 anche in caso di errore,
+            # con un dict "errors" nel corpo.
+            errors = data.get("errors", {})
+            if errors:
+                err_str = str(errors).lower()
+
+                # Errore di paginazione → stop silenzioso, non eccezione.
+                # "Free plans are limited to a maximum value of 3 for the Page parameter"
+                if "page" in err_str or "plan" in err_str:
+                    print(
+                        f"  ⚠ Limite piano Free raggiunto alla pagina {page}: {errors}\n"
+                        f"  → Salvo i {imported} giocatori già importati."
+                    )
+                    break
+
+                # Errori autenticazione o altri → eccezione
+                raise ValueError(f"Errore API-Football: {errors}")
+
+            players = data.get("response", [])
+            if not players:
+                break
+
+            for entry in players:
+                p_data = entry.get("player", {})
+                stats  = entry.get("statistics", [{}])[0]
+                team   = stats.get("team", {})
+                games  = stats.get("games", {})
+                goals  = stats.get("goals", {})
+                passes = stats.get("passes", {})
+                duels  = stats.get("duels", {})
+
+                external_id = f"apif_{p_data.get('id')}"
+
+                aerial_total = duels.get("total") or 0
+                aerial_won   = duels.get("won") or 0
+                aerial_pct   = (aerial_won / aerial_total * 100) if aerial_total else None
+
+                player_data = {
+                    "external_id":          external_id,
+                    "name":                 p_data.get("name"),
+                    "position":             _map_position(games.get("position")),
+                    "club":                 team.get("name"),
+                    "nationality":          p_data.get("nationality"),
+                    "age":                  p_data.get("age"),
+                    "preferred_foot":       None,  # non disponibile in API-Football
+                    "aerial_duels_won_pct": aerial_pct,
+                    "xg_per90":             _float(goals.get("total")),  # proxy
+                    "xa_per90":             _float(passes.get("key")),   # proxy
+                }
+
+                existing = db.query(ScoutingPlayer).filter_by(
+                    external_id=external_id
+                ).first()
+
+                if existing:
+                    for k, v in player_data.items():
+                        if v is not None:
+                            setattr(existing, k, v)
+                    p = existing
+                else:
+                    p = ScoutingPlayer(**player_data)
+                    db.add(p)
+                    db.flush()
+
+                scores = compute_scores(p)
+                for k, v in scores.items():
+                    setattr(p, k, v)
+
+                imported += 1
+
+            total_pages = data.get("paging", {}).get("total", 1)
+            msg = f"  → API-Football: pagina {page}/{total_pages} — {imported} giocatori"
+            print(msg)
+            if progress_cb:
+                progress_cb(imported)
+
+            if page >= total_pages:
+                break
+            page += 1
+
+    db.commit()
+    return imported
+
+
+# ── Helpers ──────────────────────────────────────────────────────
+
+def _float(val) -> float | None:
+    try:
+        return float(val) if val not in (None, "", "N/A") else None
+    except (ValueError, TypeError):
+        return None
+
+
+def _map_position(api_pos: str | None) -> str | None:
+    mapping = {
+        "Goalkeeper": "GK",
+        "Defender":   "CB",
+        "Midfielder": "CM",
+        "Attacker":   "ST",
+    }
+    return mapping.get(api_pos)
+
+
+============================================================
+FILE: app\services\sources\fbref_source.py
+============================================================
+"""
+sources/fbref_source.py
+-----------------------
+Scraping statistiche avanzate da FBref (https://fbref.com).
+Alternativa gratuita a StatsBomb per xG e xA.
+
+Cosa scarica:
+  - Standard Stats per stagione/campionato (gol, assist, xG, xAG, min)
+  - Arricchisce i ScoutingPlayer esistenti con xg_per90 e xa_per90
+
+Requisiti (da aggiungere a requirements.txt):
+  requests>=2.31
+  beautifulsoup4>=4.12
+  pandas>=2.0
+  lxml>=4.9
+  cloudscraper>=1.2.71      ← NUOVO: bypass protezione Cloudflare/bot
+
+FIX 403 Forbidden:
+  FBref usa Cloudflare e rilevamento bot avanzato.
+  Il modulo ora usa cloudscraper come client HTTP principale.
+  Installare con:  pip install cloudscraper
+
+  Se cloudscraper non è disponibile, si fa fallback a requests standard
+  con headers realistici (può ancora ricevere 403 saltuariamente).
+
+Attenzione:
+  FBref applica rate limiting. Usa delay_seconds (default 6s) tra richieste.
+  Scraping per uso personale/ricerca è tollerato; non abusare.
+
+Campionati supportati:
+  serie_a, premier_league, la_liga, bundesliga, ligue_1, champions_league
+"""
+
+import time
+from io import StringIO
+from sqlalchemy.orm import Session
+
+from app.models.models import ScoutingPlayer
+
+# ── Dipendenze opzionali ──────────────────────────────────────────
+_DEPS_OK       = False
+_CLOUDSCRAPER  = False
+
+try:
+    from bs4 import BeautifulSoup
+    import pandas as pd
+    _DEPS_OK = True
+except ImportError:
+    pass
+
+try:
+    import cloudscraper
+    _CLOUDSCRAPER = True
+except ImportError:
+    pass
+
+if _DEPS_OK and not _CLOUDSCRAPER:
+    try:
+        import requests
+    except ImportError:
+        _DEPS_OK = False
+
+
+# ── Configurazione campionati ─────────────────────────────────────
+FBREF_LEAGUES = {
+    "serie_a":          {"id": 11,  "slug": "Serie-A"},
+    "premier_league":   {"id": 9,   "slug": "Premier-League"},
+    "la_liga":          {"id": 12,  "slug": "La-Liga"},
+    "bundesliga":       {"id": 20,  "slug": "Bundesliga"},
+    "ligue_1":          {"id": 13,  "slug": "Ligue-1"},
+    "champions_league": {"id": 8,   "slug": "Champions-League"},
+    "eredivisie":       {"id": 23,  "slug": "Eredivisie"},
+    "primeira_liga":    {"id": 32,  "slug": "Primeira-Liga"},
+}
+
+# Headers browser realistici (fallback senza cloudscraper)
+_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/123.0.0.0 Safari/537.36"
+    ),
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;"
+        "q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"
+    ),
+    "Accept-Language":  "en-US,en;q=0.9,it;q=0.8",
+    "Accept-Encoding":  "gzip, deflate, br",
+    "Connection":       "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest":   "document",
+    "Sec-Fetch-Mode":   "navigate",
+    "Sec-Fetch-Site":   "none",
+    "Sec-Fetch-User":   "?1",
+    "Cache-Control":    "max-age=0",
+    "Referer":          "https://fbref.com/en/",
+    "DNT":              "1",
+}
+
+
+def _get_session():
+    """
+    Ritorna un session HTTP che bypassa il bot-detection di FBref.
+    Priorità: cloudscraper > requests standard.
+    """
+    if _CLOUDSCRAPER:
+        # cloudscraper gestisce automaticamente i challenge Cloudflare
+        return cloudscraper.create_scraper(
+            browser={"browser": "chrome", "platform": "windows", "mobile": False}
+        )
+
+    # Fallback: requests con headers manuali
+    import requests as req
+    session = req.Session()
+    session.headers.update(_HEADERS)
+    return session
+
+
+def scrape_standard_stats(
+    db: Session,
+    league_key: str = "serie_a",
+    season: str = "2023-2024",
+    delay_seconds: float = 6.0,
+) -> dict:
+    """
+    Scarica Standard Stats da FBref e aggiorna xg_per90/xa_per90 nel DB.
+
+    Args:
+        league_key:     chiave in FBREF_LEAGUES (es. "serie_a")
+        season:         formato "YYYY-YYYY" (es. "2023-2024")
+        delay_seconds:  pausa prima della richiesta HTTP (rispetta rate limit)
+
+    Ritorna:
+        dict con players_found_on_site, players_enriched_in_db, league, season
+    """
+    if not _DEPS_OK:
+        raise ImportError(
+            "Dipendenze FBref non installate.\n"
+            "Aggiungi a requirements.txt e reinstalla:\n"
+            "  beautifulsoup4>=4.12\n"
+            "  pandas>=2.0\n"
+            "  lxml>=4.9\n"
+            "  cloudscraper>=1.2.71    ← consigliato per evitare 403\n\n"
+            "Installazione rapida:\n"
+            "  pip install beautifulsoup4 pandas lxml cloudscraper"
+        )
+
+    if league_key not in FBREF_LEAGUES:
+        raise ValueError(
+            f"Campionato '{league_key}' non supportato.\n"
+            f"Disponibili: {list(FBREF_LEAGUES.keys())}"
+        )
+
+    league = FBREF_LEAGUES[league_key]
+    url = (
+        f"https://fbref.com/en/comps/{league['id']}"
+        f"/{season}/stats/{season}-{league['slug']}-Stats"
+    )
+
+    method = "cloudscraper" if _CLOUDSCRAPER else "requests (senza cloudscraper)"
+    print(f"  → FBref [{method}]: scarico {url}")
+
+    time.sleep(delay_seconds)  # rispetta il rate limit di FBref
+
+    session = _get_session()
+
+    try:
+        resp = session.get(url, timeout=30)
+        resp.raise_for_status()
+    except Exception as e:
+        status = getattr(getattr(e, "response", None), "status_code", "?")
+        raise RuntimeError(
+            f"Errore HTTP {status} su FBref.\n"
+            f"URL: {url}\n\n"
+            f"Soluzioni:\n"
+            f"  1. Installa cloudscraper:  pip install cloudscraper\n"
+            f"  2. Aumenta delay_seconds (es. 10)\n"
+            f"  3. FBref potrebbe bloccare richieste da IP datacenter/VPS;\n"
+            f"     prova da una rete residenziale.\n"
+            f"  4. Attendi qualche ora se sei stato bloccato per rate-limit.\n\n"
+            f"Errore originale: {e}"
+        ) from e
+
+    soup = BeautifulSoup(resp.text, "lxml")
+
+    # FBref a volte embeds la tabella in un commento HTML
+    table = soup.find("table", id="stats_standard")
+    if table is None:
+        from bs4 import Comment
+        for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):
+            csoup = BeautifulSoup(comment, "lxml")
+            table = csoup.find("table", id="stats_standard")
+            if table:
+                break
+
+    if table is None:
+        raise RuntimeError(
+            "Tabella 'stats_standard' non trovata su FBref.\n"
+            "FBref potrebbe aver cambiato struttura della pagina.\n"
+            f"URL tentato: {url}"
+        )
+
+    # FBref usa MultiIndex nei header (due righe)
+    df = pd.read_html(StringIO(str(table)), header=[0, 1])[0]
+
+    # Appiattisci MultiIndex colonne
+    df.columns = [
+        f"{a}_{b}" if "Unnamed" not in str(a) else str(b)
+        for a, b in df.columns
+    ]
+
+    # Rimuovi le righe di separazione interne (ripetono l'header)
+    player_col = _find_col(df, ["Player"])
+    if player_col:
+        df = df[df[player_col].astype(str).str.strip() != "Player"].copy()
+        df = df[df[player_col].notna()].copy()
+
+    print(f"  → FBref: {len(df)} giocatori trovati")
+
+    enriched = 0
+
+    for _, row in df.iterrows():
+        name = str(row.get(player_col or "Player", "")).strip()
+        if not name or name in ("nan", "Player"):
+            continue
+
+        # Cerca colonne xG e xA (FBref cambia naming tra stagioni)
+        xg_val = _first_float(row, [
+            "Expected_xG", "xG", "Expected_npxG", "Per 90 Minutes_xG",
+        ])
+        xa_val = _first_float(row, [
+            "Expected_xAG", "xAG", "Expected_xA", "Per 90 Minutes_xAG",
+        ])
+        mins = _first_float(row, [
+            "Playing Time_Min", "Min", "Playing Time_MP", "90s",
+        ])
+
+        if xg_val is None and xa_val is None:
+            continue
+
+        # Calcola per90
+        if mins and mins > 0:
+            per90    = 90 / mins
+            xg_per90 = round(xg_val * per90, 4) if xg_val is not None else None
+            xa_per90 = round(xa_val * per90, 4) if xa_val is not None else None
+        else:
+            xg_per90 = xg_val
+            xa_per90 = xa_val
+
+        # Match nel DB per nome (case-insensitive, partial)
+        player = (
+            db.query(ScoutingPlayer)
+            .filter(ScoutingPlayer.name.ilike(f"%{name}%"))
+            .first()
+        )
+        if player:
+            if xg_per90 is not None:
+                player.xg_per90 = xg_per90
+            if xa_per90 is not None:
+                player.xa_per90 = xa_per90
+            enriched += 1
+
+    db.commit()
+    print(f"  → FBref: {enriched} giocatori arricchiti nel DB")
+
+    return {
+        "players_found_on_site":   len(df),
+        "players_enriched_in_db":  enriched,
+        "league":                  league_key,
+        "season":                  season,
+        "url":                     url,
+    }
+
+
+# ── Helpers ──────────────────────────────────────────────────────
+
+def _find_col(df, candidates: list[str]) -> str | None:
+    for c in candidates:
+        if c in df.columns:
+            return c
+    return None
+
+
+def _first_float(row, candidates: list[str]) -> float | None:
+    for col in candidates:
+        if col in row.index:
+            try:
+                f = float(row[col])
+                if f == f:  # NaN check
+                    return f
+            except (ValueError, TypeError):
+                continue
+    return None
+
+
+============================================================
+FILE: app\services\sources\football_data_source.py
+============================================================
+"""
+sources/football_data_source.py
+--------------------------------
+Client per Football-Data.org API v4.
+https://www.football-data.org/documentation/quickstart
+
+Cosa fornisce:
+  - Lista competizioni disponibili
+  - Squadre per competizione/stagione
+  - Classifica/standings
+  - Rosa squadre → aggiorna il campo 'club' nei ScoutingPlayer
+
+Free tier: 10 req/min, dati principali delle leghe top
+
+Richiede: FOOTBALL_DATA_KEY nel .env
+Registrazione: https://www.football-data.org/client/register
+
+Codici competizione principali:
+  SA   → Serie A
+  PL   → Premier League
+  PD   → La Liga (Primera Division)
+  BL1  → Bundesliga
+  FL1  → Ligue 1
+  CL   → UEFA Champions League
+  EC   → European Championship
+  WC   → FIFA World Cup
+"""
+
+import os
+import asyncio
+import httpx
+from sqlalchemy.orm import Session
+
+from app.models.models import ScoutingPlayer
+
+BASE_URL = "https://api.football-data.org/v4"
+
+COMPETITION_CODES = {
+    "serie_a":          "SA",
+    "premier_league":   "PL",
+    "la_liga":          "PD",
+    "bundesliga":       "BL1",
+    "ligue_1":          "FL1",
+    "champions_league": "CL",
+    "eredivisie":       "DED",
+    "primeira_liga":    "PPL",
+    "championship":     "ELC",
+    "world_cup":        "WC",
+    "euro":             "EC",
+}
+
+
+def _headers() -> dict:
+    api_key = os.getenv("FOOTBALL_DATA_KEY")
+    if not api_key:
+        raise ValueError(
+            "FOOTBALL_DATA_KEY non impostata nel .env\n"
+            "Registrati su https://www.football-data.org/client/register"
+        )
+    return {"X-Auth-Token": api_key}
+
+
+async def fetch_competitions() -> list[dict]:
+    """Lista competizioni disponibili nel piano attivo."""
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(f"{BASE_URL}/competitions", headers=_headers())
+        resp.raise_for_status()
+        data = resp.json()
+
+    return sorted(
+        [
+            {
+                "id":      c["id"],
+                "code":    c.get("code", ""),
+                "name":    c["name"],
+                "country": c.get("area", {}).get("name", ""),
+                "plan":    c.get("plan", ""),
+            }
+            for c in data.get("competitions", [])
+        ],
+        key=lambda x: x["name"],
+    )
+
+
+async def fetch_teams(competition_code: str, season: int) -> list[dict]:
+    """Squadre di una competizione per una stagione."""
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(
+            f"{BASE_URL}/competitions/{competition_code}/teams",
+            headers=_headers(),
+            params={"season": season},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+    return [
+        {
+            "id":      t["id"],
+            "name":    t["name"],
+            "short":   t.get("shortName", ""),
+            "tla":     t.get("tla", ""),
+            "crest":   t.get("crest", ""),
+            "founded": t.get("founded"),
+            "venue":   t.get("venue", ""),
+        }
+        for t in data.get("teams", [])
+    ]
+
+
+async def fetch_standings(competition_code: str, season: int) -> list[dict]:
+    """Classifica di una competizione (tipo TOTAL)."""
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(
+            f"{BASE_URL}/competitions/{competition_code}/standings",
+            headers=_headers(),
+            params={"season": season},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+    result = []
+    for standing in data.get("standings", []):
+        if standing.get("type") == "TOTAL":
+            for entry in standing.get("table", []):
+                result.append({
+                    "position":      entry["position"],
+                    "team":          entry["team"]["name"],
+                    "played":        entry["playedGames"],
+                    "won":           entry["won"],
+                    "draw":          entry["draw"],
+                    "lost":          entry["lost"],
+                    "goals_for":     entry["goalsFor"],
+                    "goals_against": entry["goalsAgainst"],
+                    "goal_diff":     entry["goalDifference"],
+                    "points":        entry["points"],
+                })
+    return result
+
+
+async def sync_player_clubs(
+    db: Session,
+    competition_code: str,
+    season: int,
+    progress_cb=None,
+) -> dict:
+    """
+    Scarica la rosa di ogni squadra della competizione e aggiorna
+    il campo 'club' nei ScoutingPlayer corrispondenti nel DB.
+
+    Utile per mantenere aggiornata l'affiliazione di club dei giocatori.
+
+    Nota: il free tier limita a 10 req/min → usa asyncio.sleep tra squadre.
+    """
+    headers = _headers()
+    updated = 0
+    teams_processed = 0
+
+    async with httpx.AsyncClient(timeout=20) as client:
+        # Lista squadre
+        teams_resp = await client.get(
+            f"{BASE_URL}/competitions/{competition_code}/teams",
+            headers=headers,
+            params={"season": season},
+        )
+        teams_resp.raise_for_status()
+        teams = teams_resp.json().get("teams", [])
+        print(f"  → Football-Data: {len(teams)} squadre trovate")
+
+        for team in teams:
+            team_name = team["name"]
+            team_id   = team["id"]
+            teams_processed += 1
+
+            try:
+                # Rispetta rate limit free tier (10 req/min)
+                await asyncio.sleep(6)
+
+                squad_resp = await client.get(
+                    f"{BASE_URL}/teams/{team_id}",
+                    headers=headers,
+                )
+                squad_resp.raise_for_status()
+                squad = squad_resp.json().get("squad", [])
+
+                for member in squad:
+                    player_name = member.get("name", "")
+                    if not player_name:
+                        continue
+
+                    player = (
+                        db.query(ScoutingPlayer)
+                        .filter(ScoutingPlayer.name.ilike(f"%{player_name}%"))
+                        .first()
+                    )
+                    if player:
+                        player.club = team_name
+                        updated += 1
+
+                print(f"  → Football-Data: {team_name} ({len(squad)} giocatori)")
+
+            except httpx.HTTPStatusError as e:
+                print(f"  ⚠ Errore {team_name}: HTTP {e.response.status_code}")
+                continue
+
+            if progress_cb:
+                progress_cb(teams_processed, len(teams))
+
+    db.commit()
+    print(f"  → Football-Data: {updated} giocatori aggiornati")
+
+    return {
+        "teams_processed":  teams_processed,
+        "players_updated":  updated,
+        "competition":      competition_code,
+        "season":           season,
+    }
+
+
+============================================================
+FILE: app\services\sources\kaggle_source.py
+============================================================
+"""
+sources/kaggle_source.py
+------------------------
+Importa giocatori da un CSV Kaggle FIFA.
+
+Dataset consigliato:
+  https://www.kaggle.com/datasets/stefanoleone992/fifa-22-complete-player-dataset
+  File: players_22.csv oppure players_23.csv
+
+Copertura: ~18.000 giocatori con PAC, TIR, PAS, DRI, DIF, FIS
+Costo: gratuito, ideale per sviluppo/prototipo
+"""
+
+import csv
+import os
+from sqlalchemy.orm import Session
+
+from app.models.models import ScoutingPlayer
+from app.services.scoring import compute_scores
+
+
+def import_from_kaggle_csv(
+    db: Session,
+    filepath: str,
+    limit: int = 2000,
+    progress_cb=None,  # callable(imported: int) opzionale per aggiornare lo stato
+) -> int:
+    """
+    Importa giocatori da un CSV Kaggle FIFA.
+
+    Ritorna il numero di record importati/aggiornati.
+
+    Raises:
+        FileNotFoundError: se il file CSV non esiste nel container.
+    """
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(
+            f"File non trovato nel container: {filepath}\n"
+            f"Scarica da Kaggle e copialo nella cartella data/ del progetto."
+        )
+
+    imported = 0
+
+    with open(filepath, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+
+        for i, row in enumerate(reader):
+            if i >= limit:
+                break
+
+            # Prende solo il primo ruolo (es. "ST, CF" → "ST")
+            raw_pos = row.get("player_positions", "")
+            position = raw_pos.split(",")[0].strip() if raw_pos else None
+
+            player_data = {
+                "external_id":          f"kaggle_{row.get('sofifa_id', i)}",
+                "name":                 row.get("short_name", f"Player_{i}"),
+                "position":             position,
+                "club":                 row.get("club_name"),
+                "nationality":          row.get("nationality_name"),
+                "age":                  _int(row.get("age")),
+                "preferred_foot":       row.get("preferred_foot"),
+                "pace":                 _int(row.get("pace")),
+                "shooting":             _int(row.get("shooting")),
+                "passing":              _int(row.get("passing")),
+                "dribbling":            _int(row.get("dribbling")),
+                "defending":            _int(row.get("defending")),
+                "physical":             _int(row.get("physic")),
+                "aerial_duels_won_pct": _float(row.get("attacking_heading_accuracy")),
+            }
+
+            # Upsert: aggiorna se esiste, inserisce se no
+            existing = db.query(ScoutingPlayer).filter_by(
+                external_id=player_data["external_id"]
+            ).first()
+
+            if existing:
+                for k, v in player_data.items():
+                    setattr(existing, k, v)
+                p = existing
+            else:
+                p = ScoutingPlayer(**player_data)
+                db.add(p)
+                db.flush()
+
+            scores = compute_scores(p)
+            for k, v in scores.items():
+                setattr(p, k, v)
+
+            imported += 1
+
+            if imported % 200 == 0:
+                db.commit()
+                msg = f"  → Kaggle: {imported} giocatori importati..."
+                print(msg)
+                if progress_cb:
+                    progress_cb(imported)
+
+    db.commit()
+    return imported
+
+
+# ── Helpers ──────────────────────────────────────────────────────
+
+def _int(val) -> int | None:
+    try:
+        return int(float(val)) if val not in (None, "", "N/A") else None
+    except (ValueError, TypeError):
+        return None
+
+
+def _float(val) -> float | None:
+    try:
+        return float(val) if val not in (None, "", "N/A") else None
+    except (ValueError, TypeError):
+        return None
+
+
+============================================================
+FILE: app\services\sources\statsbomb_source.py
+============================================================
+"""
+sources/statsbomb_source.py
+----------------------------
+Dati event-level gratuiti da StatsBomb Open Data.
+https://github.com/statsbomb/open-data
+
+Cosa fornisce:
+  - xG per tiro (statsbomb_xg)
+  - xA tramite key pass / shot assist
+  - Minuti giocati (da lineup)
+  - Aggregazione per90 di xG e xA
+
+Funzionamento:
+  1. Scarica competitions.json per validare comp_id/season_id
+  2. Scarica matches/{comp_id}/{season_id}.json
+  3. Per ogni partita: scarica events/{match_id}.json e lineups/{match_id}.json
+  4. Aggrega xG, xA, minuti per giocatore
+  5. Arricchisce i ScoutingPlayer esistenti nel DB (match per nome)
+
+Competizioni open data disponibili (esempi):
+  competition_id=12  → Serie A
+  competition_id=2   → Premier League  (UEFA Champions League era)
+  competition_id=16  → Champions League
+  competition_id=11  → La Liga
+  competition_id=9   → Bundesliga
+  competition_id=7   → Ligue 1
+
+Usa list_competitions() per vedere tutte le combinazioni disponibili.
+
+FIX: migliorato l'algoritmo di name matching per abbinare i nomi
+     StatsBomb (nomi completi) con i nomi nel DB (spesso abbreviati).
+"""
+
+import unicodedata
+import httpx
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+
+from app.models.models import ScoutingPlayer
+
+BASE_URL = "https://raw.githubusercontent.com/statsbomb/open-data/master/data"
+
+
+async def list_competitions() -> list[dict]:
+    """
+    Ritorna la lista completa di competizioni/stagioni disponibili
+    nello StatsBomb Open Data.
+    """
+    async with httpx.AsyncClient(timeout=20) as client:
+        resp = await client.get(f"{BASE_URL}/competitions.json")
+        resp.raise_for_status()
+        competitions = resp.json()
+
+    return sorted(
+        [
+            {
+                "competition_id": c["competition_id"],
+                "season_id":      c["season_id"],
+                "name":           c["competition_name"],
+                "season":         c["season_name"],
+                "country":        c["country_name"],
+            }
+            for c in competitions
+        ],
+        key=lambda x: (x["name"], x["season"]),
+    )
+
+
+async def fetch_from_statsbomb(
+    db: Session,
+    competition_id: int,
+    season_id: int,
+    max_matches: int = 300,
+    progress_cb=None,
+) -> dict:
+    """
+    Scarica event data StatsBomb e arricchisce i giocatori nel DB con xG/xA.
+
+    Args:
+        competition_id: ID competizione StatsBomb (es. 12 per Serie A)
+        season_id:      ID stagione StatsBomb (es. 27 per 2015/16)
+        max_matches:    limite partite da processare (evita rate limit GitHub)
+
+    Ritorna:
+        dict con matches_processed, players_with_stats, players_enriched
+    """
+    async with httpx.AsyncClient(timeout=30) as client:
+
+        # ── 1. Valida combinazione comp/season ──
+        comp_resp = await client.get(f"{BASE_URL}/competitions.json")
+        comp_resp.raise_for_status()
+        competitions = comp_resp.json()
+
+        valid = any(
+            c["competition_id"] == competition_id and c["season_id"] == season_id
+            for c in competitions
+        )
+        if not valid:
+            available = [
+                f"season_id={c['season_id']} ({c['season_name']})"
+                for c in competitions
+                if c["competition_id"] == competition_id
+            ]
+            raise ValueError(
+                f"competition_id={competition_id} + season_id={season_id} non trovata "
+                f"in StatsBomb open data.\n"
+                f"Stagioni disponibili per competition_id={competition_id}:\n"
+                + "\n".join(available[:15])
+            )
+
+        # ── 2. Lista partite ──
+        matches_resp = await client.get(
+            f"{BASE_URL}/matches/{competition_id}/{season_id}.json"
+        )
+        matches_resp.raise_for_status()
+        matches = matches_resp.json()[:max_matches]
+        print(f"  → StatsBomb: {len(matches)} partite da processare...")
+
+        # ── 3. Aggrega stats per giocatore ──
+        # player_id → {name, xg, xa, minutes, shots, key_passes}
+        player_stats: dict[str, dict] = {}
+
+        for idx, match in enumerate(matches):
+            match_id = match["match_id"]
+
+            # Events
+            try:
+                ev_resp = await client.get(f"{BASE_URL}/events/{match_id}.json")
+                ev_resp.raise_for_status()
+                events = ev_resp.json()
+            except Exception as e:
+                print(f"  ⚠ Salto partita {match_id}: {e}")
+                continue
+
+            for ev in events:
+                player = ev.get("player", {})
+                pid    = str(player.get("id", ""))
+                pname  = player.get("name", "")
+                if not pid:
+                    continue
+
+                if pid not in player_stats:
+                    player_stats[pid] = {
+                        "name":       pname,
+                        "xg":         0.0,
+                        "xa":         0.0,
+                        "minutes":    0,
+                        "shots":      0,
+                        "key_passes": 0,
+                    }
+
+                ev_type = ev.get("type", {}).get("name", "")
+
+                if ev_type == "Shot":
+                    xg_val = ev.get("shot", {}).get("statsbomb_xg", 0) or 0
+                    player_stats[pid]["xg"] += xg_val
+                    player_stats[pid]["shots"] += 1
+
+                elif ev_type == "Pass":
+                    pass_ev = ev.get("pass", {})
+                    if pass_ev.get("goal_assist") or pass_ev.get("shot_assist"):
+                        player_stats[pid]["xa"] += 1
+                        player_stats[pid]["key_passes"] += 1
+
+            # Lineups → minuti approssimati
+            try:
+                lu_resp = await client.get(f"{BASE_URL}/lineups/{match_id}.json")
+                lu_resp.raise_for_status()
+                lineups = lu_resp.json()
+                for team_lineup in lineups:
+                    for pl in team_lineup.get("lineup", []):
+                        pid = str(pl.get("player_id", ""))
+                        if pid in player_stats:
+                            player_stats[pid]["minutes"] += 90
+            except Exception:
+                pass
+
+            if progress_cb and idx % 5 == 0:
+                progress_cb(idx + 1, len(matches))
+
+        print(f"  → StatsBomb: stats aggregate per {len(player_stats)} giocatori")
+
+        # ── 4. Arricchisci nel DB ──
+        enriched = 0
+        not_found = 0
+
+        for pid, stats in player_stats.items():
+            minutes  = stats["minutes"] or 90
+            per90    = 90 / minutes
+            xg_per90 = round(stats["xg"] * per90, 4)
+            xa_per90 = round(stats["xa"] * per90, 4)
+
+            player = _find_player(db, stats["name"])
+            if player:
+                player.xg_per90 = xg_per90
+                player.xa_per90 = xa_per90
+                enriched += 1
+            else:
+                not_found += 1
+
+        db.commit()
+        print(
+            f"  → StatsBomb: {enriched} giocatori arricchiti con xG/xA "
+            f"({not_found} non abbinati al DB)"
+        )
+
+        return {
+            "matches_processed":   len(matches),
+            "players_with_stats":  len(player_stats),
+            "players_enriched":    enriched,
+            "players_not_matched": not_found,
+        }
+
+
+# ── Name matching ─────────────────────────────────────────────────────────────
+#
+# PROBLEMA: StatsBomb usa nomi completi (es. "Lionel Andrés Messi Cuccittini")
+# mentre il DB (Kaggle) usa nomi brevi (es. "L. Messi").
+#
+# Strategia a cascata:
+#   1. Match esatto (case-insensitive, accent-insensitive)
+#   2. Match sul cognome (ultima parola)
+#   3. Match su iniziale + cognome (es. "L. Messi" ← "Lionel Messi")
+#   4. Match parziale LIKE su ogni token significativo
+#
+
+def _normalize(s: str) -> str:
+    """Rimuove accenti e porta in lowercase."""
+    return "".join(
+        c for c in unicodedata.normalize("NFD", s.lower())
+        if unicodedata.category(c) != "Mn"
+    )
+
+
+def _find_player(db: Session, full_name: str) -> ScoutingPlayer | None:
+    if not full_name or full_name.strip() == "":
+        return None
+
+    full_name = full_name.strip()
+    parts     = full_name.split()
+
+    # ── 1. Match esatto (insensibile ad accenti) ──
+    player = (
+        db.query(ScoutingPlayer)
+        .filter(func.lower(ScoutingPlayer.name) == full_name.lower())
+        .first()
+    )
+    if player:
+        return player
+
+    # ── 2. Match LIKE sul nome completo ──
+    player = (
+        db.query(ScoutingPlayer)
+        .filter(ScoutingPlayer.name.ilike(f"%{full_name}%"))
+        .first()
+    )
+    if player:
+        return player
+
+    # ── 3. Match sull'ultimo token (cognome) ──
+    #    Evita token troppo corti (es. "De", "Van") che generano falsi positivi
+    last_name = parts[-1] if parts else ""
+    if len(last_name) >= 4:
+        player = (
+            db.query(ScoutingPlayer)
+            .filter(ScoutingPlayer.name.ilike(f"%{last_name}%"))
+            .first()
+        )
+        if player:
+            return player
+
+    # ── 4. Match "Iniziale. Cognome" (es. "L. Messi" per "Lionel Messi") ──
+    if len(parts) >= 2:
+        initial   = parts[0][0].upper()   # "L"
+        last_name = parts[-1]             # "Messi"
+        short     = f"{initial}. {last_name}"
+        player = (
+            db.query(ScoutingPlayer)
+            .filter(ScoutingPlayer.name.ilike(f"%{short}%"))
+            .first()
+        )
+        if player:
+            return player
+
+    # ── 5. Match su ogni token con 5+ caratteri (primo abbinamento vince) ──
+    for token in parts:
+        if len(token) >= 5:
+            player = (
+                db.query(ScoutingPlayer)
+                .filter(ScoutingPlayer.name.ilike(f"%{token}%"))
+                .first()
+            )
+            if player:
+                return player
+
+    return None
+
+
+============================================================
+FILE: tests\__init__.py
+============================================================
+
+
+
+============================================================
+FILE: tests\test_search.py
+============================================================
+"""
+tests/test_search.py
+Esegui con: docker compose exec backend pytest -v
+"""
+import pytest
+from unittest.mock import MagicMock
+from app.services.search import build_conditions, search_players
+from app.services.scoring import compute_scores
+from app.models.models import ScoutingPlayer
+
+
+# ── Test build_conditions ────────────────────────────────────────
+
+def test_build_conditions_empty():
+    assert build_conditions("") == []
+
+def test_build_conditions_single():
+    conds = build_conditions("mancino")
+    assert len(conds) == 1
+
+def test_build_conditions_multiple():
+    conds = build_conditions("centravanti mancino bravo di testa under 25")
+    # attesi: centravanti, mancino, bravo di testa, under 25
+    assert len(conds) == 4
+
+def test_build_conditions_case_insensitive():
+    conds_lower = build_conditions("veloce")
+    conds_upper = build_conditions("VELOCE")
+    assert len(conds_lower) == len(conds_upper)
+
+
+# ── Test compute_scores ───────────────────────────────────────────
+
+def make_player(**kwargs):
+    defaults = dict(
+        pace=70, shooting=70, passing=70,
+        dribbling=70, defending=70, physical=70,
+        aerial_duels_won_pct=60.0,
+    )
+    defaults.update(kwargs)
+    return MagicMock(spec=ScoutingPlayer, **defaults)
+
+def test_heading_score_high():
+    p = make_player(aerial_duels_won_pct=90, physical=85)
+    scores = compute_scores(p)
+    assert scores["heading_score"] > 80
+
+def test_heading_score_low():
+    p = make_player(aerial_duels_won_pct=10, physical=40)
+    scores = compute_scores(p)
+    assert scores["heading_score"] < 40
+
+def test_scores_never_exceed_100():
+    p = make_player(pace=100, shooting=100, passing=100,
+                    dribbling=100, defending=100, physical=100,
+                    aerial_duels_won_pct=100)
+    scores = compute_scores(p)
+    for val in scores.values():
+        assert val <= 100.0
+
+def test_scores_with_none_values():
+    p = make_player(pace=None, physical=None, aerial_duels_won_pct=None,
+                    dribbling=None, passing=None, defending=None)
+    scores = compute_scores(p)
+    # Non deve sollevare eccezioni e i valori devono essere numeri
+    for val in scores.values():
+        assert isinstance(val, float)
+
+
