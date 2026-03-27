@@ -34,7 +34,7 @@ Campionati supportati:
 import time
 from io import StringIO
 from sqlalchemy.orm import Session
-
+from app.services.player_matcher import find_player_in_db
 from app.models.models import ScoutingPlayer
 
 # ── Dipendenze opzionali ──────────────────────────────────────────
@@ -121,6 +121,7 @@ def scrape_standard_stats(
     league_key: str = "serie_a",
     season: str = "2023-2024",
     delay_seconds: float = 6.0,
+    stop_event=None,   # threading.Event per cancellazione
 ) -> dict:
     """
     Scarica Standard Stats da FBref e aggiorna xg_per90/xa_per90 nel DB.
@@ -160,6 +161,10 @@ def scrape_standard_stats(
     method = "cloudscraper" if _CLOUDSCRAPER else "requests (senza cloudscraper)"
     print(f"  → FBref [{method}]: scarico {url}")
 
+    # Controlla cancellazione prima del delay (che e il punto piu lungo)
+    if stop_event and stop_event.is_set():
+        print("  FBref: interruzione richiesta prima del download.")
+        return {"players_found_on_site": 0, "players_enriched_in_db": 0, "league": league_key, "season": season}
     time.sleep(delay_seconds)  # rispetta il rate limit di FBref
 
     session = _get_session()
@@ -240,24 +245,26 @@ def scrape_standard_stats(
 
         # Calcola per90
         if mins and mins > 0:
-            per90    = 90 / mins
+            per90 = 90.0 / mins
             xg_per90 = round(xg_val * per90, 4) if xg_val is not None else None
             xa_per90 = round(xa_val * per90, 4) if xa_val is not None else None
         else:
             xg_per90 = xg_val
             xa_per90 = xa_val
 
-        # Match nel DB per nome (case-insensitive, partial)
-        player = (
-            db.query(ScoutingPlayer)
-            .filter(ScoutingPlayer.name.ilike(f"%{name}%"))
-            .first()
-        )
+            # Estraiamo la squadra (fondamentale per non confondere i giocatori)
+        squad_name = row.get("Squad", "") if "Squad" in df.columns else ""
+
+        # Match intelligente nel DB
+        player = find_player_in_db(db, name, squad_name)
+
         if player:
+            # Sovrascriviamo i vecchi proxy con i VERI xG e xA
             if xg_per90 is not None:
                 player.xg_per90 = xg_per90
             if xa_per90 is not None:
                 player.xa_per90 = xa_per90
+
             enriched += 1
 
     db.commit()

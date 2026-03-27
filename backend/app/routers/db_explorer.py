@@ -153,34 +153,69 @@ def get_table_data(
     except SQLAlchemyError as e:
         raise HTTPException(500, f"Errore database: {e}")
 
+# In routers/db_explorer.py
 
 @router.post("/query")
 def execute_query(req: QueryRequest, db: Session = Depends(get_db)):
     """
-    Esegue una query SELECT custom.
-    Solo SELECT e WITH…SELECT sono permessi.
-    Il risultato è limitato a req.limit righe (max 500).
+    Esegue QUALSIASI istruzione SQL fornita dall'utente.
+    ATTENZIONE: Rimosse protezioni contro DELETE/DROP su richiesta utente.
     """
-    limit = min(req.limit, 500)
-    _validate_select_only(req.sql)
-
-    # Wrappa la query per forzare il limite di sicurezza
-    safe_sql = f"SELECT * FROM ({req.sql.rstrip(';')}) AS _q LIMIT :limit"
-
     try:
-        rows = db.execute(text(safe_sql), {"limit": limit}).mappings().all()
-        # Conta righe senza il limite (per mostrare "X di Y risultati")
-        count_sql = f"SELECT COUNT(*) FROM ({req.sql.rstrip(';')}) AS _q"
-        try:
-            total = db.execute(text(count_sql)).scalar()
-        except Exception:
-            total = len(rows)
+        # Eseguiamo direttamente senza il wrapping "SELECT * FROM (...)" 
+        # perché l'utente potrebbe inviare un comando che non ritorna righe (es. DELETE)
+        result = db.execute(text(req.sql))
+        
+        # Se l'istruzione ritorna delle righe (SELECT)
+        if result.returns_rows:
+            rows = result.mappings().all()
+            return {
+                "success": True,
+                "rows": [dict(r) for r in rows],
+                "total": len(rows),
+                "message": "Query eseguita con successo."
+            }
+        else:
+            # Per DELETE, UPDATE, DROP, ecc.
+            db.commit() # Fondamentale per rendere effettive le modifiche
+            return {
+                "success": True,
+                "rows": [],
+                "total": 0,
+                "message": f"Comando eseguito. Righe coinvolte: {result.rowcount}"
+            }
+            
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+    
+# @router.post("/query")
+# def execute_query(req: QueryRequest, db: Session = Depends(get_db)):
+#     """
+#     Esegue una query SELECT custom.
+#     Solo SELECT e WITH…SELECT sono permessi.
+#     Il risultato è limitato a req.limit righe (max 500).
+#     """
+#     limit = min(req.limit, 500)
+#     _validate_select_only(req.sql)
 
-        return {
-            "total":   total,
-            "showing": len(rows),
-            "columns": list(rows[0].keys()) if rows else [],
-            "rows":    [dict(r) for r in rows],
-        }
-    except SQLAlchemyError as e:
-        raise HTTPException(400, f"Errore SQL: {e}")
+#     # Wrappa la query per forzare il limite di sicurezza
+#     safe_sql = f"SELECT * FROM ({req.sql.rstrip(';')}) AS _q LIMIT :limit"
+
+#     try:
+#         rows = db.execute(text(safe_sql), {"limit": limit}).mappings().all()
+#         # Conta righe senza il limite (per mostrare "X di Y risultati")
+#         count_sql = f"SELECT COUNT(*) FROM ({req.sql.rstrip(';')}) AS _q"
+#         try:
+#             total = db.execute(text(count_sql)).scalar()
+#         except Exception:
+#             total = len(rows)
+
+#         return {
+#             "total":   total,
+#             "showing": len(rows),
+#             "columns": list(rows[0].keys()) if rows else [],
+#             "rows":    [dict(r) for r in rows],
+#         }
+#     except SQLAlchemyError as e:
+#         raise HTTPException(400, f"Errore SQL: {e}")

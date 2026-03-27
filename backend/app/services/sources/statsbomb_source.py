@@ -37,6 +37,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.models.models import ScoutingPlayer
+from app.services.player_matcher import find_player_in_db
 
 BASE_URL = "https://raw.githubusercontent.com/statsbomb/open-data/master/data"
 
@@ -72,6 +73,7 @@ async def fetch_from_statsbomb(
     season_id: int,
     max_matches: int = 300,
     progress_cb=None,
+    stop_event=None,   # threading.Event per cancellazione
 ) -> dict:
     """
     Scarica event data StatsBomb e arricchisce i giocatori nel DB con xG/xA.
@@ -121,6 +123,11 @@ async def fetch_from_statsbomb(
         player_stats: dict[str, dict] = {}
 
         for idx, match in enumerate(matches):
+            print(f"  StatsBomb: Elaborazione partita {idx+1}/{len(matches)}")
+
+            if stop_event and stop_event.is_set():
+                print(f"  StatsBomb: interruzione alla partita {idx+1}/{len(matches)}")
+                break
             match_id = match["match_id"]
 
             # Events
@@ -185,13 +192,18 @@ async def fetch_from_statsbomb(
         not_found = 0
 
         for pid, stats in player_stats.items():
-            minutes  = stats["minutes"] or 90
-            per90    = 90 / minutes
+            minutes = stats["minutes"] or 90
+            per90 = 90 / minutes
             xg_per90 = round(stats["xg"] * per90, 4)
             xa_per90 = round(stats["xa"] * per90, 4)
 
-            player = _find_player(db, stats["name"])
+            # Match intelligente (passiamo stringa vuota per il club se Statsbomb non lo fornisce)
+            player = find_player_in_db(db, stats["name"], "")
+            myname = stats["name"]
+            print(f"  → StatsBomb: calciatore -{myname}- Trovato -{player}-")
+
             if player:
+                # Sovrascriviamo i proxy con i veri dati di Statsbomb
                 player.xg_per90 = xg_per90
                 player.xa_per90 = xa_per90
                 enriched += 1
@@ -230,67 +242,3 @@ def _normalize(s: str) -> str:
         c for c in unicodedata.normalize("NFD", s.lower())
         if unicodedata.category(c) != "Mn"
     )
-
-
-def _find_player(db: Session, full_name: str) -> ScoutingPlayer | None:
-    if not full_name or full_name.strip() == "":
-        return None
-
-    full_name = full_name.strip()
-    parts     = full_name.split()
-
-    # ── 1. Match esatto (insensibile ad accenti) ──
-    player = (
-        db.query(ScoutingPlayer)
-        .filter(func.lower(ScoutingPlayer.name) == full_name.lower())
-        .first()
-    )
-    if player:
-        return player
-
-    # ── 2. Match LIKE sul nome completo ──
-    player = (
-        db.query(ScoutingPlayer)
-        .filter(ScoutingPlayer.name.ilike(f"%{full_name}%"))
-        .first()
-    )
-    if player:
-        return player
-
-    # ── 3. Match sull'ultimo token (cognome) ──
-    #    Evita token troppo corti (es. "De", "Van") che generano falsi positivi
-    last_name = parts[-1] if parts else ""
-    if len(last_name) >= 4:
-        player = (
-            db.query(ScoutingPlayer)
-            .filter(ScoutingPlayer.name.ilike(f"%{last_name}%"))
-            .first()
-        )
-        if player:
-            return player
-
-    # ── 4. Match "Iniziale. Cognome" (es. "L. Messi" per "Lionel Messi") ──
-    if len(parts) >= 2:
-        initial   = parts[0][0].upper()   # "L"
-        last_name = parts[-1]             # "Messi"
-        short     = f"{initial}. {last_name}"
-        player = (
-            db.query(ScoutingPlayer)
-            .filter(ScoutingPlayer.name.ilike(f"%{short}%"))
-            .first()
-        )
-        if player:
-            return player
-
-    # ── 5. Match su ogni token con 5+ caratteri (primo abbinamento vince) ──
-    for token in parts:
-        if len(token) >= 5:
-            player = (
-                db.query(ScoutingPlayer)
-                .filter(ScoutingPlayer.name.ilike(f"%{token}%"))
-                .first()
-            )
-            if player:
-                return player
-
-    return None

@@ -84,46 +84,19 @@
 
             <template v-else-if="tableData">
               <div class="table-info">
-                Mostrando {{ tableData.rows.length }} di {{ formatCount(tableData.total) }} righe
-                (offset {{ currentOffset }})
+                {{ tableData.rows.length }} di {{ formatCount(tableData.total) }} righe
+                — pagina {{ currentPage }} / {{ totalPages }}
               </div>
-
-              <div class="table-scroll">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th v-for="col in tableData.columns" :key="col" :title="col">
-                        {{ col }}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(row, i) in tableData.rows" :key="i">
-                      <td v-for="col in tableData.columns" :key="col">
-                        <span :class="{ 'null-val': row[col] === null || row[col] === undefined }">
-                          {{ formatCell(row[col]) }}
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div class="browse-actions">
+                <button class="btn-open-dialog" @click="browseDialogVisible = true">
+                  🔍 Visualizza nella finestra
+                </button>
+                <div class="pagination-inline">
+                  <button class="btn-page" :disabled="currentOffset === 0" @click="changePage(-1)">← Prec.</button>
+                  <button class="btn-page" :disabled="currentOffset + pageSize >= tableData.total" @click="changePage(1)">Succ. →</button>
+                </div>
               </div>
-
-              <div class="pagination">
-                <button
-                  class="btn-page"
-                  :disabled="currentOffset === 0"
-                  @click="changePage(-1)"
-                >← Precedente</button>
-                <span class="page-info">
-                  Pagina {{ currentPage }} / {{ totalPages }}
-                </span>
-                <button
-                  class="btn-page"
-                  :disabled="currentOffset + pageSize >= tableData.total"
-                  @click="changePage(1)"
-                >Successiva →</button>
-              </div>
+              <p class="dialog-hint-inline">💡 Per vedere tutti i dati clicca "Visualizza nella finestra".</p>
             </template>
           </template>
         </div>
@@ -194,7 +167,7 @@
         <div v-if="activeTab === 'query'" class="tab-content card">
           <div class="query-header">
             <h3>SQL Query</h3>
-            <span class="query-notice">Solo SELECT e WITH…SELECT sono permessi</span>
+            <span class="query-notice">Qualsiasi istruzione SQL è permessa</span>
           </div>
 
           <div class="query-quick">
@@ -244,37 +217,107 @@
           <template v-if="queryResult">
             <div class="table-info">
               {{ queryResult.showing }} righe restituite
-              ({{ queryResult.total }} totali nell'insieme completo)
+              ({{ queryResult.total }} totali)
             </div>
-
-            <div class="table-scroll">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th v-for="col in queryResult.columns" :key="col">{{ col }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(row, i) in queryResult.rows" :key="i">
-                    <td v-for="col in queryResult.columns" :key="col">
-                      <span :class="{ 'null-val': row[col] === null || row[col] === undefined }">
-                        {{ formatCell(row[col]) }}
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="export-bar">
+            <div class="browse-actions">
+              <button class="btn-open-dialog" @click="queryDialogVisible = true">
+                🔍 Visualizza nella finestra
+              </button>
               <button class="btn-export" @click="exportCsv">📥 Esporta CSV</button>
             </div>
+            <p class="dialog-hint-inline">💡 Per una visione completa clicca "Visualizza nella finestra".</p>
           </template>
         </div>
 
       </main>
     </div>
   </div>
+
+  <!-- ── Dialog: Sfoglia dati ───────────────────────────────────── -->
+  <div v-if="browseDialogVisible" class="db-modal-overlay" @click.self="browseDialogVisible = false">
+    <div class="db-modal">
+      <div class="db-modal-header">
+        <div class="db-modal-title">
+          <span>📋</span>
+          <h3>{{ selectedTable }}</h3>
+          <span class="db-modal-meta">
+            {{ tableData?.rows?.length }} di {{ formatCount(tableData?.total) }} righe · Pagina {{ currentPage }}/{{ totalPages }}
+          </span>
+        </div>
+        <div class="db-modal-actions">
+          <select v-model.number="pageSize" @change="loadData" class="db-modal-select">
+            <option :value="20">20 righe</option>
+            <option :value="50">50 righe</option>
+            <option :value="100">100 righe</option>
+            <option :value="200">200 righe</option>
+          </select>
+          <button class="btn-page" :disabled="currentOffset === 0" @click="changePage(-1)">← Prec.</button>
+          <button class="btn-page" :disabled="currentOffset + pageSize >= (tableData?.total ?? 0)" @click="changePage(1)">Succ. →</button>
+          <button class="btn-reload" :disabled="loadingData" @click="reloadData" title="Ricarica dati dal DB">
+            <span :class="{ spin: loadingData }">↻</span> Ricarica
+          </button>
+          <button class="db-modal-close" @click="browseDialogVisible = false">✕</button>
+        </div>
+      </div>
+      <div v-if="loadingData" class="db-modal-loading">Caricamento…</div>
+      <div v-else-if="tableData" class="db-modal-body">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th v-for="col in tableData.columns" :key="col" :title="col">{{ col }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, i) in tableData.rows" :key="i">
+              <td v-for="col in tableData.columns" :key="col">
+                <span :class="{ 'null-val': row[col] === null || row[col] === undefined }">
+                  {{ formatCell(row[col]) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Dialog: Query results ──────────────────────────────────── -->
+  <div v-if="queryDialogVisible" class="db-modal-overlay" @click.self="queryDialogVisible = false">
+    <div class="db-modal">
+      <div class="db-modal-header">
+        <div class="db-modal-title">
+          <span>💬</span>
+          <h3>Risultati Query</h3>
+          <span class="db-modal-meta">
+            {{ queryResult?.showing }} righe · {{ queryResult?.total }} totali
+          </span>
+        </div>
+        <div class="db-modal-actions">
+          <button class="btn-export" @click="exportCsv">📥 CSV</button>
+          <button class="db-modal-close" @click="queryDialogVisible = false">✕</button>
+        </div>
+      </div>
+      <div v-if="queryResult" class="db-modal-body">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th v-for="col in queryResult.columns" :key="col">{{ col }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, i) in queryResult.rows" :key="i">
+              <td v-for="col in queryResult.columns" :key="col">
+                <span :class="{ 'null-val': row[col] === null || row[col] === undefined }">
+                  {{ formatCell(row[col]) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <script setup>
@@ -308,6 +351,10 @@ const queryLimit   = ref(100)
 const queryRunning = ref(false)
 const queryResult  = ref(null)
 const queryError   = ref(null)
+
+// Dialogs risultati
+const browseDialogVisible = ref(false)
+const queryDialogVisible  = ref(false)
 
 // ── Quick queries ─────────────────────────────────────────────────
 const quickQueries = [
@@ -361,11 +408,11 @@ async function loadData() {
     const { data } = await api.get(`/db/tables/${selectedTable.value}/data`, {
       params: { limit: pageSize.value, offset: currentOffset.value },
     })
-    // Estrai colonne dai dati
     tableData.value = {
       ...data,
       columns: data.rows.length ? Object.keys(data.rows[0]) : [],
     }
+    browseDialogVisible.value = true   // apre dialog (se già aperta, rimane aperta)
   } finally {
     loadingData.value = false
   }
@@ -373,6 +420,13 @@ async function loadData() {
 
 function changePage(direction) {
   currentOffset.value = Math.max(0, currentOffset.value + direction * pageSize.value)
+  loadData()
+}
+
+/** Ricarica i dati dall'inizio (utile dopo DELETE/UPDATE esterni al DB Explorer) */
+function reloadData() {
+  currentOffset.value = 0
+  tableData.value = null
   loadData()
 }
 
@@ -399,6 +453,7 @@ async function runQuery() {
       limit: queryLimit.value,
     })
     queryResult.value = data
+    queryDialogVisible.value = true
   } catch (e) {
     queryError.value = e.response?.data?.detail || e.message
   } finally {
@@ -788,5 +843,130 @@ watch(selectedTable, () => {
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
+}
+
+/* ── Browse/Query action bar ───────────────────────────────── */
+.browse-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 0.25rem 0;
+}
+.btn-open-dialog {
+  padding: 0.4rem 1rem;
+  background: var(--primary, #3b82f6);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.btn-open-dialog:hover { background: #1d4ed8; }
+
+.dialog-hint-inline {
+  font-size: 0.75rem;
+  color: var(--text-muted, #9ca3af);
+  margin: 0;
+}
+
+/* ── Dialog fullscreen per risultati DB ────────────────────── */
+.db-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 1rem;
+}
+
+.db-modal {
+  background: var(--surface, #fff);
+  border-radius: 14px;
+  width: min(1200px, 96vw);
+  height: min(90vh, 860px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.db-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  flex-shrink: 0;
+  gap: 1rem;
+}
+
+.db-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.db-modal-title h3 { margin: 0; font-size: 1rem; }
+.db-modal-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted, #9ca3af);
+  background: var(--bg, #f3f4f6);
+  padding: 0.15rem 0.6rem;
+  border-radius: 20px;
+}
+
+.db-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.db-modal-select {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
+.db-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--text-muted, #6b7280);
+  line-height: 1;
+  padding: 0.2rem;
+}
+.db-modal-close:hover { color: #111; }
+
+.btn-reload {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border, #e5e7eb);
+  background: var(--bg, #f9fafb);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary, #3b82f6);
+}
+.btn-reload:hover:not(:disabled) { background: #eff6ff; border-color: #93c5fd; }
+.btn-reload:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.db-modal-loading {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted, #888);
+}
+
+.db-modal-body {
+  flex: 1;
+  overflow: auto;
+  padding: 0;
 }
 </style>

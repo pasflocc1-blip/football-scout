@@ -454,7 +454,7 @@
     </div>
 
     <!-- ── Dialog progresso / riepilogo import ───────────────────── -->
-    <div v-if="dialogVisible" class="modal-overlay" @click.self="dialogVisible = false">
+    <div v-if="dialogVisible" class="modal-overlay">
       <div class="modal card progress-dialog">
 
         <!-- Header -->
@@ -471,7 +471,23 @@
               </span>
             </div>
           </div>
-          <button class="btn-close" @click="dialogVisible = false">✕</button>
+          <!-- Header right: Stop durante esecuzione, X al termine -->
+          <div class="dialog-header-actions">
+            <button
+              v-if="activeDialogJob?.status === 'running'"
+              class="btn-stop-import"
+              :disabled="stopping"
+              @click="stopImport"
+            >
+              <span v-if="stopping">⏳ Interruzione…</span>
+              <span v-else>⏹ Interrompi</span>
+            </button>
+            <button
+              v-if="activeDialogJob?.status !== 'running'"
+              class="btn-close"
+              @click="dialogVisible = false"
+            >✕</button>
+          </div>
         </div>
 
         <!-- Corpo: IN ESECUZIONE -->
@@ -481,14 +497,46 @@
             <span class="pulse-icon">{{ activeDialogLabel.icon }}</span>
           </div>
           <p class="dialog-running-text">Elaborazione in corso…</p>
-          <p class="dialog-hint">Il dialog si aggiornerà automaticamente al termine.</p>
+          <p class="dialog-hint">Clicca ⏹ Interrompi per annullare l'operazione.</p>
           <div class="progress-bar-track">
             <div class="progress-bar-indeterminate"></div>
           </div>
+
+          <!-- Live log SEMPRE visibile (con placeholder se ancora vuoto) -->
+          <div class="live-log-container" ref="logContainer">
+            <div class="live-log-header">📋 Log in tempo reale</div>
+            <div class="live-log-body">
+              <div v-if="!activeDialogJob?.logs?.length" class="log-line log-debug">
+                In attesa dei primi messaggi…
+              </div>
+              <div
+                v-for="(line, i) in (activeDialogJob?.logs || [])"
+                :key="i"
+                class="log-line"
+                :class="logLineClass(line)"
+              >{{ line }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Corpo: INTERROTTO -->
+        <div v-else-if="activeDialogJob?.status === 'cancelled'" class="dialog-body">
+          <div class="dialog-success-icon">⏹</div>
+          <p class="dialog-done-text" style="color:#f59e0b">Import interrotto dall'utente</p>
+          <div v-if="activeDialogJob.logs?.length" class="live-log-container done-log" style="margin-top:0.75rem">
+            <div class="live-log-header" @click="logExpanded = !logExpanded" style="cursor:pointer">
+              📋 Log esecuzione {{ logExpanded ? '▲' : '▼' }}
+            </div>
+            <div v-if="logExpanded" class="live-log-body">
+              <div v-for="(line, i) in activeDialogJob.logs" :key="i" class="log-line" :class="logLineClass(line)">{{ line }}</div>
+            </div>
+          </div>
+          <button class="btn btn-close-dialog" @click="dialogVisible = false">Chiudi</button>
         </div>
 
         <!-- Corpo: COMPLETATO con riepilogo -->
         <div v-else-if="activeDialogJob.status === 'done'" class="dialog-body">
+
           <div class="dialog-success-icon">✅</div>
           <p class="dialog-done-text">Import completato con successo</p>
 
@@ -496,57 +544,146 @@
             ⏱ {{ new Date(activeDialogJob.finished_at).toLocaleTimeString('it-IT') }}
           </p>
 
-          <div v-if="activeDialogJob.result" class="result-summary">
-            <template v-if="activeDialogJob.result.imported != null">
-              <div class="stat-box"><span class="stat-val">{{ activeDialogJob.result.imported.toLocaleString('it-IT') }}</span><span class="stat-lbl">Giocatori importati</span></div>
-            </template>
-            <template v-if="activeDialogJob.result.players_enriched != null">
-              <div class="stat-box"><span class="stat-val">{{ activeDialogJob.result.players_enriched.toLocaleString('it-IT') }}</span><span class="stat-lbl">Giocatori arricchiti</span></div>
-            </template>
-            <template v-if="activeDialogJob.result.players_enriched_in_db != null">
-              <div class="stat-box"><span class="stat-val">{{ activeDialogJob.result.players_enriched_in_db.toLocaleString('it-IT') }}</span><span class="stat-lbl">Arricchiti nel DB</span></div>
-            </template>
-            <template v-if="activeDialogJob.result.players_found_on_site != null">
-              <div class="stat-box"><span class="stat-val">{{ activeDialogJob.result.players_found_on_site.toLocaleString('it-IT') }}</span><span class="stat-lbl">Trovati sul sito</span></div>
-            </template>
-            <template v-if="activeDialogJob.result.matches_processed != null">
-              <div class="stat-box"><span class="stat-val">{{ activeDialogJob.result.matches_processed }}</span><span class="stat-lbl">Partite processate</span></div>
-            </template>
-            <template v-if="activeDialogJob.result.players_with_stats != null">
-              <div class="stat-box"><span class="stat-val">{{ activeDialogJob.result.players_with_stats.toLocaleString('it-IT') }}</span><span class="stat-lbl">Con statistiche</span></div>
-            </template>
-            <template v-if="activeDialogJob.result.players_updated != null">
-              <div class="stat-box"><span class="stat-val">{{ activeDialogJob.result.players_updated.toLocaleString('it-IT') }}</span><span class="stat-lbl">Club aggiornati</span></div>
-            </template>
-            <template v-if="activeDialogJob.result.teams_processed != null">
-              <div class="stat-box"><span class="stat-val">{{ activeDialogJob.result.teams_processed }}</span><span class="stat-lbl">Squadre processate</span></div>
-            </template>
+          <!-- TAB -->
+          <div class="tabs">
+            <button :class="{ active: activeTab === 'results' }" @click="activeTab = 'results'">
+              Risultati
+            </button>
+            <button :class="{ active: activeTab === 'log' }" @click="activeTab = 'log'">
+              Log
+            </button>
           </div>
 
-          <div v-if="dialogSource === 'all' && activeDialogJob.result?.sources" class="all-sources-summary">
-            <h4>Dettaglio per sorgente</h4>
-            <div v-for="(res, src) in activeDialogJob.result.sources" :key="src" class="source-row">
-              <span class="src-name">{{ SOURCE_LABELS[src]?.icon }} {{ SOURCE_LABELS[src]?.label ?? src }}</span>
-              <span :class="['src-status', res.status]">{{ res.status === 'ok' ? '✅' : res.status === 'skipped' ? '⏭' : '❌' }}</span>
+          <!-- RISULTATI -->
+          <div v-if="activeTab === 'results'">
+
+            <div v-if="activeDialogJob.result" class="result-summary">
+
+              <!-- Kaggle / API-Football: chiave generica "imported" -->
+              <template v-if="activeDialogJob.result.imported != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.imported }}</span>
+                  <span class="stat-lbl">Giocatori importati</span>
+                </div>
+              </template>
+
+              <!-- API-Football: aggiornati vs inseriti separati -->
+              <template v-if="activeDialogJob.result.updated != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.updated }}</span>
+                  <span class="stat-lbl">Aggiornati</span>
+                </div>
+              </template>
+
+              <template v-if="activeDialogJob.result.inserted != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.inserted }}</span>
+                  <span class="stat-lbl">Nuovi inseriti</span>
+                </div>
+              </template>
+
+              <template v-if="activeDialogJob.result.players_updated != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.players_updated }}</span>
+                  <span class="stat-lbl">Club aggiornati</span>
+                </div>
+              </template>
+
+              <template v-if="activeDialogJob.result.players_inserted != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.players_inserted }}</span>
+                  <span class="stat-lbl">Giocatori inseriti</span>
+                </div>
+              </template>
+
+              <template v-if="activeDialogJob.result.players_total != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.players_total }}</span>
+                  <span class="stat-lbl">Totale modifiche</span>
+                </div>
+              </template>
+
+              <template v-if="activeDialogJob.result.teams_processed != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.teams_processed }}</span>
+                  <span class="stat-lbl">Squadre processate</span>
+                </div>
+              </template>
+
+              <!-- StatsBomb specific fields -->
+              <template v-if="activeDialogJob.result.matches_processed != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.matches_processed }}</span>
+                  <span class="stat-lbl">Partite processate</span>
+                </div>
+              </template>
+
+              <template v-if="activeDialogJob.result.players_with_stats != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.players_with_stats }}</span>
+                  <span class="stat-lbl">Giocatori con stats</span>
+                </div>
+              </template>
+
+              <template v-if="activeDialogJob.result.players_enriched != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.players_enriched }}</span>
+                  <span class="stat-lbl">Arricchiti con xG/xA</span>
+                </div>
+              </template>
+
+              <template v-if="activeDialogJob.result.players_not_matched != null">
+                <div class="stat-box">
+                  <span class="stat-val" style="color:#f59e0b">{{ activeDialogJob.result.players_not_matched }}</span>
+                  <span class="stat-lbl">Non abbinati al DB</span>
+                </div>
+              </template>
+
+            </div>
+
+          </div>
+
+          <!-- LOG -->
+          <div v-if="activeTab === 'log'">
+            <div class="live-log-container">
+              <div class="live-log-header">📋 Log esecuzione</div>
+              <div class="live-log-body">
+                <div
+                  v-for="(line, i) in activeDialogJob.logs"
+                  :key="i"
+                  class="log-line"
+                  :class="logLineClass(line)"
+                >
+                  {{ line }}
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Avviso limite pagine free tier -->
-          <div v-if="isPageLimited" class="page-limit-warning">
-            ⚠️ <strong>Limite free tier raggiunto:</strong> importate solo 3 pagine (~60 giocatori).
-            Passa alla modalità <em>Singola squadra</em> per ottenere la rosa completa,
-            oppure acquista un piano a pagamento su
-            <a href="https://dashboard.api-football.com" target="_blank">api-football.com</a>.
-          </div>
+          <button class="btn btn-close-dialog" @click="dialogVisible = false">
+            Chiudi
+          </button>
 
-          <button class="btn btn-close-dialog" @click="dialogVisible = false">Chiudi</button>
         </div>
-
         <!-- Corpo: ERRORE -->
         <div v-else-if="activeDialogJob.status === 'error'" class="dialog-body dialog-error">
           <div class="dialog-error-icon">❌</div>
           <p class="dialog-error-title">Import fallito</p>
           <pre class="error-detail">{{ activeDialogJob.error }}</pre>
+          <!-- Log anche in caso di errore -->
+          <div v-if="activeDialogJob.logs?.length" class="live-log-container error-log">
+            <div class="live-log-header" @click="logExpanded = !logExpanded" style="cursor:pointer">
+              📋 Log esecuzione {{ logExpanded ? '▲' : '▼' }}
+            </div>
+            <div v-if="logExpanded" class="live-log-body">
+              <div
+                v-for="(line, i) in activeDialogJob.logs"
+                :key="i"
+                class="log-line"
+                :class="logLineClass(line)"
+              >{{ line }}</div>
+            </div>
+          </div>
           <button class="btn btn-close-dialog" @click="dialogVisible = false">Chiudi</button>
         </div>
 
@@ -594,10 +731,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 //import api from '@/services/api'
 import api from '@/api/client'
-
+const activeTab = ref('results')
 // ── StatsBomb: competizioni rapide pre-caricate ─────────────────
 const SB_QUICK_COMPS = [
   { id: 12, name: 'Serie A' },
@@ -788,6 +925,9 @@ let pollingInterval = null
 
 const dialogVisible = ref(false)
 const dialogSource  = ref(null)
+const logExpanded   = ref(false)
+const logContainer  = ref(null)
+const stopping      = ref(false)
 
 const SOURCE_KEY_MAP = {
   'kaggle':        'kaggle',
@@ -852,10 +992,29 @@ function stopPolling() {
   }
 }
 
+async function stopImport() {
+  if (!dialogSource.value || stopping.value) return
+  stopping.value = true
+  try {
+    await api.post(`/ingest/${dialogSource.value}/cancel`)
+    // Il backend imposta status = 'cancelled'; aspettiamo il prossimo polling
+    await loadStatus()
+  } catch (e) {
+    // fallback: se l'endpoint non esiste, lo segnaliamo nel log visivo
+    console.warn('Endpoint /cancel non disponibile:', e.message)
+    // Chiudiamo comunque il dialog e stoppiamo il polling
+    stopPolling()
+    dialogVisible.value = false
+  } finally {
+    stopping.value = false
+  }
+}
+
 onUnmounted(() => stopPolling())
 
 // ── Run handlers ─────────────────────────────────────────────────
 async function runAll() {
+  logExpanded.value = false
   await api.post('/ingest/all', {
     kaggle_file:           config.value.kaggle_file,
     kaggle_limit:          config.value.kaggle_limit,
@@ -875,6 +1034,7 @@ async function runAll() {
 }
 
 async function runSource(source) {
+  logExpanded.value = false
   const payloads = {
     'kaggle': {
       file_path: config.value.kaggle_file,
@@ -913,6 +1073,35 @@ onMounted(() => {
   loadStatus()
   loadEnvStatus()
 })
+
+// Auto-scroll del log live
+watch(
+  () => activeDialogJob.value?.logs?.length,
+  async () => {
+    await nextTick()
+    if (logContainer.value) {
+      const body = logContainer.value.querySelector('.live-log-body')
+      if (body) body.scrollTop = body.scrollHeight
+    }
+  }
+)
+
+/**
+ * Classifica una riga di log per colorarla:
+ *   - errore:  riga contiene ERROR / ✗ / ⚠
+ *   - warn:    riga contiene WARNING / ⚠️
+ *   - ok:      riga contiene ✅ / importati / arricchiti
+ *   - debug:   riga inizia con DEBUG
+ */
+function logLineClass(line) {
+  if (!line) return {}
+  const l = line.toUpperCase()
+  if (l.includes('ERROR') || l.includes('✗') || l.includes('ERRORE')) return { 'log-error': true }
+  if (l.includes('⚠') || l.includes('WARN')) return { 'log-warn': true }
+  if (l.includes('✅') || l.includes('COMPLETAT') || l.includes('IMPORTATI') || l.includes('ARRICCHITI')) return { 'log-ok': true }
+  if (l.startsWith('DEBUG')) return { 'log-debug': true }
+  return {}
+}
 
 const showSbModal = ref(false)
 const sbComps     = ref([])
@@ -1351,8 +1540,8 @@ export default {
   z-index: 100;
 }
 .modal {
-  width: min(900px, 95vw);
-  max-height: 80vh;
+  width: min(1000px, 96vw);
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1402,7 +1591,35 @@ export default {
 }
 
 /* ── Dialog progresso ──────────────────────────────────────── */
-.progress-dialog { width: min(480px, 95vw); }
+
+.progress-dialog {
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-body {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.dialog-header-actions { display: flex; align-items: center; gap: 0.5rem; }
+
+.btn-stop-import {
+  padding: 0.4rem 1rem;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1.5px solid #f59e0b;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-stop-import:hover:not(:disabled) { background: #fde68a; }
+.btn-stop-import:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .dialog-title { display: flex; align-items: center; gap: 0.75rem; }
 .dialog-icon { font-size: 1.75rem; }
@@ -1410,12 +1627,10 @@ export default {
 .dialog-subtitle { font-size: 0.8rem; color: var(--text-muted, #6b7280); }
 
 .dialog-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1.5rem 0 0.5rem;
-  gap: 0.75rem;
-  text-align: center;
+  padding: 1rem 0 0.5rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .progress-pulse {
@@ -1440,7 +1655,7 @@ export default {
 }
 .pulse-icon { font-size: 1.8rem; position: relative; z-index: 1; }
 
-.dialog-running-text { font-weight: 600; margin: 0; }
+
 .dialog-hint { font-size: 0.8rem; color: var(--text-muted, #9ca3af); margin: 0; }
 
 .progress-bar-track {
@@ -1470,10 +1685,8 @@ export default {
 .result-summary {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 1rem;
   justify-content: center;
-  margin: 0.5rem 0;
-  width: 100%;
 }
 .stat-box {
   background: var(--bg, #f3f4f6);
@@ -1488,7 +1701,7 @@ export default {
 .stat-val { font-size: 1.5rem; font-weight: 800; color: var(--primary, #3b82f6); }
 .stat-lbl { font-size: 0.7rem; color: var(--text-muted, #6b7280); text-align: center; }
 
-.all-sources-summary { width: 100%; text-align: left; }
+.all-sources-summary { width: 100%; max-height: 200px; overflow-y: auto; text-align: left; }
 .all-sources-summary h4 { font-size: 0.85rem; margin: 0.5rem 0; }
 .source-row {
   display: flex;
@@ -1535,6 +1748,74 @@ export default {
 /* Spin animation per il bottone refresh */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { display: inline-block; animation: spin 0.8s linear infinite; }
+
+/* Placeholder per mantenere l'allineamento dell'header quando X è nascosto */
+.btn-close-placeholder { width: 1.8rem; height: 1.8rem; display: inline-block; }
+
+/* ── Live log ───────────────────────────────────────────────── */
+.live-log-container {
+  margin-top: 1rem;
+  border-radius: 8px;
+  overflow: hidden; /* 🔥 unisce header + body */
+}
+.live-log-header {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  user-select: none;
+}
+.live-log-body {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.6rem 0.75rem;
+  background: #1e1e2e;
+  font-family: monospace;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  border-radius: 0 0 8px 8px;
+}
+.live-log {
+  margin-top: 1rem;
+  flex-shrink: 0;   /* 🔥 impedisce collasso */
+}
+
+.log-line {
+  color: #e5e7eb;   /* 🔥 più leggibile */
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.log-line.log-ok    { color: #a6e3a1; }
+.log-line.log-error { color: #f38ba8; }
+.log-line.log-warn  { color: #f9e2af; }
+.log-line.log-debug { color: #89b4fa; opacity: 0.75; }
+
+.done-log .live-log-header  { background: #1e1e2e; }
+.error-log .live-log-header { background: #2d1b1b; }
+.error-log .live-log-body   { max-height: 35vh; background: #2d1b1b; }
+
+/* ── tab ───────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background: #eee;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.tabs button.active {
+  background: #3b82f6;
+  color: white;
+}
 
 /* ── Team hint chips ───────────────────────────────────────── */
 .team-id-hints {

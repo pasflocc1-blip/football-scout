@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.models.models import ScoutingPlayer
 from app.services.scoring import compute_scores
-
+from app.services.player_matcher import find_player_in_db
 
 def import_from_kaggle_csv(
     db: Session,
@@ -53,30 +53,36 @@ def import_from_kaggle_csv(
             position = raw_pos.split(",")[0].strip() if raw_pos else None
 
             player_data = {
-                "external_id":          f"kaggle_{row.get('sofifa_id', i)}",
-                "name":                 row.get("short_name", f"Player_{i}"),
-                "position":             position,
-                "club":                 row.get("club_name"),
-                "nationality":          row.get("nationality_name"),
-                "age":                  _int(row.get("age")),
-                "preferred_foot":       row.get("preferred_foot"),
-                "pace":                 _int(row.get("pace")),
-                "shooting":             _int(row.get("shooting")),
-                "passing":              _int(row.get("passing")),
-                "dribbling":            _int(row.get("dribbling")),
-                "defending":            _int(row.get("defending")),
-                "physical":             _int(row.get("physic")),
+                "transfermarkt_id": f"kaggle_{row.get('sofifa_id', i)}",
+                "name": row.get("short_name", f"Player_{i}"),
+                "position": position,
+                "club": row.get("club_name"),
+                "nationality": row.get("nationality_name"),
+                "preferred_foot": row.get("preferred_foot"),
+                "age": _int(row.get("age")),
+
+                # Stats base
+                "pace": _int(row.get("pace")),
+                "shooting": _int(row.get("shooting")),
+                "passing": _int(row.get("passing")),
+                "dribbling": _int(row.get("dribbling")),
+                "defending": _int(row.get("defending")),
+                "physical": _int(row.get("physic")),
                 "aerial_duels_won_pct": _float(row.get("attacking_heading_accuracy")),
+
+                # Stats avanzate (inizializzate a 0.0)
+                "xg_per90": 0.0,
+                "xa_per90": 0.0,
+                "progressive_passes": 0,
             }
 
-            # Upsert: aggiorna se esiste, inserisce se no
-            existing = db.query(ScoutingPlayer).filter_by(
-                external_id=player_data["external_id"]
-            ).first()
+            # Upsert intelligente
+            existing = find_player_in_db(db, player_data["name"], player_data["club"])
 
             if existing:
                 for k, v in player_data.items():
-                    setattr(existing, k, v)
+                    if v is not None:
+                        setattr(existing, k, v)
                 p = existing
             else:
                 p = ScoutingPlayer(**player_data)
@@ -91,7 +97,7 @@ def import_from_kaggle_csv(
 
             if imported % 200 == 0:
                 db.commit()
-                msg = f"  → Kaggle: {imported} giocatori importati..."
+                msg = f"  → Kaggle: {imported}/{limit} giocatori importati..."
                 print(msg)
                 if progress_cb:
                     progress_cb(imported)

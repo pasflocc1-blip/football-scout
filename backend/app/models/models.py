@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, DateTime, Enum, Date
 from sqlalchemy.orm import relationship
 import enum
 
@@ -59,9 +59,14 @@ class ScoutingPlayer(Base):
     __tablename__ = "scouting_players"
 
     id = Column(Integer, primary_key=True, index=True)
-    external_id = Column(String(50), unique=True, index=True)
+    # --- 1. ID DEI PROVIDER (Sostituiscono external_id) ---
+    api_football_id = Column(Integer, unique=True, index=True, nullable=True)
+    transfermarkt_id = Column(String(50), unique=True, index=True, nullable=True)
     fbref_id = Column(String(50), unique=True, index=True, nullable=True)
+
     name = Column(String(100), nullable=False)
+    #external_id = Column(String(50), unique=True, index=True)
+    birth_date = Column(Date, index=True, nullable=True)  # <-- INSERITO: FONDAMENTALE PER IL MATCHING!
     position = Column(String(20))
     club = Column(String(100))
     nationality = Column(String(50))

@@ -16,3 +16,5 @@ pandas>=2.0.0
 lxml>=4.9.0
 soccerdata>=0.7
 cloudscraper>=1.2.71
+thefuzz>=0.22.1
+rapidfuzz>=3.14.3
