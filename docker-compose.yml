@@ -1,9 +1,6 @@
 version: "3.9"
 
 services:
-  # ─────────────────────────────────────────
-  # DATABASE
-  # ─────────────────────────────────────────
   db:
     image: postgres:15-alpine
     container_name: football_db
@@ -25,19 +22,18 @@ services:
     networks:
       - football_net
 
-  # ─────────────────────────────────────────
-  # BACKEND (FastAPI)
-  # ─────────────────────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: football_backend
     restart: unless-stopped
-    env_file:
-      - ./backend/.env
+    # Rimosso env_file per evitare errori in CI se il file manca
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-football}:${POSTGRES_PASSWORD:-football123}@db:5432/${POSTGRES_DB:-football_scout}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-football}:${POSTGRES_PASSWORD:-football123}@db:5432/${POSTGRES_DB:-football_scout}
+      - POSTGRES_USER=${POSTGRES_USER:-football}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-football123}
+      - POSTGRES_DB=${POSTGRES_DB:-football_scout}
     ports:
       - "8000:8000"
     volumes:
@@ -49,9 +45,6 @@ services:
       - football_net
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-  # ─────────────────────────────────────────
-  # FRONTEND (Vue 3)
-  # ─────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
@@ -65,7 +58,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      VITE_API_URL: http://localhost:8000
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
     depends_on:
       - backend
     networks:

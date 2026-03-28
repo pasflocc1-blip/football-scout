@@ -1,17 +1,15 @@
 version: "3.9"
 
-# Sovrascrive docker-compose.yml per produzione
-# Uso: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-
 services:
   backend:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
-    volumes: []   # in prod NON montiamo il codice sorgente
+    volumes: []
+    # Le variabili d'ambiente in prod verranno iniettate dal sistema di deploy
 
   frontend:
     build:
       context: ./frontend
-      target: production       # stage multi-stage build
+      target: production
     volumes: []
     environment:
-      VITE_API_URL: ${PROD_API_URL}
+      - VITE_API_URL=${PROD_API_URL}
