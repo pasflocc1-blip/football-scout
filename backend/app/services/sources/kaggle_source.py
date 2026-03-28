@@ -1,116 +1,85 @@
 import csv
 import os
+from datetime import datetime  # <--- Nuova importazione
 from sqlalchemy.orm import Session
-
 from app.models.models import ScoutingPlayer
 from app.services.scoring import compute_scores
-from app.services.player_matcher import find_player_in_db
+from app.services.player_matcher import find_player_in_list
 
 
-def import_from_kaggle_csv(
-        db: Session,
-        filepath: str,
-        limit: int = 2000,
-        progress_cb=None,
-) -> int:
+def import_from_kaggle_csv(db: Session, filepath: str, limit: int = 2000, progress_cb=None) -> int:
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"File non trovato: {filepath}")
 
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Inizializzazione cache giocatori...")
+    all_db_players = db.query(ScoutingPlayer).all()
     imported = 0
 
     with open(filepath, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
-
         for i, row in enumerate(reader):
-            if i >= limit:
-                break
+            if i >= limit: break
 
-            # Identificativo univoco dal CSV
             sofifa_id = row.get("sofifa_id")
             tm_id = f"kaggle_{sofifa_id}" if sofifa_id else f"kaggle_{i}"
 
-            # Estrazione posizione
-            raw_pos = row.get("player_positions", "")
-            position = raw_pos.split(",")[0].strip() if raw_pos else None
-
-            # Mapping dati (usando i TUOI nomi colonna originali)
             player_data = {
                 "transfermarkt_id": tm_id,
-                "name": row.get("short_name", f"Player_{i}"),
-                "position": position,
+                "name": row.get("short_name") or row.get("long_name") or f"Player_{i}",
                 "club": row.get("club_name"),
-                "nationality": row.get("nationality_name"),
-                "preferred_foot": row.get("preferred_foot"),
+                "position": (row.get("player_positions", "").split(",")[0].strip() or None),
                 "age": _int(row.get("age")),
-
-                # Stats base
                 "pace": _int(row.get("pace")),
                 "shooting": _int(row.get("shooting")),
                 "passing": _int(row.get("passing")),
                 "dribbling": _int(row.get("dribbling")),
                 "defending": _int(row.get("defending")),
-                "physical": _int(row.get("physic")),  # Nome colonna originale
-                "aerial_duels_won_pct": _float(row.get("attacking_heading_accuracy")),  # Nome colonna originale
-
-                "xg_per90": 0.0,
-                "xa_per90": 0.0,
-                "progressive_passes": 0,
+                "physical": _int(row.get("physic")),
+                "aerial_duels_won_pct": _float(row.get("attacking_heading_accuracy")),
             }
 
-            # --- LOGICA ANTI-ERRORE (UPSERT) ---
+            p = next((x for x in all_db_players if x.transfermarkt_id == tm_id), None)
 
-            # 1. Cerchiamo prima per ID (evita UniqueViolation se l'ID esiste già)
-            p = db.query(ScoutingPlayer).filter_by(transfermarkt_id=tm_id).first()
-
-            # 2. Se non trovato per ID, usiamo il tuo matcher per nome/club
             if not p:
-                p = find_player_in_db(db, player_data["name"], player_data["club"])
+                p = find_player_in_list(player_data["name"], player_data["club"], all_db_players)
 
             if p:
-                # Aggiorniamo il record esistente
                 for k, v in player_data.items():
-                    # NON aggiorniamo l'ID se lo abbiamo trovato tramite nome,
-                    # per evitare conflitti con altri record
                     if k != "transfermarkt_id" and v is not None:
                         setattr(p, k, v)
-
-                # Se il record trovato per nome non aveva ID, glielo diamo ora
-                if not p.transfermarkt_id:
-                    p.transfermarkt_id = tm_id
             else:
-                # Creazione nuovo record
                 p = ScoutingPlayer(**player_data)
                 db.add(p)
+                all_db_players.append(p)
 
-            # Flush per rendere l'oggetto pronto per il calcolo degli score
             db.flush()
-
-            # Calcolo degli score
             scores = compute_scores(p)
             for k, v in scores.items():
                 setattr(p, k, v)
 
             imported += 1
-
             if imported % 200 == 0:
                 db.commit()
-                print(f"  → Kaggle: {imported}/{limit} giocatori importati...")
-                if progress_cb:
-                    progress_cb(imported)
+                # --- RIGA MODIFICATA QUI ---
+                now_str = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+                print(f"[{now_str}] → Kaggle: {imported}/{limit} giocatori importati...")
+                # ---------------------------
+                if progress_cb: progress_cb(imported)
 
     db.commit()
+    print(f"[{datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Importazione completata: {imported} record.")
     return imported
 
 
-def _int(val) -> int | None:
+def _int(val) -> int:
     try:
-        return int(float(val)) if val not in (None, "", "N/A") else None
-    except (ValueError, TypeError):
-        return None
+        return int(float(val)) if val and str(val).strip() != "" else 0
+    except:
+        return 0
 
 
-def _float(val) -> float | None:
+def _float(val) -> float:
     try:
-        return float(val) if val not in (None, "", "N/A") else 0.0
-    except (ValueError, TypeError):
+        return float(val) if val and str(val).strip() != "" else 0.0
+    except:
         return 0.0

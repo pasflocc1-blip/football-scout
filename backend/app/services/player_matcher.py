@@ -3,21 +3,21 @@ from unidecode import unidecode
 from thefuzz import fuzz
 from app.models.models import ScoutingPlayer
 from datetime import date
-from typing import Optional
+from typing import Optional, List
+
+def get_all_players_cached(db: Session) -> List[ScoutingPlayer]:
+    """Ritorna tutti i giocatori, utile per il caricamento iniziale."""
+    return db.query(ScoutingPlayer).all()
 
 
-def find_player_in_db(
-        db: Session,
+def find_player_in_cache(
         name: str,
         club: str,
+        all_players: List[ScoutingPlayer],
         birth_date: Optional[date] = None
 ) -> Optional[ScoutingPlayer]:
     """
-    Cerca un giocatore nel DB risolvendo i conflitti di nomi.
-    Ritorna l'oggetto ScoutingPlayer se trovato, altrimenti None.
-
-    Se club è vuoto (es. StatsBomb non fornisce il club), esegue un
-    matching solo per nome su tutti i giocatori nel DB.
+    Versione ultra-veloce che lavora su una lista già caricata in memoria.
     """
     if not name:
         return None
@@ -25,10 +25,7 @@ def find_player_in_db(
     normalized_name = unidecode(name).lower().strip()
     normalized_club = unidecode(club).lower().strip() if club else ""
 
-    all_players = db.query(ScoutingPlayer).all()
-
-    # ── Selezione pool di candidati ──────────────────────────────
-    # Se il club è noto, filtriamo per club; altrimenti cerchiamo su tutti.
+    # Filtro rapido per club
     if normalized_club:
         candidates = [
             p for p in all_players
@@ -41,28 +38,74 @@ def find_player_in_db(
     highest_score = 0
 
     for player in candidates:
-        # A. Match Sicuro: Stessa Data di Nascita
         if birth_date and player.birth_date == birth_date:
             return player
 
         db_name = unidecode(player.name).lower().strip()
-
-        # B. Match Esatto (su nome)
         if normalized_name == db_name:
             return player
 
-        # C. Fuzzy Matching
         score = fuzz.token_sort_ratio(normalized_name, db_name)
-
         if score > highest_score:
             highest_score = score
             best_match = player
 
-    # D. Soglia di sicurezza
-    # Quando cerchiamo per club usiamo 85%; senza club alziamo a 92%
-    # per evitare falsi positivi su un pool più ampio.
-    threshold = 85 if normalized_club else 92
-    if highest_score >= threshold:
+    if highest_score > 85:
         return best_match
 
     return None
+
+def find_player_in_db(
+        db: Session,
+        name: str,
+        club: str,
+        birth_date: Optional[date] = None
+) -> Optional[ScoutingPlayer]:
+    """
+    Ripristinata per compatibilità con il resto del sistema.
+    Esegue la ricerca classica interrogando il DB.
+    """
+    if not name:
+        return None
+
+    all_players = db.query(ScoutingPlayer).all()
+    return find_player_in_list(name, club, all_players, birth_date)
+
+
+def find_player_in_list(
+        name: str,
+        club: str,
+        player_list: List[ScoutingPlayer],
+        birth_date: Optional[date] = None
+) -> Optional[ScoutingPlayer]:
+    """
+    Logica di matching (usata sia dalla cache che dalla ricerca standard).
+    """
+    normalized_name = unidecode(name).lower().strip()
+    normalized_club = unidecode(club).lower().strip() if club else ""
+
+    if normalized_club:
+        candidates = [
+            p for p in player_list
+            if p.club and unidecode(p.club).lower().strip() == normalized_club
+        ]
+    else:
+        candidates = player_list
+
+    best_match = None
+    highest_score = 0
+
+    for player in candidates:
+        if birth_date and player.birth_date == birth_date:
+            return player
+
+        db_name = unidecode(player.name).lower().strip()
+        if normalized_name == db_name:
+            return player
+
+        score = fuzz.token_sort_ratio(normalized_name, db_name)
+        if score > highest_score:
+            highest_score = score
+            best_match = player
+
+    return best_match if highest_score > 85 else None
