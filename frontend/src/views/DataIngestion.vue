@@ -239,6 +239,42 @@
         </div>
       </div>
 
+      <!-- ── Understat ── -->
+      <div class="config-source-block" :class="{ open: configOpen.understat }">
+        <div class="config-source-header" @click="toggleConfig('understat')">
+          <span class="config-src-icon">📉</span>
+          <span class="config-src-name">Understat</span>
+          <span class="config-src-badge badge-free">Gratis</span>
+          <span class="config-src-summary">
+            {{ config.understat_league }} · {{ config.understat_season }}/{{ config.understat_season + 1 }}
+          </span>
+          <span class="config-chevron">{{ configOpen.understat ? '▲' : '▼' }}</span>
+        </div>
+        <div v-if="configOpen.understat" class="config-fields">
+          <div class="config-note-info">
+            ℹ️ Dati xG/xA stagione corrente. Nessuna API key. Richiede: pip install understat aiohttp
+          </div>
+          <div class="config-group">
+            <label>Campionato</label>
+            <select v-model="config.understat_league">
+              <option value="serie_a">🇮🇹 Serie A</option>
+              <option value="premier_league">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</option>
+              <option value="la_liga">🇪🇸 La Liga</option>
+              <option value="bundesliga">🇩🇪 Bundesliga</option>
+              <option value="ligue_1">🇫🇷 Ligue 1</option>
+            </select>
+          </div>
+          <div class="config-group">
+            <label>Stagione (anno inizio)</label>
+            <select v-model.number="config.understat_season">
+              <option v-for="y in Array.from({length:11},(_,i)=>2024-i)" :key="y" :value="y">
+                {{ y }}/{{ y + 1 }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <!-- ── Football-Data.org ── -->
       <div class="config-source-block" :class="{ open: configOpen.football_data }">
         <div class="config-source-header" @click="toggleConfig('football_data')">
@@ -418,6 +454,36 @@
         >
           <span v-if="jobs.fbref?.status === 'running'">⏳ Scraping…</span>
           <span v-else>▶ Scraping xG/xA</span>
+        </button>
+      </div>
+
+      <!-- Understat -->
+      <div class="source-card card" :class="statusClass('understat')">
+        <div class="source-header">
+          <div class="source-icon">📉</div>
+          <div>
+            <h3>Understat</h3>
+            <span class="badge badge-free">Gratis</span>
+          </div>
+        </div>
+        <p class="source-desc">
+          xG, xA, npxG stagione corrente. Fonte statistica più aggiornata.
+          Arricchisce i giocatori già importati. Nessuna API key richiesta.
+        </p>
+        <div class="source-params">
+          <span>🏆 {{ config.understat_league }}</span>
+          <span>📅 {{ config.understat_season }}/{{ config.understat_season + 1 }}</span>
+        </div>
+        <div class="source-status" v-if="jobs.understat">
+          <JobStatus :job="jobs.understat" />
+        </div>
+        <button
+          class="btn btn-source"
+          :disabled="jobs.understat?.status === 'running'"
+          @click="runSource('understat')"
+        >
+          <span v-if="jobs.understat?.status === 'running'">⏳ In esecuzione…</span>
+          <span v-else>▶ Arricchisci xG/xA</span>
         </button>
       </div>
 
@@ -607,6 +673,29 @@
                 <div class="stat-box">
                   <span class="stat-val">{{ activeDialogJob.result.teams_processed }}</span>
                   <span class="stat-lbl">Squadre processate</span>
+                </div>
+              </template>
+
+              <!-- FBref specific fields -->
+              <template v-if="activeDialogJob.result.players_found_on_site != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.players_found_on_site }}</span>
+                  <span class="stat-lbl">Trovati sul sito</span>
+                </div>
+              </template>
+
+              <template v-if="activeDialogJob.result.players_enriched_in_db != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.players_enriched_in_db }}</span>
+                  <span class="stat-lbl">Arricchiti nel DB</span>
+                </div>
+              </template>
+
+              <!-- Understat specific fields -->
+              <template v-if="activeDialogJob.result.players_fetched != null">
+                <div class="stat-box">
+                  <span class="stat-val">{{ activeDialogJob.result.players_fetched }}</span>
+                  <span class="stat-lbl">Giocatori ricevuti</span>
                 </div>
               </template>
 
@@ -871,6 +960,10 @@ const config = ref({
   kaggle_file:  '/app/app/data/players_22.csv',
   kaggle_limit: 2000,
 
+  // Understat
+  understat_league: 'serie_a',
+  understat_season: new Date().getFullYear() - 1,
+
   // Football-Data
   fd_comp:   'SA',
   fd_season: currentYear - 1,
@@ -882,6 +975,7 @@ const configOpen = ref({
   api_football:  false,
   fbref:         false,
   statsbomb:     false,
+  understat:     false,
   football_data: false,
 })
 
@@ -934,6 +1028,7 @@ const SOURCE_KEY_MAP = {
   'api-football':  'api_football',
   'statsbomb':     'statsbomb',
   'fbref':         'fbref',
+  'understat':     'understat',
   'football-data': 'football_data',
   'all':           'all',
 }
@@ -943,6 +1038,7 @@ const SOURCE_LABELS = {
   api_football:  { icon: '⚽', label: 'API-Football' },
   statsbomb:     { icon: '📈', label: 'StatsBomb' },
   fbref:         { icon: '🌐', label: 'FBref' },
+  understat:     { icon: '📉', label: 'Understat' },
   football_data: { icon: '🏛', label: 'Football-Data.org' },
   all:           { icon: '🚀', label: 'Tutte le sorgenti' },
 }
@@ -1025,6 +1121,8 @@ async function runAll() {
     statsbomb_max_matches: config.value.statsbomb_max_matches || 50,
     fbref_league:          config.value.fbref_league,
     fbref_season:          config.value.fbref_season,
+    understat_league:      config.value.understat_league,
+    understat_season:      config.value.understat_season,
     football_data_comp:    config.value.fd_comp,
   })
   dialogSource.value = 'all'
@@ -1055,6 +1153,10 @@ async function runSource(source) {
     'fbref': {
       league_key: config.value.fbref_league,
       season:     config.value.fbref_season,
+    },
+    'understat': {
+      league_key: config.value.understat_league,
+      season:     config.value.understat_season,
     },
     'football-data': {
       competition_code: config.value.fd_comp,

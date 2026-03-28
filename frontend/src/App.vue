@@ -9,10 +9,11 @@
       </div>
 
       <nav class="nav">
-        <RouterLink to="/"          class="nav-item"><span>🏠</span> Dashboard</RouterLink>
-        <RouterLink to="/traits"    class="nav-item"><span>📋</span> Caratteristiche</RouterLink>
-        <RouterLink to="/roster"    class="nav-item"><span>👥</span> Rosa</RouterLink>
-        <RouterLink to="/scouting"  class="nav-item"><span>🔍</span> Scouting</RouterLink>
+        <RouterLink to="/"               class="nav-item"><span>🏠</span> Dashboard</RouterLink>
+        <RouterLink to="/traits"         class="nav-item"><span>📋</span> Caratteristiche</RouterLink>
+        <RouterLink to="/roster"         class="nav-item"><span>👥</span> Rosa</RouterLink>
+        <RouterLink to="/scouting"       class="nav-item"><span>🔍</span> Scouting</RouterLink>
+        <RouterLink to="/global-scouting" class="nav-item nav-item--hot"><span>🔥</span> Scouting globale</RouterLink>
         <router-link to="/data-ingestion" class="nav-item">
           <span>🔄</span> Gestione Dati
         </router-link>
@@ -59,6 +60,7 @@ onMounted(() => teamStore.fetchTeams())
   --color-success:   #22c55e;
   --color-danger:    #ef4444;
   --color-warning:   #f59e0b;
+  --color-hot:       #f97316;
   --color-text:      #f1f5f9;
   --color-muted:     #94a3b8;
   --radius:          10px;
@@ -110,6 +112,16 @@ body { background: var(--color-bg); color: var(--color-text); }
   color: var(--color-primary);
 }
 
+/* Voce "Scouting globale 🔥" — colore arancione */
+.nav-item--hot {
+  color: var(--color-hot);
+}
+.nav-item--hot:hover,
+.nav-item--hot.router-link-active {
+  background: rgba(249,115,22,.15);
+  color: var(--color-hot);
+}
+
 .active-team {
   margin-top: auto;
   background: rgba(59,130,246,.08);
@@ -155,7 +167,10 @@ body { background: var(--color-bg); color: var(--color-text); }
 .btn:hover { opacity: .88; transform: translateY(-1px); }
 .btn-primary  { background: var(--color-primary);  color: #fff; }
 .btn-danger   { background: var(--color-danger);   color: #fff; }
+.btn-success  { background: var(--color-success);  color: #fff; }
+.btn-warning  { background: var(--color-warning);  color: #000; }
 .btn-ghost    { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
+.btn-hot      { background: var(--color-hot);      color: #fff; }
 
 input, select, textarea {
   background: var(--color-bg);

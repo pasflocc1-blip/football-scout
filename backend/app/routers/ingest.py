@@ -11,10 +11,16 @@ from app.services.sources.api_football_source import fetch_from_api_football
 from app.services.sources.statsbomb_source import fetch_from_statsbomb, list_competitions as sb_list
 from app.services.sources.fbref_source import scrape_standard_stats, FBREF_LEAGUES
 from app.services.sources.football_data_source import sync_player_clubs, fetch_competitions as fd_list, COMPETITION_CODES
-
+# apro db solo per check
+from app.database import SessionLocal
+from app.models.models import ScoutingPlayer
+from app.services.sources.understat_source import (
+    fetch_from_understat,
+    list_understat_leagues
+)
 router = APIRouter(prefix="/ingest", tags=["ingest"])
 
-_ALL_SOURCES = ["kaggle","api_football","statsbomb","fbref","football_data","all"]
+_ALL_SOURCES = ["kaggle","api_football","statsbomb","fbref","football_data","understat","all"]
 _job_status: dict[str,dict] = {}
 _cancel_events: dict[str,threading.Event] = {s: threading.Event() for s in _ALL_SOURCES}
 
@@ -100,6 +106,10 @@ class RunAllRequest(BaseModel):
     fbref_league: str = "serie_a"
     fbref_season: str = "2023-2024"
     football_data_comp: str = "SA"
+
+class UnderstatRequest(BaseModel):
+    league_key: str = "serie_a"
+    season: int = 2024
 
 # Cancel
 @router.post("/{source}/cancel")
@@ -246,85 +256,335 @@ def run_football_data(req: FootballDataRequest, background_tasks: BackgroundTask
 # All sources
 @router.post("/all")
 def run_all_sources(req: RunAllRequest, background_tasks: BackgroundTasks):
-    if _job_status.get("all",{}).get("status")=="running":
-        raise HTTPException(409,"Job 'all' gia in esecuzione")
+    if _job_status.get("all", {}).get("status") == "running":
+        raise HTTPException(409, "Job 'all' gia in esecuzione")
+
     _set_running("all")
-    for k in ("kaggle","api_football","statsbomb","fbref","football_data"):
-        _job_status[k]={"status":"pending","started_at":None,"finished_at":None,"result":None,"error":None,"progress":None,"progress_total":None,"logs":[]}
+
+    # inizializza tutte le sorgenti
+    for k in ("kaggle","api_football","statsbomb","fbref","football_data","understat"):
+        _job_status[k] = {
+            "status": "pending",
+            "started_at": None,
+            "finished_at": None,
+            "result": None,
+            "error": None,
+            "progress": None,
+            "progress_total": None,
+            "logs": []
+        }
 
     def _task():
-        results={}
-        def _cancelled(k): return _cancel_events["all"].is_set() or _cancel_events[k].is_set()
+        results = {}
 
-        kaggle_file=req.kaggle_file or "/app/data/players_22.csv"
+        def _cancelled(k):
+            return _cancel_events["all"].is_set() or _cancel_events[k].is_set()
+
+        # ─────────────────────────────────────────
+        # 1. KAGGLE
+        # ─────────────────────────────────────────
+        kaggle_file = req.kaggle_file or "/app/data/players_22.csv"
+
         if os.path.exists(kaggle_file) and not _cancelled("kaggle"):
             _set_running("kaggle")
             from app.database import SessionLocal
-            db=SessionLocal()
+            db = SessionLocal()
             try:
                 with _LogCapture("kaggle"):
-                    n=import_from_kaggle_csv(db,kaggle_file,limit=req.kaggle_limit)
-                _set_done("kaggle",{"imported":n}); results["kaggle"]={"status":"ok","imported":n}
-            except Exception as e: _set_error("kaggle",str(e)); results["kaggle"]={"status":"error","error":str(e)}
-            finally: db.close()
+                    n = import_from_kaggle_csv(db, kaggle_file, limit=req.kaggle_limit)
+                _set_done("kaggle", {"imported": n})
+                results["kaggle"] = {"status": "ok", "imported": n}
+            except Exception as e:
+                _set_error("kaggle", str(e))
+                results["kaggle"] = {"status": "error", "error": str(e)}
+            finally:
+                db.close()
         else:
-            _job_status["kaggle"]["status"]="skipped"; results["kaggle"]={"status":"skipped"}
+            _job_status["kaggle"]["status"] = "skipped"
+            results["kaggle"] = {"status": "skipped"}
 
+        # ─────────────────────────────────────────
+        # 2. API-FOOTBALL
+        # ─────────────────────────────────────────
         if os.getenv("API_FOOTBALL_KEY") and not _cancelled("api_football"):
             _set_running("api_football")
             from app.database import SessionLocal
-            db=SessionLocal()
+            db = SessionLocal()
             try:
                 with _LogCapture("api_football"):
-                    n=_run_async(fetch_from_api_football(db=db,league_id=req.api_league,season=req.season,stop_event=_cancel_events["all"]))
-                _set_done("api_football",{"imported":n}); results["api_football"]={"status":"ok","imported":n}
-            except Exception as e: _set_error("api_football",str(e)); results["api_football"]={"status":"error","error":str(e)}
-            finally: db.close()
-        elif not os.getenv("API_FOOTBALL_KEY"):
-            _job_status["api_football"]["status"]="skipped"; results["api_football"]={"status":"skipped","reason":"API_FOOTBALL_KEY mancante"}
+                    n = _run_async(fetch_from_api_football(
+                        db=db,
+                        league_id=req.api_league,
+                        season=req.season,
+                        stop_event=_cancel_events["all"]
+                    ))
+                _set_done("api_football", {"imported": n})
+                results["api_football"] = {"status": "ok", "imported": n}
+            except Exception as e:
+                _set_error("api_football", str(e))
+                results["api_football"] = {"status": "error", "error": str(e)}
+            finally:
+                db.close()
+        else:
+            _job_status["api_football"]["status"] = "skipped"
+            results["api_football"] = {"status": "skipped", "reason": "API_FOOTBALL_KEY mancante"}
 
+        # ─────────────────────────────────────────
+        # 3. STATSBOMB
+        # ─────────────────────────────────────────
         if not _cancelled("statsbomb"):
             _set_running("statsbomb")
             from app.database import SessionLocal
-            db=SessionLocal()
+            db = SessionLocal()
             try:
                 with _LogCapture("statsbomb"):
-                    def _sbp(d,t): _job_status["statsbomb"]["progress"]=d; _job_status["statsbomb"]["progress_total"]=t
-                    r=_run_async(fetch_from_statsbomb(db,req.statsbomb_comp,req.statsbomb_season_id,req.statsbomb_max_matches,progress_cb=_sbp,stop_event=_cancel_events["all"]))
-                _set_done("statsbomb",r); results["statsbomb"]={"status":"ok",**r}
-            except Exception as e: _set_error("statsbomb",str(e)); results["statsbomb"]={"status":"error","error":str(e)}
-            finally: db.close()
+                    def _sbp(d, t):
+                        _job_status["statsbomb"]["progress"] = d
+                        _job_status["statsbomb"]["progress_total"] = t
 
+                    r = _run_async(fetch_from_statsbomb(
+                        db,
+                        req.statsbomb_comp,
+                        req.statsbomb_season_id,
+                        req.statsbomb_max_matches,
+                        progress_cb=_sbp,
+                        stop_event=_cancel_events["all"]
+                    ))
+
+                _set_done("statsbomb", r)
+                results["statsbomb"] = {"status": "ok", **r}
+
+            except Exception as e:
+                _set_error("statsbomb", str(e))
+                results["statsbomb"] = {"status": "error", "error": str(e)}
+            finally:
+                db.close()
+
+        # ─────────────────────────────────────────
+        # 4. FBREF
+        # ─────────────────────────────────────────
         if not _cancelled("fbref"):
             _set_running("fbref")
             from app.database import SessionLocal
-            db=SessionLocal()
+            db = SessionLocal()
             try:
                 with _LogCapture("fbref"):
-                    r=scrape_standard_stats(db,req.fbref_league,req.fbref_season,stop_event=_cancel_events["all"])
-                _set_done("fbref",r); results["fbref"]={"status":"ok",**r}
-            except Exception as e: _set_error("fbref",str(e)); results["fbref"]={"status":"error","error":str(e)}
-            finally: db.close()
+                    r = scrape_standard_stats(
+                        db,
+                        req.fbref_league,
+                        req.fbref_season,
+                        stop_event=_cancel_events["all"]
+                    )
 
+                _set_done("fbref", r)
+                results["fbref"] = {"status": "ok", **r}
+
+            except Exception as e:
+                _set_error("fbref", str(e))
+                results["fbref"] = {"status": "error", "error": str(e)}
+            finally:
+                db.close()
+
+        # ─────────────────────────────────────────
+        # 5. FOOTBALL-DATA
+        # ─────────────────────────────────────────
         if os.getenv("FOOTBALL_DATA_KEY") and not _cancelled("football_data"):
             _set_running("football_data")
             from app.database import SessionLocal
-            db=SessionLocal()
+            db = SessionLocal()
             try:
                 with _LogCapture("football_data"):
-                    def _fdp(d,t): _job_status["football_data"]["progress"]=d; _job_status["football_data"]["progress_total"]=t
-                    r=_run_async(sync_player_clubs(db,req.football_data_comp,req.season,progress_cb=_fdp,stop_event=_cancel_events["all"]))
-                _set_done("football_data",r); results["football_data"]={"status":"ok",**r}
-            except Exception as e: _set_error("football_data",str(e)); results["football_data"]={"status":"error","error":str(e)}
-            finally: db.close()
-        elif not os.getenv("FOOTBALL_DATA_KEY"):
-            _job_status["football_data"]["status"]="skipped"; results["football_data"]={"status":"skipped","reason":"FOOTBALL_DATA_KEY mancante"}
+                    def _fdp(d, t):
+                        _job_status["football_data"]["progress"] = d
+                        _job_status["football_data"]["progress_total"] = t
 
-        if _cancel_events["all"].is_set(): _set_cancelled("all")
-        else: _set_done("all",{"sources":results})
+                    r = _run_async(sync_player_clubs(
+                        db,
+                        req.football_data_comp,
+                        req.season,
+                        progress_cb=_fdp,
+                        stop_event=_cancel_events["all"]
+                    ))
+
+                _set_done("football_data", r)
+                results["football_data"] = {"status": "ok", **r}
+
+            except Exception as e:
+                _set_error("football_data", str(e))
+                results["football_data"] = {"status": "error", "error": str(e)}
+            finally:
+                db.close()
+        else:
+            _job_status["football_data"]["status"] = "skipped"
+            results["football_data"] = {"status": "skipped", "reason": "FOOTBALL_DATA_KEY mancante"}
+
+        # ─────────────────────────────────────────
+        # 6. UNDERSTAT (SMART)
+        # ─────────────────────────────────────────
+        from app.database import SessionLocal
+        from app.models.models import ScoutingPlayer
+
+        db_check = SessionLocal()
+        try:
+            players_exist = db_check.query(ScoutingPlayer).count() > 0
+        finally:
+            db_check.close()
+
+        if players_exist and not _cancelled("understat"):
+            _set_running("understat")
+
+            db = SessionLocal()
+            try:
+                with _LogCapture("understat"):
+                    def _usp(d, t):
+                        _job_status["understat"]["progress"] = d
+                        _job_status["understat"]["progress_total"] = t
+
+                    r = _run_async(fetch_from_understat(
+                        db=db,
+                        league_key=req.fbref_league,
+                        season=req.season,
+                        progress_cb=_usp,
+                        stop_event=_cancel_events["all"]
+                    ))
+
+                _set_done("understat", r)
+                results["understat"] = {"status": "ok", **r}
+
+            except Exception as e:
+                _set_error("understat", str(e))
+                results["understat"] = {"status": "error", "error": str(e)}
+            finally:
+                db.close()
+
+        else:
+            _job_status["understat"]["status"] = "skipped"
+            results["understat"] = {
+                "status": "skipped",
+                "reason": "DB vuoto o job cancellato"
+            }
+
+        # ─────────────────────────────────────────
+        # FINE
+        # ─────────────────────────────────────────
+        if _cancel_events["all"].is_set():
+            _set_cancelled("all")
+        else:
+            _set_done("all", {"sources": results})
 
     background_tasks.add_task(_task)
-    return {"message":"Job 'all' avviato"}
+    return {"message": "Job 'all' avviato"}
+
+# def run_all_sources(req: RunAllRequest, background_tasks: BackgroundTasks):
+#     if _job_status.get("all",{}).get("status")=="running":
+#         raise HTTPException(409,"Job 'all' gia in esecuzione")
+#     _set_running("all")
+#     for k in ("kaggle","api_football","statsbomb","fbref","football_data","understat"):
+#         _job_status[k]={"status":"pending","started_at":None,"finished_at":None,"result":None,"error":None,"progress":None,"progress_total":None,"logs":[]}
+#
+#     def _task():
+#         results={}
+#         def _cancelled(k): return _cancel_events["all"].is_set() or _cancel_events[k].is_set()
+#
+#         kaggle_file=req.kaggle_file or "/app/data/players_22.csv"
+#         if os.path.exists(kaggle_file) and not _cancelled("kaggle"):
+#             _set_running("kaggle")
+#             from app.database import SessionLocal
+#             db=SessionLocal()
+#             try:
+#                 with _LogCapture("kaggle"):
+#                     n=import_from_kaggle_csv(db,kaggle_file,limit=req.kaggle_limit)
+#                 _set_done("kaggle",{"imported":n}); results["kaggle"]={"status":"ok","imported":n}
+#             except Exception as e: _set_error("kaggle",str(e)); results["kaggle"]={"status":"error","error":str(e)}
+#             finally: db.close()
+#         else:
+#             _job_status["kaggle"]["status"]="skipped"; results["kaggle"]={"status":"skipped"}
+#
+#         if os.getenv("API_FOOTBALL_KEY") and not _cancelled("api_football"):
+#             _set_running("api_football")
+#             from app.database import SessionLocal
+#             db=SessionLocal()
+#             try:
+#                 with _LogCapture("api_football"):
+#                     n=_run_async(fetch_from_api_football(db=db,league_id=req.api_league,season=req.season,stop_event=_cancel_events["all"]))
+#                 _set_done("api_football",{"imported":n}); results["api_football"]={"status":"ok","imported":n}
+#             except Exception as e: _set_error("api_football",str(e)); results["api_football"]={"status":"error","error":str(e)}
+#             finally: db.close()
+#         elif not os.getenv("API_FOOTBALL_KEY"):
+#             _job_status["api_football"]["status"]="skipped"; results["api_football"]={"status":"skipped","reason":"API_FOOTBALL_KEY mancante"}
+#
+#         if not _cancelled("statsbomb"):
+#             _set_running("statsbomb")
+#             from app.database import SessionLocal
+#             db=SessionLocal()
+#             try:
+#                 with _LogCapture("statsbomb"):
+#                     def _sbp(d,t): _job_status["statsbomb"]["progress"]=d; _job_status["statsbomb"]["progress_total"]=t
+#                     r=_run_async(fetch_from_statsbomb(db,req.statsbomb_comp,req.statsbomb_season_id,req.statsbomb_max_matches,progress_cb=_sbp,stop_event=_cancel_events["all"]))
+#                 _set_done("statsbomb",r); results["statsbomb"]={"status":"ok",**r}
+#             except Exception as e: _set_error("statsbomb",str(e)); results["statsbomb"]={"status":"error","error":str(e)}
+#             finally: db.close()
+#
+#         if not _cancelled("fbref"):
+#             _set_running("fbref")
+#             from app.database import SessionLocal
+#             db=SessionLocal()
+#             try:
+#                 with _LogCapture("fbref"):
+#                     r=scrape_standard_stats(db,req.fbref_league,req.fbref_season,stop_event=_cancel_events["all"])
+#                 _set_done("fbref",r); results["fbref"]={"status":"ok",**r}
+#             except Exception as e: _set_error("fbref",str(e)); results["fbref"]={"status":"error","error":str(e)}
+#             finally: db.close()
+#
+#         if os.getenv("FOOTBALL_DATA_KEY") and not _cancelled("football_data"):
+#             _set_running("football_data")
+#             from app.database import SessionLocal
+#             db=SessionLocal()
+#             try:
+#                 with _LogCapture("football_data"):
+#                     def _fdp(d,t): _job_status["football_data"]["progress"]=d; _job_status["football_data"]["progress_total"]=t
+#                     r=_run_async(sync_player_clubs(db,req.football_data_comp,req.season,progress_cb=_fdp,stop_event=_cancel_events["all"]))
+#                 _set_done("football_data",r); results["football_data"]={"status":"ok",**r}
+#             except Exception as e: _set_error("football_data",str(e)); results["football_data"]={"status":"error","error":str(e)}
+#             finally: db.close()
+#         elif not os.getenv("FOOTBALL_DATA_KEY"):
+#             _job_status["football_data"]["status"]="skipped"; results["football_data"]={"status":"skipped","reason":"FOOTBALL_DATA_KEY mancante"}
+#
+#         if _cancel_events["all"].is_set(): _set_cancelled("all")
+#         else: _set_done("all",{"sources":results})
+#
+#         # Understat (SEMPLICEMENTE ALLA FINE)
+#         if not _cancelled("understat"):
+#             _set_running("understat")
+#             from app.database import SessionLocal
+#             db = SessionLocal()
+#             try:
+#                 with _LogCapture("understat"):
+#                     def _usp(d, t):
+#                         _job_status["understat"]["progress"] = d
+#                         _job_status["understat"]["progress_total"] = t
+#
+#                     r = _run_async(
+#                         fetch_from_understat(
+#                             db=db,
+#                             league_key=req.fbref_league,  # stesso mapping lega
+#                             season=req.season,
+#                             progress_cb=_usp,
+#                             stop_event=_cancel_events["all"]
+#                         )
+#                     )
+#
+#                 _set_done("understat", r)
+#                 results["understat"] = {"status": "ok", **r}
+#
+#             except Exception as e:
+#                 _set_error("understat", str(e))
+#                 results["understat"] = {"status": "error", "error": str(e)}
+#             finally:
+#                 db.close()
+#
+#     background_tasks.add_task(_task)
+#     return {"message":"Job 'all' avviato"}
 
 @router.get("/statsbomb/competitions")
 async def get_statsbomb_competitions():
@@ -339,3 +599,50 @@ async def get_football_data_competitions():
 @router.get("/fbref/leagues")
 def get_fbref_leagues():
     return [{"key":k,"fbref_id":v["id"],"slug":v["slug"]} for k,v in FBREF_LEAGUES.items()]
+
+@router.get("/understat/leagues")
+def get_understat_leagues():
+    return list_understat_leagues()
+
+# Understat
+@router.post("/understat")
+def run_understat(req: UnderstatRequest, background_tasks: BackgroundTasks):
+    if _job_status.get("understat", {}).get("status") == "running":
+        raise HTTPException(409, "Job Understat gia in esecuzione")
+
+    _set_running("understat")
+
+    def _task():
+        from app.database import SessionLocal
+        db = SessionLocal()
+        try:
+            with _LogCapture("understat"):
+                def _pg(done, total):
+                    _job_status["understat"]["progress"] = done
+                    _job_status["understat"]["progress_total"] = total
+
+                r = _run_async(
+                    fetch_from_understat(
+                        db=db,
+                        league_key=req.league_key,
+                        season=req.season,
+                        progress_cb=_pg,
+                        stop_event=_cancel_events["understat"]
+                    )
+                )
+
+            if _is_cancelled("understat"):
+                _set_cancelled("understat")
+            else:
+                _set_done("understat", r)
+
+        except Exception as e:
+            if _is_cancelled("understat"):
+                _set_cancelled("understat")
+            else:
+                _set_error("understat", str(e))
+        finally:
+            db.close()
+
+    background_tasks.add_task(_task)
+    return {"message": "Job Understat avviato"}

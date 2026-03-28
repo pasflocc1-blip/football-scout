@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import team, players, scouting, admin
+from app.routers import global_scouting as global_scouting_router
 from app.database import engine, Base
 from app.routers import ingest as ingest_router
 from app.routers import db_explorer as db_explorer_router
@@ -34,6 +35,7 @@ app.add_middleware(
 app.include_router(team.router)
 app.include_router(players.router)
 app.include_router(scouting.router)
+app.include_router(global_scouting_router.router)   # ← Global Scouting 🔥
 app.include_router(admin.router)
 app.include_router(ingest_router.router)
 app.include_router(db_explorer_router.router)

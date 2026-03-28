@@ -156,6 +156,8 @@ async def fetch_from_understat(
         player_obj = _find_by_understat_id(db, understat_id)
 
         if player_obj is None:
+            player_name = player_name.strip().lower()
+            club = club.strip().lower()
             # Fallback: fuzzy match su nome + club (player_matcher)
             player_obj = find_player_in_db(db, player_name, club)
 

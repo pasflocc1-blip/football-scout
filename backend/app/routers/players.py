@@ -5,6 +5,10 @@ from app.database import get_db
 from app.models.models import MyPlayer
 from app.schemas.schemas import PlayerCreate, PlayerOut
 
+from sqlalchemy import desc
+from app.models.models import ScoutingPlayer
+from fastapi import Query
+
 router = APIRouter(prefix="/teams", tags=["Rosa"])
 
 

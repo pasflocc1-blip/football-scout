@@ -1,16 +1,3 @@
-"""
-sources/kaggle_source.py
-------------------------
-Importa giocatori da un CSV Kaggle FIFA.
-
-Dataset consigliato:
-  https://www.kaggle.com/datasets/stefanoleone992/fifa-22-complete-player-dataset
-  File: players_22.csv oppure players_23.csv
-
-Copertura: ~18.000 giocatori con PAC, TIR, PAS, DRI, DIF, FIS
-Costo: gratuito, ideale per sviluppo/prototipo
-"""
-
 import csv
 import os
 from sqlalchemy.orm import Session
@@ -19,25 +6,15 @@ from app.models.models import ScoutingPlayer
 from app.services.scoring import compute_scores
 from app.services.player_matcher import find_player_in_db
 
+
 def import_from_kaggle_csv(
-    db: Session,
-    filepath: str,
-    limit: int = 2000,
-    progress_cb=None,  # callable(imported: int) opzionale per aggiornare lo stato
+        db: Session,
+        filepath: str,
+        limit: int = 2000,
+        progress_cb=None,
 ) -> int:
-    """
-    Importa giocatori da un CSV Kaggle FIFA.
-
-    Ritorna il numero di record importati/aggiornati.
-
-    Raises:
-        FileNotFoundError: se il file CSV non esiste nel container.
-    """
     if not os.path.exists(filepath):
-        raise FileNotFoundError(
-            f"File non trovato nel container: {filepath}\n"
-            f"Scarica da Kaggle e copialo nella cartella data/ del progetto."
-        )
+        raise FileNotFoundError(f"File non trovato: {filepath}")
 
     imported = 0
 
@@ -48,12 +25,17 @@ def import_from_kaggle_csv(
             if i >= limit:
                 break
 
-            # Prende solo il primo ruolo (es. "ST, CF" → "ST")
+            # Identificativo univoco dal CSV
+            sofifa_id = row.get("sofifa_id")
+            tm_id = f"kaggle_{sofifa_id}" if sofifa_id else f"kaggle_{i}"
+
+            # Estrazione posizione
             raw_pos = row.get("player_positions", "")
             position = raw_pos.split(",")[0].strip() if raw_pos else None
 
+            # Mapping dati (usando i TUOI nomi colonna originali)
             player_data = {
-                "transfermarkt_id": f"kaggle_{row.get('sofifa_id', i)}",
+                "transfermarkt_id": tm_id,
                 "name": row.get("short_name", f"Player_{i}"),
                 "position": position,
                 "club": row.get("club_name"),
@@ -67,28 +49,43 @@ def import_from_kaggle_csv(
                 "passing": _int(row.get("passing")),
                 "dribbling": _int(row.get("dribbling")),
                 "defending": _int(row.get("defending")),
-                "physical": _int(row.get("physic")),
-                "aerial_duels_won_pct": _float(row.get("attacking_heading_accuracy")),
+                "physical": _int(row.get("physic")),  # Nome colonna originale
+                "aerial_duels_won_pct": _float(row.get("attacking_heading_accuracy")),  # Nome colonna originale
 
-                # Stats avanzate (inizializzate a 0.0)
                 "xg_per90": 0.0,
                 "xa_per90": 0.0,
                 "progressive_passes": 0,
             }
 
-            # Upsert intelligente
-            existing = find_player_in_db(db, player_data["name"], player_data["club"])
+            # --- LOGICA ANTI-ERRORE (UPSERT) ---
 
-            if existing:
+            # 1. Cerchiamo prima per ID (evita UniqueViolation se l'ID esiste già)
+            p = db.query(ScoutingPlayer).filter_by(transfermarkt_id=tm_id).first()
+
+            # 2. Se non trovato per ID, usiamo il tuo matcher per nome/club
+            if not p:
+                p = find_player_in_db(db, player_data["name"], player_data["club"])
+
+            if p:
+                # Aggiorniamo il record esistente
                 for k, v in player_data.items():
-                    if v is not None:
-                        setattr(existing, k, v)
-                p = existing
+                    # NON aggiorniamo l'ID se lo abbiamo trovato tramite nome,
+                    # per evitare conflitti con altri record
+                    if k != "transfermarkt_id" and v is not None:
+                        setattr(p, k, v)
+
+                # Se il record trovato per nome non aveva ID, glielo diamo ora
+                if not p.transfermarkt_id:
+                    p.transfermarkt_id = tm_id
             else:
+                # Creazione nuovo record
                 p = ScoutingPlayer(**player_data)
                 db.add(p)
-                db.flush()
 
+            # Flush per rendere l'oggetto pronto per il calcolo degli score
+            db.flush()
+
+            # Calcolo degli score
             scores = compute_scores(p)
             for k, v in scores.items():
                 setattr(p, k, v)
@@ -97,16 +94,13 @@ def import_from_kaggle_csv(
 
             if imported % 200 == 0:
                 db.commit()
-                msg = f"  → Kaggle: {imported}/{limit} giocatori importati..."
-                print(msg)
+                print(f"  → Kaggle: {imported}/{limit} giocatori importati...")
                 if progress_cb:
                     progress_cb(imported)
 
     db.commit()
     return imported
 
-
-# ── Helpers ──────────────────────────────────────────────────────
 
 def _int(val) -> int | None:
     try:
@@ -117,6 +111,6 @@ def _int(val) -> int | None:
 
 def _float(val) -> float | None:
     try:
-        return float(val) if val not in (None, "", "N/A") else None
+        return float(val) if val not in (None, "", "N/A") else 0.0
     except (ValueError, TypeError):
-        return None
+        return 0.0

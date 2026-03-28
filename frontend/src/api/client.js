@@ -38,9 +38,45 @@ export const rosterApi = {
   remove: (teamId, id)   => api.delete(`/teams/${teamId}/players/${id}`),
 }
 
-// ── Scouting ─────────────────────────────────────────────────────
+// ── Scouting (team-based) ─────────────────────────────────────────
 export const scoutingApi = {
   search: (params) => api.get('/scouting/search', { params }),
+}
+
+// ── Global Scouting 🔥 ───────────────────────────────────────────
+// Esplorazione libera del database, ranking, confronto e discovery.
+export const globalScoutingApi = {
+  /**
+   * Ricerca avanzata con filtri combinabili.
+   * @param {Object} params - { q, position, min_age, max_age, nationality, club,
+   *                            min_xg, min_xa, preferred_foot, sort_by, sort_dir, limit }
+   */
+  search: (params) => api.get('/scouting/search', { params }),
+
+  /**
+   * Classifica per xG/90.
+   * @param {Object} params - { limit, min_minutes, position }
+   */
+  topXg: (params = {}) => api.get('/scouting/top-xg', { params }),
+
+  /**
+   * Giocatori che segnano più del loro xG previsto.
+   * @param {Object} params - { limit, min_minutes, position }
+   */
+  overperforming: (params = {}) => api.get('/scouting/overperforming', { params }),
+
+  /**
+   * Giocatori che segnano meno del loro xG previsto.
+   * @param {Object} params - { limit, min_minutes, position }
+   */
+  underperforming: (params = {}) => api.get('/scouting/underperforming', { params }),
+
+  /**
+   * Confronto testa-a-testa tra due giocatori.
+   * @param {string} name1 - Nome (parziale) del primo giocatore
+   * @param {string} name2 - Nome (parziale) del secondo giocatore
+   */
+  compare: (name1, name2) => api.get('/scouting/compare', { params: { name1, name2 } }),
 }
 
 export default api
