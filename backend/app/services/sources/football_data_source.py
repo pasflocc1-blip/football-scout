@@ -18,7 +18,7 @@ FIX "0 club aggiornati":
 NOVITA':
   - stop_event: threading.Event per cancellazione dal router
 """
-
+from datetime import datetime
 import os
 import asyncio
 import threading
@@ -133,7 +133,8 @@ async def sync_player_clubs(
         )
         teams_resp.raise_for_status()
         teams = teams_resp.json().get("teams", [])
-        print(f"  → Football-Data: {len(teams)} squadre trovate")
+        now_str = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        print(f"  → Football-Data: [{now_str}] - {len(teams)} squadre trovate")
 
         for team in teams:
             # Controlla cancellazione prima di ogni squadra
@@ -198,8 +199,9 @@ async def sync_player_clubs(
                         inserted += 1
                         team_inserted += 1
 
+                now_str = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
                 print(
-                    f"  → Football-Data: {teams_processed}/{len(teams)} {team_name} "
+                    f"  → Football-Data: [{now_str}] - {teams_processed}/{len(teams)} {team_name} "
                     f"({len(squad)} giocatori | "
                     f"aggiornati: {team_updated} | inseriti: {team_inserted})"
                 )

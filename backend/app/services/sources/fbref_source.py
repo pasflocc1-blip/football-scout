@@ -238,11 +238,13 @@ def scrape_standard_stats(
         xa_abs   = _first_float(row, ["Expected_xAG", "xAG", "Expected_xA", "Per 90 Minutes_xAG"])
         npxg_abs = _first_float(row, ["Expected_npxG", "npxG"])
 
-        goals_abs   = _first_int(row, ["Performance_Gls", "Gls", "Goals"])
-        assists_abs = _first_int(row, ["Performance_Ast", "Ast", "Assists"])
-        shots_abs   = _first_int(row, ["Performance_Sh",  "Sh",  "Shots"])
-        games_abs   = _first_int(row, ["Playing Time_MP",  "MP",  "Matches"])
-        prog_p_abs  = _first_int(row, ["PrgP", "Progression_PrgP"])
+        goals_abs    = _first_int(row, ["Performance_Gls", "Gls", "Goals"])
+        assists_abs  = _first_int(row, ["Performance_Ast", "Ast", "Assists"])
+        shots_abs    = _first_int(row, ["Performance_Sh",  "Sh",  "Shots"])
+        games_abs    = _first_int(row, ["Playing Time_MP",  "MP",  "Matches"])
+        prog_p_abs   = _first_int(row, ["PrgP", "Progression_PrgP"])
+        prog_c_abs   = _first_int(row, ["PrgC", "Progression_PrgC"])
+        key_pass_abs = _first_int(row, ["KP", "Key_Passes", "Passing_KP"])
 
         xg_per90   = round(xg_abs   * per90, 4) if xg_abs   is not None else None
         xa_per90   = round(xa_abs   * per90, 4) if xa_abs   is not None else None
@@ -265,6 +267,10 @@ def scrape_standard_stats(
             player_obj.npxg_per90 = npxg_per90
         if prog_p_abs is not None and hasattr(player_obj, "progressive_passes"):
             player_obj.progressive_passes = prog_p_abs
+        if prog_c_abs is not None and hasattr(player_obj, "progressive_carries"):
+            player_obj.progressive_carries = prog_c_abs
+        if key_pass_abs is not None and hasattr(player_obj, "key_passes_season"):
+            player_obj.key_passes_season = key_pass_abs
         if goals_abs is not None and hasattr(player_obj, "goals_season"):
             player_obj.goals_season = goals_abs
         if assists_abs is not None and hasattr(player_obj, "assists_season"):

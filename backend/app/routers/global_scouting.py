@@ -24,7 +24,7 @@ from typing import Optional
 from app.database import get_db
 from app.models.models import ScoutingPlayer
 
-router = APIRouter(prefix="/scouting", tags=["Global Scouting"])
+router = APIRouter(prefix="/global-scouting", tags=["Global Scouting"])
 
 
 # ── Helper: serializza un giocatore in dizionario completo ────────

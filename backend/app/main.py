@@ -14,7 +14,10 @@ app = FastAPI(
     title="Football Scout API",
     description="API per la gestione e lo scouting della squadra",
     version="1.0.0",
+    redirect_slashes=False,
 )
+
+
 
 # ── CORS ────────────────────────────────────────────────────────
 # Permette chiamate dal frontend Vue in sviluppo e produzione

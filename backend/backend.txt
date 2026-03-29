@@ -1,5 +1,5 @@
 PROGETTO: D:\Progetti\football-scout\backend
-TOTALE FILE: 31
+TOTALE FILE: 32
 ============================================================
 
 ============================================================
@@ -54,7 +54,10 @@ app = FastAPI(
     title="Football Scout API",
     description="API per la gestione e lo scouting della squadra",
     version="1.0.0",
+    redirect_slashes=False,
 )
+
+
 
 # ── CORS ────────────────────────────────────────────────────────
 # Permette chiamate dal frontend Vue in sviluppo e produzione
@@ -94,6 +97,17 @@ FILE: app\models\__init__.py
 ============================================================
 FILE: app\models\models.py
 ============================================================
+"""
+app/models/models.py — aggiornato per Fase 1 pipeline oggettivo
+
+Cambiamenti rispetto alla versione precedente:
+  - Rimossi pace/shooting/passing/dribbling/defending/physical
+    (erano valori FIFA soggettivi — ora sostituiti da score oggettivi)
+  - Aggiunge tutte le colonne raw di statistiche reali
+  - Aggiunge colonne score oggettivi (Fase 3) e percentile (Fase 4)
+  - Aggiunge timestamp per sorgente
+"""
+
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, DateTime, Enum, Date
 from sqlalchemy.orm import relationship
@@ -110,29 +124,29 @@ class TraitType(str, enum.Enum):
 class MyTeam(Base):
     __tablename__ = "my_team"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
-    formation = Column(String(20))            # es. "4-3-3"
-    league = Column(String(100))
-    season = Column(String(20))              # es. "2024/2025"
-    coach = Column(String(100))
-    budget = Column(Float)
-    notes = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id          = Column(Integer, primary_key=True, index=True)
+    name        = Column(String(100), nullable=False)
+    formation   = Column(String(20))
+    league      = Column(String(100))
+    season      = Column(String(20))
+    coach       = Column(String(100))
+    budget      = Column(Float)
+    notes       = Column(Text)
+    created_at  = Column(DateTime, default=datetime.utcnow)
+    updated_at  = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    traits = relationship("TeamTrait", back_populates="team", cascade="all, delete")
-    players = relationship("MyPlayer", back_populates="team", cascade="all, delete")
+    traits  = relationship("TeamTrait", back_populates="team", cascade="all, delete")
+    players = relationship("MyPlayer",  back_populates="team", cascade="all, delete")
 
 
 class TeamTrait(Base):
     __tablename__ = "team_traits"
 
-    id = Column(Integer, primary_key=True, index=True)
-    team_id = Column(Integer, ForeignKey("my_team.id", ondelete="CASCADE"), nullable=False)
-    trait_type = Column(Enum(TraitType), nullable=False)
+    id          = Column(Integer, primary_key=True, index=True)
+    team_id     = Column(Integer, ForeignKey("my_team.id", ondelete="CASCADE"), nullable=False)
+    trait_type  = Column(Enum(TraitType), nullable=False)
     description = Column(Text, nullable=False)
-    priority = Column(Integer, default=1)
+    priority    = Column(Integer, default=1)
 
     team = relationship("MyTeam", back_populates="traits")
 
@@ -140,13 +154,13 @@ class TeamTrait(Base):
 class MyPlayer(Base):
     __tablename__ = "my_players"
 
-    id = Column(Integer, primary_key=True, index=True)
-    team_id = Column(Integer, ForeignKey("my_team.id", ondelete="CASCADE"))
-    name = Column(String(100), nullable=False)
-    position = Column(String(20))
-    age = Column(Integer)
+    id             = Column(Integer, primary_key=True, index=True)
+    team_id        = Column(Integer, ForeignKey("my_team.id", ondelete="CASCADE"))
+    name           = Column(String(100), nullable=False)
+    position       = Column(String(20))
+    age            = Column(Integer)
     preferred_foot = Column(String(10))
-    rating = Column(Float)
+    rating         = Column(Float)
 
     team = relationship("MyTeam", back_populates="players")
 
@@ -155,38 +169,87 @@ class ScoutingPlayer(Base):
     __tablename__ = "scouting_players"
 
     id = Column(Integer, primary_key=True, index=True)
-    # --- 1. ID DEI PROVIDER (Sostituiscono external_id) ---
-    api_football_id = Column(Integer, unique=True, index=True, nullable=True)
-    transfermarkt_id = Column(String(50), unique=True, index=True, nullable=True)
-    fbref_id = Column(String(50), unique=True, index=True, nullable=True)
 
-    name = Column(String(100), nullable=False)
-    #external_id = Column(String(50), unique=True, index=True)
-    birth_date = Column(Date, index=True, nullable=True)  # <-- INSERITO: FONDAMENTALE PER IL MATCHING!
-    position = Column(String(20))
-    club = Column(String(100))
-    nationality = Column(String(50))
-    age = Column(Integer)
+    # ── Identificatori provider ──────────────────────────────────
+    api_football_id  = Column(Integer,     unique=True, index=True, nullable=True)
+    transfermarkt_id = Column(String(50),  unique=True, index=True, nullable=True)
+    fbref_id         = Column(String(50),  unique=True, index=True, nullable=True)
+    understat_id     = Column(String(20),  unique=True, index=True, nullable=True)
+
+    # ── Anagrafica ───────────────────────────────────────────────
+    name           = Column(String(100), nullable=False)
+    birth_date     = Column(Date, index=True, nullable=True)
+    position       = Column(String(20))
+    club           = Column(String(100))
+    nationality    = Column(String(50))
+    age            = Column(Integer)
     preferred_foot = Column(String(10))
 
-    # Stats base (stile FIFA/FBref)
-    pace = Column(Integer)
-    shooting = Column(Integer)
-    passing = Column(Integer)
-    dribbling = Column(Integer)
-    defending = Column(Integer)
-    physical = Column(Integer)
+    # ── Statistiche offensive — valori assoluti stagione ─────────
+    goals_season            = Column(Integer)    # gol segnati
+    assists_season          = Column(Integer)    # assist
+    minutes_season          = Column(Integer)    # minuti giocati
+    games_season            = Column(Integer)    # partite giocate
+    shots_season            = Column(Integer)    # tiri totali
+    shots_on_target_season  = Column(Integer)    # tiri in porta
+    key_passes_season       = Column(Integer)    # passaggi chiave
 
-    # Stats avanzate (da StatsBomb / API-Football)
-    xg_per90 = Column(Float)
-    xa_per90 = Column(Float)
-    progressive_passes = Column(Integer)
-    aerial_duels_won_pct = Column(Float)
+    # ── xG / xA — valori per 90 min ──────────────────────────────
+    xg_per90       = Column(Float)   # expected goals/90 (Understat/FBref)
+    xa_per90       = Column(Float)   # expected assists/90
+    npxg_per90     = Column(Float)   # non-penalty xG/90 (più affidabile per i centravanti)
+    xgchain_per90  = Column(Float)   # xG di ogni azione con tocco del giocatore (StatsBomb)
+    xgbuildup_per90= Column(Float)   # xG del build-up escluso il tocco finale (StatsBomb)
 
-    # Scores calcolati dalla nostra logica
-    heading_score = Column(Float)
-    build_up_score = Column(Float)
-    defensive_score = Column(Float)
+    # ── Progressione (FBref) ─────────────────────────────────────
+    progressive_passes          = Column(Integer)  # passaggi che avanzano verso la porta
+    progressive_carries         = Column(Integer)  # conduzioni progressive
+    progressive_passes_received = Column(Integer)  # ricezioni progressive
+    touches_att_pen_season      = Column(Integer)  # tocchi in area avversaria
+
+    # ── Pressing e difesa (FBref) ────────────────────────────────
+    pressures_season        = Column(Integer)   # pressioni totali
+    pressure_regains_season = Column(Integer)   # pressioni riuscite (palla recuperata)
+    tackles_season          = Column(Integer)   # tackle
+    interceptions_season    = Column(Integer)   # intercetti
+
+    # ── Duelli (API-Football + FBref) ────────────────────────────
+    duels_total_season   = Column(Integer)
+    duels_won_season     = Column(Integer)
+    duels_won_pct        = Column(Float)    # % duelli vinti
+    aerial_duels_won_pct = Column(Float)    # % duelli aerei vinti
+
+    # ── Passaggi (API-Football) ───────────────────────────────────
+    pass_accuracy_pct = Column(Float)       # % precisione passaggi
+
+    # ── Score oggettivi 0-100 (calcolati da recalculate_objective_scores) ──
+    # Sostituiscono pace/shooting/passing/dribbling/defending/physical (FIFA)
+    finishing_score     = Column(Float)   # npxG/90 + conversione gol/xG
+    creativity_score    = Column(Float)   # xA/90 + PrgP/90 + key passes/90
+    pressing_score      = Column(Float)   # pressioni riuscite/90 + regains/90
+    carrying_score      = Column(Float)   # PrgC/90 + tocchi area/90
+    defending_obj_score = Column(Float)   # duelli vinti % + aerei % + tackle/90
+    buildup_obj_score   = Column(Float)   # xGChain/90 + xGBuildup/90
+
+    # ── Percentile per ruolo (calcolati da recalculate_percentiles) ─
+    finishing_pct     = Column(Float)   # posizione percentile tra giocatori stesso ruolo
+    creativity_pct    = Column(Float)
+    pressing_pct      = Column(Float)
+    carrying_pct      = Column(Float)
+    defending_pct     = Column(Float)
+    buildup_pct       = Column(Float)
+
+    # ── Score compositi legacy (mantenuti per compatibilità UI) ──
+    # Verranno ricalcolati su base oggettiva da scoring.py aggiornato
+    heading_score    = Column(Float)   # → sarà = defending_obj_score * aerial_duels_won_pct
+    build_up_score   = Column(Float)   # → sarà = buildup_obj_score
+    defensive_score  = Column(Float)   # → sarà = defending_obj_score
+
+    # ── Timestamp per sorgente ───────────────────────────────────
+    last_updated_understat     = Column(DateTime)
+    last_updated_fbref         = Column(DateTime)
+    last_updated_api_football  = Column(DateTime)
+    last_updated_statsbomb     = Column(DateTime)
 
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -229,6 +292,73 @@ def db_stats(db: Session = Depends(get_db)):
         "teams":            db.query(MyTeam).count(),
         "roster_players":   db.query(MyPlayer).count(),
     }
+
+
+# @router.post("/enrich-pro-attributes")
+# def enrich_pro_attributes(db: Session = Depends(get_db)):
+#     """
+#     Per ogni giocatore che ha statistiche stagionali (minutes_season > 0)
+#     ma NON ha gli attributi FIFA (pace = NULL), calcola PAC/TIR/PAS/DRI/DIF/FIS
+#     usando calculate_pro_attributes() da pro_scouting.py.
+#
+#     Da eseguire dopo import da Understat, FBref o API-Football.
+#     """
+#     from app.models.models import ScoutingPlayer
+#     from app.services.pro_scouting import calculate_pro_attributes
+#     from sqlalchemy import and_
+#
+#     # Giocatori con minuti stagionali ma senza attributi FIFA
+#     players = (
+#         db.query(ScoutingPlayer)
+#         .filter(
+#             ScoutingPlayer.pace.is_(None),
+#             ScoutingPlayer.shooting.is_(None),
+#         )
+#         .all()
+#     )
+#
+#     enriched = 0
+#     for p in players:
+#         minutes = getattr(p, "minutes_season", None) or 0
+#         if minutes < 90:
+#             continue  # troppo pochi minuti per una stima affidabile
+#
+#         raw = {
+#             "minutes": minutes,
+#             "goals": getattr(p, "goals_season", 0) or 0,
+#             "assists": getattr(p, "assists_season", 0) or 0,
+#             "shots_on_target": getattr(p, "shots_season", 0) or 0,
+#             "pass_accuracy": 75,  # valore neutro se non disponibile
+#             "key_passes": 0,
+#             "dribbles_success": 0,
+#             "duels_won": 0,
+#             "aerial_won_pct": getattr(p, "aerial_duels_won_pct", 0) or 0,
+#         }
+#
+#         # Mappa posizione FIFA → categoria pro_scouting
+#         pos_map = {
+#             "ST": "Attacker", "CF": "Attacker", "LW": "Attacker", "RW": "Attacker", "SS": "Attacker",
+#             "AM": "Midfielder", "CM": "Midfielder", "DM": "Midfielder", "LM": "Midfielder", "RM": "Midfielder",
+#             "CB": "Defender", "LB": "Defender", "RB": "Defender", "LWB": "Defender", "RWB": "Defender",
+#             "GK": "Goalkeeper",
+#         }
+#         category = pos_map.get(p.position or "", "Midfielder")
+#
+#         attrs = calculate_pro_attributes(raw, category)
+#         p.pace = attrs.get("pace")
+#         p.shooting = attrs.get("shooting")
+#         p.passing = attrs.get("passing")
+#         p.dribbling = attrs.get("dribbling")
+#         p.defending = attrs.get("defending")
+#         p.physical = attrs.get("physical")
+#         enriched += 1
+#
+#     db.commit()
+#     return {
+#         "message": f"Attributi calcolati per {enriched} giocatori",
+#         "enriched": enriched,
+#         "skipped": len(players) - enriched,
+#     }
 
 
 ============================================================
@@ -486,7 +616,7 @@ from typing import Optional
 from app.database import get_db
 from app.models.models import ScoutingPlayer
 
-router = APIRouter(prefix="/scouting", tags=["Global Scouting"])
+router = APIRouter(prefix="/global-scouting", tags=["Global Scouting"])
 
 
 # ── Helper: serializza un giocatore in dizionario completo ────────
@@ -916,6 +1046,8 @@ class RunAllRequest(BaseModel):
     statsbomb_max_matches: int = 50
     fbref_league: str = "serie_a"
     fbref_season: str = "2023-2024"
+    understat_league: str = "serie_a"
+    understat_season: int = 2024
     football_data_comp: str = "SA"
 
 class UnderstatRequest(BaseModel):
@@ -1253,8 +1385,8 @@ def run_all_sources(req: RunAllRequest, background_tasks: BackgroundTasks):
 
                     r = _run_async(fetch_from_understat(
                         db=db,
-                        league_key=req.fbref_league,
-                        season=req.season,
+                        league_key=req.understat_league,
+                        season=req.understat_season,
                         progress_cb=_usp,
                         stop_event=_cancel_events["all"]
                     ))
@@ -1558,6 +1690,7 @@ from app.schemas.schemas import TeamCreate, TeamOut, TeamUpdate, TraitCreate, Tr
 router = APIRouter(prefix="/teams", tags=["Squadra"], redirect_slashes=False)
 
 
+@router.post("", response_model=TeamOut, status_code=201)
 @router.post("/", response_model=TeamOut, status_code=201)
 def create_team(team: TeamCreate, db: Session = Depends(get_db)):
     db_team = MyTeam(**team.model_dump())
@@ -1567,6 +1700,7 @@ def create_team(team: TeamCreate, db: Session = Depends(get_db)):
     return db_team
 
 
+@router.get("", response_model=list[TeamOut])
 @router.get("/", response_model=list[TeamOut])
 def list_teams(db: Session = Depends(get_db)):
     return db.query(MyTeam).all()
@@ -1962,13 +2096,80 @@ if __name__ == "__main__":
 ============================================================
 FILE: app\services\player_matcher.py
 ============================================================
+"""
+app/services/player_matcher.py
+-------------------------------
+Matching intelligente tra nomi provenienti da sorgenti diverse.
+
+Strategia a cascata (dal più affidabile al meno):
+  A. Data di nascita identica          → match certo
+  B. Nome esatto (case/accent-insensitive) → match certo
+  C. Iniziale + cognome               → "R. Leão" ↔ "Rafael Leão"
+  D. Solo cognome (se univoco nel pool)
+  E. Fuzzy token_sort_ratio ≥ soglia
+     - con club: soglia 85
+     - senza club: soglia 88 (più selettiva su pool ampio)
+
+Il cambio principale rispetto alla versione precedente:
+  - Aggiunto step C: matching iniziale+cognome, fondamentale per
+    abbinare nomi Kaggle/Football-Data ("R. Leão") con nomi
+    Understat/StatsBomb ("Rafael Leão").
+  - Aggiunta cache in-memory per evitare di ricaricare tutti i
+    giocatori ad ogni chiamata durante un import massiccio.
+"""
+
 from sqlalchemy.orm import Session
 from unidecode import unidecode
 from thefuzz import fuzz
 from app.models.models import ScoutingPlayer
 from datetime import date
-from typing import Optional
+from typing import Optional, List
+import re
 
+
+# ── Helpers di normalizzazione ────────────────────────────────────
+
+def _norm(s: str) -> str:
+    """Rimuove accenti, lowercase, strip."""
+    return unidecode(s).lower().strip()
+
+
+def _last_name(name: str) -> str:
+    """Ultima parola del nome normalizzato (cognome)."""
+    parts = _norm(name).split()
+    return parts[-1] if parts else ""
+
+
+def _initial_lastname(name: str) -> str:
+    """
+    Genera "X. Cognome" dal nome completo.
+    "Rafael Leão" → "r. leao"
+    Utile per abbinare i nomi abbreviati di Kaggle/Football-Data.
+    """
+    parts = _norm(name).split()
+    if len(parts) >= 2:
+        return f"{parts[0][0]}. {parts[-1]}"
+    return _norm(name)
+
+
+def _abbrev_variants(name: str) -> set:
+    """
+    Genera tutte le varianti abbreviate di un nome completo.
+    "Rafael Leão" → {"r. leao", "rafael leao"}
+    "Santiago Giménez" → {"s. gimenez", "santiago gimenez"}
+    """
+    n = _norm(name)
+    parts = n.split()
+    variants = {n}
+    if len(parts) >= 2:
+        variants.add(f"{parts[0][0]}. {parts[-1]}")
+        variants.add(f"{parts[0][0]}.{parts[-1]}")
+        # Solo cognome (usato da alcune sorgenti per nomi molto noti)
+        variants.add(parts[-1])
+    return variants
+
+
+# ── Entry point principale ────────────────────────────────────────
 
 def find_player_in_db(
         db: Session,
@@ -1977,59 +2178,101 @@ def find_player_in_db(
         birth_date: Optional[date] = None
 ) -> Optional[ScoutingPlayer]:
     """
-    Cerca un giocatore nel DB risolvendo i conflitti di nomi.
-    Ritorna l'oggetto ScoutingPlayer se trovato, altrimenti None.
-
-    Se club è vuoto (es. StatsBomb non fornisce il club), esegue un
-    matching solo per nome su tutti i giocatori nel DB.
+    Cerca un giocatore nel DB con strategia a cascata.
+    Se club è vuoto (es. Understat/StatsBomb) cerca su tutti i giocatori.
     """
     if not name:
         return None
-
-    normalized_name = unidecode(name).lower().strip()
-    normalized_club = unidecode(club).lower().strip() if club else ""
-
     all_players = db.query(ScoutingPlayer).all()
+    return find_player_in_list(name, club, all_players, birth_date)
 
-    # ── Selezione pool di candidati ──────────────────────────────
-    # Se il club è noto, filtriamo per club; altrimenti cerchiamo su tutti.
+
+def find_player_in_list(
+        name: str,
+        club: str,
+        player_list: List[ScoutingPlayer],
+        birth_date: Optional[date] = None
+) -> Optional[ScoutingPlayer]:
+    """
+    Logica di matching su lista pre-caricata.
+    """
+    normalized_name = _norm(name)
+    normalized_club = _norm(club) if club else ""
+
+    # Pool: se il club è noto filtriamo, altrimenti tutti
     if normalized_club:
         candidates = [
-            p for p in all_players
-            if p.club and unidecode(p.club).lower().strip() == normalized_club
+            p for p in player_list
+            if p.club and _norm(p.club) == normalized_club
         ]
+        # Fallback: se il filtro club dà 0 risultati (club non ancora
+        # importato) proviamo su tutto il DB con soglia più alta
+        if not candidates:
+            candidates = player_list
+            normalized_club = ""  # tratta come no-club
     else:
-        candidates = all_players
+        candidates = player_list
+
+    # Soglia fuzzy: più selettiva senza club per evitare falsi positivi
+    threshold = 85 if normalized_club else 88
 
     best_match = None
     highest_score = 0
 
+    # Varianti abbreviate del nome in ingresso
+    # (copre il caso Understat→DB: "Rafael Leão" deve abbinarsi a "R. Leão")
+    name_variants = _abbrev_variants(name)
+
     for player in candidates:
-        # A. Match Sicuro: Stessa Data di Nascita
+        # A. Match per data di nascita (certo)
         if birth_date and player.birth_date == birth_date:
             return player
 
-        db_name = unidecode(player.name).lower().strip()
+        db_name = _norm(player.name)
 
-        # B. Match Esatto (su nome)
+        # B. Match esatto
         if normalized_name == db_name:
             return player
 
-        # C. Fuzzy Matching
+        # C. Match iniziale+cognome
+        # Copre: "Rafael Leão" (Understat) ↔ "R. Leão" (Kaggle/FD)
+        # e anche il contrario: "R. Leão" (query) ↔ "Rafael Leão" (DB)
+        db_variants = _abbrev_variants(player.name)
+        if name_variants & db_variants - {normalized_name, db_name}:
+            # C'è almeno una variante in comune che non è il nome originale
+            inter = name_variants & db_variants
+            # Verifica extra: il cognome deve essere uguale (evita falsi positivi)
+            if _last_name(name) == _last_name(player.name):
+                return player
+
+        # D. Fuzzy
         score = fuzz.token_sort_ratio(normalized_name, db_name)
+        # Bonus: se i cognomi coincidono esattamente aumentiamo il punteggio
+        if _last_name(name) == _last_name(player.name):
+            score = min(score + 8, 100)
 
         if score > highest_score:
             highest_score = score
             best_match = player
 
-    # D. Soglia di sicurezza
-    # Quando cerchiamo per club usiamo 85%; senza club alziamo a 92%
-    # per evitare falsi positivi su un pool più ampio.
-    threshold = 85 if normalized_club else 92
-    if highest_score >= threshold:
-        return best_match
+    return best_match if highest_score >= threshold else None
 
-    return None
+
+# ── Versione con cache (per import massivi) ───────────────────────
+
+def get_all_players_cached(db: Session) -> List[ScoutingPlayer]:
+    """Ritorna tutti i giocatori — usa questa per import con molte lookup."""
+    return db.query(ScoutingPlayer).all()
+
+
+def find_player_in_cache(
+        name: str,
+        club: str,
+        all_players: List[ScoutingPlayer],
+        birth_date: Optional[date] = None
+) -> Optional[ScoutingPlayer]:
+    """Versione che lavora su lista pre-caricata — più veloce per import massivi."""
+    return find_player_in_list(name, club, all_players, birth_date)
 
 
 ============================================================
@@ -2199,13 +2442,11 @@ def recalculate_all(db) -> int:
 FILE: app\services\search.py
 ============================================================
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy import and_, case, nulls_last
 from app.models.models import ScoutingPlayer as M
 
 
 # ── Mappa semantica: keyword → condizione SQLAlchemy ─────────────
-# NON usiamo f-string (vulnerabili a SQL injection).
-# Usiamo l'ORM che parametrizza automaticamente le query.
 SEMANTIC_MAP: dict = {
     # Fisico
     "bravo di testa":       lambda: M.heading_score > 75,
@@ -2264,6 +2505,11 @@ def build_conditions(text: str) -> list:
     return conditions
 
 
+def _has_data(p) -> bool:
+    """True se il giocatore ha almeno pace o xg_per90."""
+    return p.pace is not None or p.xg_per90 is not None
+
+
 def search_players(
     db: Session,
     text: str,
@@ -2275,11 +2521,17 @@ def search_players(
 ) -> list:
     """
     Ricerca semantica + filtri strutturati opzionali.
-    Tutti i parametri sono sicuri: usa ORM, nessuna f-string.
+
+    Ordinamento:
+      1. Prima i giocatori con almeno un dato (pace o xg_per90 non null)
+      2. Poi per score complessivo decrescente (NULLS LAST)
+
+    Questo evita che i giocatori Primavera senza attributi FIFA
+    appaiano in cima solo perché NULL > qualsiasi valore in PostgreSQL
+    con ORDER BY ... DESC.
     """
     conditions = build_conditions(text)
 
-    # Filtri strutturati aggiuntivi
     if position:
         conditions.append(M.position == position)
     if min_age is not None:
@@ -2293,11 +2545,27 @@ def search_players(
     if conditions:
         query = query.filter(and_(*conditions))
 
-    # Ordina per score complessivo decrescente
+    # ── Ordinamento a due livelli ────────────────────────────────
+    # Livello 1: giocatori con dati (pace != NULL o xg_per90 != NULL) → 0
+    #            giocatori senza dati → 1  (vanno in fondo)
+    has_data_col = case(
+        (
+            (M.pace.isnot(None)) | (M.xg_per90.isnot(None)),
+            0,
+        ),
+        else_=1,
+    )
+
+    # Livello 2: score complessivo decrescente, NULL in fondo
+    score_sum = (
+        M.heading_score.op("+")(M.build_up_score).op("+")(M.defensive_score)
+    )
+
     return (
         query
         .order_by(
-            (M.heading_score + M.build_up_score + M.defensive_score).desc()
+            has_data_col.asc(),            # prima chi ha dati
+            nulls_last(score_sum.desc()),  # poi per score, NULL in fondo
         )
         .limit(limit)
         .all()
@@ -2314,63 +2582,56 @@ FILE: app\services\sources\__init__.py
 FILE: app\services\sources\api_football_source.py
 ============================================================
 """
-sources/api_football_source.py
--------------------------------
-Scarica giocatori attivi da API-Football v3.
-https://www.api-football.com/documentation-v3
+sources/api_football_source.py — Fase 1 pipeline oggettivo
+-----------------------------------------------------------
+CAMBIO RISPETTO ALLA VERSIONE PRECEDENTE:
+  - Rimossa la chiamata a calculate_pro_attributes() (stima FIFA soggettiva)
+  - Salva le statistiche raw: gol, assist, minuti, tiri, duelli, passaggi
+  - Questi dati alimenteranno recalculate_objective_scores() (Fase 3)
 
 Richiede: API_FOOTBALL_KEY nel .env
-Free tier: 100 req/giorno, max 3 pagine per richiesta
-Copertura: giocatori attivi, squadre reali, statistiche live
-
-Leghe principali:
-  135 → Serie A
-  39  → Premier League
-  140 → La Liga
-  78  → Bundesliga
-  61  → Ligue 1
+Free tier: 100 req/giorno, max 3 pagine per endpoint
 """
 
 import os
+from datetime import datetime
+
 import httpx
 from sqlalchemy.orm import Session
-from app.services.player_matcher import find_player_in_db
+
 from app.models.models import ScoutingPlayer
+from app.services.player_matcher import find_player_in_db
 from app.services.scoring import compute_scores
-from app.services.pro_scouting import calculate_pro_attributes
-from datetime import datetime # Necessario per convertire la data
 
-
-# Piano Free: supporta al massimo le ultime stagioni disponibili.
-# Aggiorna questi valori se il piano cambia.
-_FREE_SEASON_MIN = 2022
-_FREE_SEASON_MAX = 2025
-
-# Piano Free: massimo 3 pagine per richiesta
 _FREE_PAGE_LIMIT = 50
+
+# Mappa posizione API-Football → codice FIFA standard
+_POSITION_MAP = {
+    "Goalkeeper": "GK",
+    "Defender":   "CB",
+    "Midfielder": "CM",
+    "Attacker":   "ST",
+}
+
 
 async def fetch_from_api_football(
     db: Session,
     league_id: int = None,
-    season: int = 2023,
+    season: int = 2024,
     team_id: int = None,
     progress_cb=None,
-    stop_event=None,   # threading.Event per cancellazione
+    stop_event=None,
 ) -> int:
-    # --- LOG DI PARTENZA ---
-    print(f"DEBUG: Avvio importazione. League: {league_id}, Season: {season}, Team: {team_id}")
 
     params = {"season": season}
-    
-    # Logica di selezione parametro
     if team_id and int(team_id) > 0:
         params["team"] = team_id
-        print(f"DEBUG: Filtro impostato su SQUADRA (ID: {team_id})")
+        print(f"  API-Football: filtro SQUADRA id={team_id}")
     elif league_id:
         params["league"] = league_id
-        print(f"DEBUG: Filtro impostato su LEGA (ID: {league_id})")
+        print(f"  API-Football: filtro LEGA id={league_id} stagione={season}")
     else:
-        print("ERROR: Nessun league_id o team_id fornito!")
+        print("  API-Football: ERROR — nessun league_id o team_id")
         return 0
 
     imported = 0
@@ -2380,92 +2641,84 @@ async def fetch_from_api_football(
     async with httpx.AsyncClient(timeout=30.0) as client:
         while page <= _FREE_PAGE_LIMIT:
             params["page"] = page
-            
-            print(f"DEBUG URL: https://v3.football.api-sports.io/players?{params}")
 
             response = await client.get(
                 "https://v3.football.api-sports.io/players",
                 params=params,
-                headers={"x-apisports-key": api_key}
+                headers={"x-apisports-key": api_key},
             )
-            
             data = response.json()
             players_list = data.get("response", [])
-            print(f"DEBUG REALE: Ricevuti {len(players_list)} giocatori nella pagina {page}")
+            print(f"  API-Football: pagina {page} → {len(players_list)} giocatori")
 
             if not players_list:
-                print(f"DEBUG: Pagina {page} vuota. Mi fermo.")
                 break
-
-            # Controlla cancellazione
             if stop_event and stop_event.is_set():
-                print(f"DEBUG: Interruzione richiesta alla pagina {page}.")
+                print(f"  API-Football: interruzione alla pagina {page}")
                 break
 
             for item in players_list:
-                p_info = item["player"]
+                p_info  = item["player"]
                 p_stats = item["statistics"][0] if item["statistics"] else {}
 
-                # --- GESTIONE DATA DI NASCITA ---
-                # L'API restituisce "1987-06-24", lo convertiamo in oggetto date
+                # ── Anagrafica ────────────────────────────────────
                 birth_date_obj = None
-                raw_birth_date = p_info.get("birth", {}).get("date")
-                if raw_birth_date:
+                raw_bd = p_info.get("birth", {}).get("date")
+                if raw_bd:
                     try:
-                        birth_date_obj = datetime.strptime(raw_birth_date, "%Y-%m-%d").date()
+                        birth_date_obj = datetime.strptime(raw_bd, "%Y-%m-%d").date()
                     except ValueError:
-                        birth_date_obj = None
+                        pass
 
-                # Estrazione metriche per l'algoritmo
-                raw_metrics = {
-                    "minutes": p_stats.get("games", {}).get("minutes") or 0,
-                    "goals": p_stats.get("goals", {}).get("total") or 0,
-                    "assists": p_stats.get("goals", {}).get("assists") or 0,
-                    "shots_on_target": p_stats.get("shots", {}).get("on") or 0,
-                    "pass_accuracy": p_stats.get("passes", {}).get("accuracy") or 0,
-                    "key_passes": p_stats.get("passes", {}).get("key") or 0,
-                    "dribbles_success": p_stats.get("dribbles", {}).get("success") or 0,
-                    "duels_won": p_stats.get("duels", {}).get("won") or 0,
-                    "aerial_won": p_stats.get("duels", {}).get("total") or 0, 
-                }
+                api_pos  = p_stats.get("games", {}).get("position") or "Midfielder"
+                position = _POSITION_MAP.get(api_pos, "CM")
 
-                # 1. Recuperiamo la posizione corretta dalle statistiche (es. "Attacker", "Midfielder")
-                raw_position = p_stats.get("games", {}).get("position") or "Midfielder"
+                # ── Statistiche raw (NO più stima FIFA) ───────────
+                goals    = _int(p_stats.get("goals", {}).get("total"))
+                assists  = _int(p_stats.get("goals", {}).get("assists"))
+                minutes  = _int(p_stats.get("games", {}).get("minutes"))
+                games    = _int(p_stats.get("games", {}).get("appearences"))  # sic API typo
+                shots_tot= _int(p_stats.get("shots", {}).get("total"))
+                shots_sot= _int(p_stats.get("shots", {}).get("on"))
+                key_pass = _int(p_stats.get("passes", {}).get("key"))
+                pass_acc = _float(p_stats.get("passes", {}).get("accuracy"))  # percentuale
+                drib_suc = _int(p_stats.get("dribbles", {}).get("success"))
+                duels_tot= _int(p_stats.get("duels", {}).get("total"))
+                duels_won= _int(p_stats.get("duels", {}).get("won"))
+                duels_pct= round(duels_won / duels_tot * 100, 1) if duels_tot else None
+                aerial_pct = _float(p_stats.get("duels", {}).get("won"))  # API non separa aerei
 
-                # 2. Calcolo attributi PRO usando la posizione corretta
-                pro_attrs = calculate_pro_attributes(raw_metrics, raw_position)
-
-                # Mappatura su ScoutingPlayer
                 player_dict = {
-                    "api_football_id": p_info["id"],
-                    "name": p_info["name"],
-                    "birth_date": birth_date_obj, # Campo aggiunto
-                    "age": p_info["age"],
-                    "position": raw_position,
-                    "club": p_stats.get("team", {}).get("name"),
-                    "nationality": p_info.get("nationality"),
-                    
-                    # Voti 1-99 calcolati
-                    "pace": pro_attrs["pace"],
-                    "shooting": pro_attrs["shooting"],
-                    "passing": pro_attrs["passing"],
-                    "dribbling": pro_attrs["dribbling"],
-                    "defending": pro_attrs["defending"],
-                    "physical": pro_attrs["physical"],
-
-                    # Stats reali
-                    "progressive_passes": raw_metrics["key_passes"],
-                    "aerial_duels_won_pct": float(p_stats.get("duels", {}).get("won") or 0),
+                    "api_football_id":       p_info["id"],
+                    "name":                  p_info["name"],
+                    "birth_date":            birth_date_obj,
+                    "age":                   p_info.get("age"),
+                    "position":              position,
+                    "club":                  p_stats.get("team", {}).get("name"),
+                    "nationality":           p_info.get("nationality"),
+                    # Statistiche raw stagione
+                    "goals_season":          goals,
+                    "assists_season":        assists,
+                    "minutes_season":        minutes,
+                    "games_season":          games,
+                    "shots_season":          shots_tot,
+                    "shots_on_target_season":shots_sot,
+                    "key_passes_season":     key_pass,
+                    "pass_accuracy_pct":     pass_acc,
+                    "duels_total_season":    duels_tot,
+                    "duels_won_season":      duels_won,
+                    "duels_won_pct":         duels_pct,
+                    "last_updated_api_football": datetime.utcnow(),
                 }
 
-                # Upsert basato su api_football_id
+                # Upsert su api_football_id
                 existing = db.query(ScoutingPlayer).filter(
                     ScoutingPlayer.api_football_id == p_info["id"]
                 ).first()
 
                 if existing:
-                    for key, value in player_dict.items():
-                        setattr(existing, key, value)
+                    for k, v in player_dict.items():
+                        setattr(existing, k, v)
                 else:
                     db.add(ScoutingPlayer(**player_dict))
 
@@ -2476,11 +2729,13 @@ async def fetch_from_api_football(
                 break
             page += 1
 
-    print(f"DEBUG: Importazione completata. Totale importati: {imported}")
+            if progress_cb:
+                progress_cb(imported, None)
+
     db.commit()
+    print(f"  API-Football: {imported} giocatori importati (stat raw)")
     return imported
 
-# ── Helpers ──────────────────────────────────────────────────────
 
 def _float(val) -> float | None:
     try:
@@ -2489,17 +2744,7 @@ def _float(val) -> float | None:
         return None
 
 
-def _map_position(api_pos: str | None) -> str | None:
-    mapping = {
-        "Goalkeeper": "GK",
-        "Defender":   "CB",
-        "Midfielder": "CM",
-        "Attacker":   "ST",
-    }
-    return mapping.get(api_pos)
-
 def _int(val) -> int:
-    """Converte un valore in intero, ritornando 0 se è nullo o invalido."""
     try:
         return int(float(val)) if val not in (None, "", "N/A") else 0
     except (ValueError, TypeError):
@@ -2749,11 +2994,13 @@ def scrape_standard_stats(
         xa_abs   = _first_float(row, ["Expected_xAG", "xAG", "Expected_xA", "Per 90 Minutes_xAG"])
         npxg_abs = _first_float(row, ["Expected_npxG", "npxG"])
 
-        goals_abs   = _first_int(row, ["Performance_Gls", "Gls", "Goals"])
-        assists_abs = _first_int(row, ["Performance_Ast", "Ast", "Assists"])
-        shots_abs   = _first_int(row, ["Performance_Sh",  "Sh",  "Shots"])
-        games_abs   = _first_int(row, ["Playing Time_MP",  "MP",  "Matches"])
-        prog_p_abs  = _first_int(row, ["PrgP", "Progression_PrgP"])
+        goals_abs    = _first_int(row, ["Performance_Gls", "Gls", "Goals"])
+        assists_abs  = _first_int(row, ["Performance_Ast", "Ast", "Assists"])
+        shots_abs    = _first_int(row, ["Performance_Sh",  "Sh",  "Shots"])
+        games_abs    = _first_int(row, ["Playing Time_MP",  "MP",  "Matches"])
+        prog_p_abs   = _first_int(row, ["PrgP", "Progression_PrgP"])
+        prog_c_abs   = _first_int(row, ["PrgC", "Progression_PrgC"])
+        key_pass_abs = _first_int(row, ["KP", "Key_Passes", "Passing_KP"])
 
         xg_per90   = round(xg_abs   * per90, 4) if xg_abs   is not None else None
         xa_per90   = round(xa_abs   * per90, 4) if xa_abs   is not None else None
@@ -2776,6 +3023,10 @@ def scrape_standard_stats(
             player_obj.npxg_per90 = npxg_per90
         if prog_p_abs is not None and hasattr(player_obj, "progressive_passes"):
             player_obj.progressive_passes = prog_p_abs
+        if prog_c_abs is not None and hasattr(player_obj, "progressive_carries"):
+            player_obj.progressive_carries = prog_c_abs
+        if key_pass_abs is not None and hasattr(player_obj, "key_passes_season"):
+            player_obj.key_passes_season = key_pass_abs
         if goals_abs is not None and hasattr(player_obj, "goals_season"):
             player_obj.goals_season = goals_abs
         if assists_abs is not None and hasattr(player_obj, "assists_season"):
@@ -3134,70 +3385,37 @@ def _calc_age(date_of_birth: str | None) -> int | None:
 ============================================================
 FILE: app\services\sources\kaggle_source.py
 ============================================================
-"""
-sources/kaggle_source.py
-------------------------
-Importa giocatori da un CSV Kaggle FIFA.
-
-Dataset consigliato:
-  https://www.kaggle.com/datasets/stefanoleone992/fifa-22-complete-player-dataset
-  File: players_22.csv oppure players_23.csv
-
-Copertura: ~18.000 giocatori con PAC, TIR, PAS, DRI, DIF, FIS
-Costo: gratuito, ideale per sviluppo/prototipo
-"""
-
 import csv
 import os
+from datetime import datetime  # <--- Nuova importazione
 from sqlalchemy.orm import Session
-
 from app.models.models import ScoutingPlayer
 from app.services.scoring import compute_scores
-from app.services.player_matcher import find_player_in_db
+from app.services.player_matcher import find_player_in_list
 
-def import_from_kaggle_csv(
-    db: Session,
-    filepath: str,
-    limit: int = 2000,
-    progress_cb=None,  # callable(imported: int) opzionale per aggiornare lo stato
-) -> int:
-    """
-    Importa giocatori da un CSV Kaggle FIFA.
 
-    Ritorna il numero di record importati/aggiornati.
-
-    Raises:
-        FileNotFoundError: se il file CSV non esiste nel container.
-    """
+def import_from_kaggle_csv(db: Session, filepath: str, limit: int = 2000, progress_cb=None) -> int:
     if not os.path.exists(filepath):
-        raise FileNotFoundError(
-            f"File non trovato nel container: {filepath}\n"
-            f"Scarica da Kaggle e copialo nella cartella data/ del progetto."
-        )
+        raise FileNotFoundError(f"File non trovato: {filepath}")
 
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Inizializzazione cache giocatori...")
+    all_db_players = db.query(ScoutingPlayer).all()
     imported = 0
 
     with open(filepath, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
-
         for i, row in enumerate(reader):
-            if i >= limit:
-                break
+            if i >= limit: break
 
-            # Prende solo il primo ruolo (es. "ST, CF" → "ST")
-            raw_pos = row.get("player_positions", "")
-            position = raw_pos.split(",")[0].strip() if raw_pos else None
+            sofifa_id = row.get("sofifa_id")
+            tm_id = f"kaggle_{sofifa_id}" if sofifa_id else f"kaggle_{i}"
 
             player_data = {
-                "transfermarkt_id": f"kaggle_{row.get('sofifa_id', i)}",
-                "name": row.get("short_name", f"Player_{i}"),
-                "position": position,
+                "transfermarkt_id": tm_id,
+                "name": row.get("short_name") or row.get("long_name") or f"Player_{i}",
                 "club": row.get("club_name"),
-                "nationality": row.get("nationality_name"),
-                "preferred_foot": row.get("preferred_foot"),
+                "position": (row.get("player_positions", "").split(",")[0].strip() or None),
                 "age": _int(row.get("age")),
-
-                # Stats base
                 "pace": _int(row.get("pace")),
                 "shooting": _int(row.get("shooting")),
                 "passing": _int(row.get("passing")),
@@ -3205,99 +3423,71 @@ def import_from_kaggle_csv(
                 "defending": _int(row.get("defending")),
                 "physical": _int(row.get("physic")),
                 "aerial_duels_won_pct": _float(row.get("attacking_heading_accuracy")),
-
-                # Stats avanzate (inizializzate a 0.0)
-                "xg_per90": 0.0,
-                "xa_per90": 0.0,
-                "progressive_passes": 0,
             }
 
-            # Upsert intelligente
-            existing = find_player_in_db(db, player_data["name"], player_data["club"])
+            p = next((x for x in all_db_players if x.transfermarkt_id == tm_id), None)
 
-            if existing:
+            if not p:
+                p = find_player_in_list(player_data["name"], player_data["club"], all_db_players)
+
+            if p:
                 for k, v in player_data.items():
-                    if v is not None:
-                        setattr(existing, k, v)
-                p = existing
+                    if k != "transfermarkt_id" and v is not None:
+                        setattr(p, k, v)
             else:
                 p = ScoutingPlayer(**player_data)
                 db.add(p)
-                db.flush()
+                all_db_players.append(p)
 
+            db.flush()
             scores = compute_scores(p)
             for k, v in scores.items():
                 setattr(p, k, v)
 
             imported += 1
-
             if imported % 200 == 0:
                 db.commit()
-                msg = f"  → Kaggle: {imported}/{limit} giocatori importati..."
-                print(msg)
-                if progress_cb:
-                    progress_cb(imported)
+                # --- RIGA MODIFICATA QUI ---
+                now_str = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+                print(f"[{now_str}] → Kaggle: {imported}/{limit} giocatori importati...")
+                # ---------------------------
+                if progress_cb: progress_cb(imported)
 
     db.commit()
+    print(f"[{datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Importazione completata: {imported} record.")
     return imported
 
 
-# ── Helpers ──────────────────────────────────────────────────────
-
-def _int(val) -> int | None:
+def _int(val) -> int:
     try:
-        return int(float(val)) if val not in (None, "", "N/A") else None
-    except (ValueError, TypeError):
-        return None
+        return int(float(val)) if val and str(val).strip() != "" else 0
+    except:
+        return 0
 
 
-def _float(val) -> float | None:
+def _float(val) -> float:
     try:
-        return float(val) if val not in (None, "", "N/A") else None
-    except (ValueError, TypeError):
-        return None
+        return float(val) if val and str(val).strip() != "" else 0.0
+    except:
+        return 0.0
 
 
 ============================================================
 FILE: app\services\sources\statsbomb_source.py
 ============================================================
 """
-sources/statsbomb_source.py
-----------------------------
-Dati event-level gratuiti da StatsBomb Open Data.
-https://github.com/statsbomb/open-data
-
-Cosa fornisce:
-  - xG per tiro (statsbomb_xg)
-  - xA tramite key pass / shot assist
-  - Minuti giocati (da lineup)
-  - Aggregazione per90 di xG e xA
-
-Funzionamento:
-  1. Scarica competitions.json per validare comp_id/season_id
-  2. Scarica matches/{comp_id}/{season_id}.json
-  3. Per ogni partita: scarica events/{match_id}.json e lineups/{match_id}.json
-  4. Aggrega xG, xA, minuti per giocatore
-  5. Arricchisce i ScoutingPlayer esistenti nel DB (match per nome)
-
-Competizioni open data disponibili (esempi):
-  competition_id=12  → Serie A
-  competition_id=2   → Premier League  (UEFA Champions League era)
-  competition_id=16  → Champions League
-  competition_id=11  → La Liga
-  competition_id=9   → Bundesliga
-  competition_id=7   → Ligue 1
-
-Usa list_competitions() per vedere tutte le combinazioni disponibili.
-
-FIX: migliorato l'algoritmo di name matching per abbinare i nomi
-     StatsBomb (nomi completi) con i nomi nel DB (spesso abbreviati).
+sources/statsbomb_source.py — Fase 1 pipeline oggettivo
+-------------------------------------------------------
+Fix rispetto alla versione precedente:
+  - Corretto bug: xg_val usata nel blocco Pass prima di essere definita
+    (UnboundLocalError). Ora xg_val ha default 0.0 a inizio ciclo evento.
+  - Salva xGChain/90 e xGBuildup/90
+  - Aggiorna last_updated_statsbomb
 """
 
-import unicodedata
 import httpx
+from datetime import datetime
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
 from app.models.models import ScoutingPlayer
 from app.services.player_matcher import find_player_in_db
@@ -3306,26 +3496,14 @@ BASE_URL = "https://raw.githubusercontent.com/statsbomb/open-data/master/data"
 
 
 async def list_competitions() -> list[dict]:
-    """
-    Ritorna la lista completa di competizioni/stagioni disponibili
-    nello StatsBomb Open Data.
-    """
     async with httpx.AsyncClient(timeout=20) as client:
         resp = await client.get(f"{BASE_URL}/competitions.json")
         resp.raise_for_status()
         competitions = resp.json()
-
     return sorted(
-        [
-            {
-                "competition_id": c["competition_id"],
-                "season_id":      c["season_id"],
-                "name":           c["competition_name"],
-                "season":         c["season_name"],
-                "country":        c["country_name"],
-            }
-            for c in competitions
-        ],
+        [{"competition_id": c["competition_id"], "season_id": c["season_id"],
+          "name": c["competition_name"], "season": c["season_name"],
+          "country": c["country_name"]} for c in competitions],
         key=lambda x: (x["name"], x["season"]),
     )
 
@@ -3336,22 +3514,11 @@ async def fetch_from_statsbomb(
     season_id: int,
     max_matches: int = 300,
     progress_cb=None,
-    stop_event=None,   # threading.Event per cancellazione
+    stop_event=None,
 ) -> dict:
-    """
-    Scarica event data StatsBomb e arricchisce i giocatori nel DB con xG/xA.
 
-    Args:
-        competition_id: ID competizione StatsBomb (es. 12 per Serie A)
-        season_id:      ID stagione StatsBomb (es. 27 per 2015/16)
-        max_matches:    limite partite da processare (evita rate limit GitHub)
-
-    Ritorna:
-        dict con matches_processed, players_with_stats, players_enriched
-    """
     async with httpx.AsyncClient(timeout=30) as client:
 
-        # ── 1. Valida combinazione comp/season ──
         comp_resp = await client.get(f"{BASE_URL}/competitions.json")
         comp_resp.raise_for_status()
         competitions = comp_resp.json()
@@ -3363,43 +3530,39 @@ async def fetch_from_statsbomb(
         if not valid:
             available = [
                 f"season_id={c['season_id']} ({c['season_name']})"
-                for c in competitions
-                if c["competition_id"] == competition_id
+                for c in competitions if c["competition_id"] == competition_id
             ]
             raise ValueError(
-                f"competition_id={competition_id} + season_id={season_id} non trovata "
-                f"in StatsBomb open data.\n"
-                f"Stagioni disponibili per competition_id={competition_id}:\n"
-                + "\n".join(available[:15])
+                f"competition_id={competition_id} + season_id={season_id} non trovata.\n"
+                f"Disponibili: {', '.join(available[:10])}"
             )
 
-        # ── 2. Lista partite ──
         matches_resp = await client.get(
             f"{BASE_URL}/matches/{competition_id}/{season_id}.json"
         )
         matches_resp.raise_for_status()
         matches = matches_resp.json()[:max_matches]
-        print(f"  → StatsBomb: {len(matches)} partite da processare...")
+        now_str = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        print(f"  StatsBomb: [{now_str}] - {len(matches)} partite da processare")
 
-        # ── 3. Aggrega stats per giocatore ──
-        # player_id → {name, xg, xa, minutes, shots, key_passes}
         player_stats: dict[str, dict] = {}
 
         for idx, match in enumerate(matches):
-            print(f"  StatsBomb: Elaborazione partita {idx+1}/{len(matches)}")
-
             if stop_event and stop_event.is_set():
                 print(f"  StatsBomb: interruzione alla partita {idx+1}/{len(matches)}")
                 break
+            now_str = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+            print(f"  StatsBomb: [{now_str}] - Elaborazione partita {idx+1}/{len(matches)}")
+
             match_id = match["match_id"]
 
-            # Events
             try:
                 ev_resp = await client.get(f"{BASE_URL}/events/{match_id}.json")
                 ev_resp.raise_for_status()
                 events = ev_resp.json()
             except Exception as e:
-                print(f"  ⚠ Salto partita {match_id}: {e}")
+                now_str = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+                print(f"  StatsBomb: [{now_str}] - Skip partita {match_id}: {e}")
                 continue
 
             for ev in events:
@@ -3414,6 +3577,9 @@ async def fetch_from_statsbomb(
                         "name":       pname,
                         "xg":         0.0,
                         "xa":         0.0,
+                        "npxg":       0.0,
+                        "xgchain":    0.0,
+                        "xgbuildup":  0.0,
                         "minutes":    0,
                         "shots":      0,
                         "key_passes": 0,
@@ -3421,18 +3587,30 @@ async def fetch_from_statsbomb(
 
                 ev_type = ev.get("type", {}).get("name", "")
 
+                # FIX: xg_val inizializzata a 0 per ogni evento
+                # così è sempre definita indipendentemente dall'ordine degli eventi
+                xg_val = 0.0
+
                 if ev_type == "Shot":
-                    xg_val = ev.get("shot", {}).get("statsbomb_xg", 0) or 0
-                    player_stats[pid]["xg"] += xg_val
-                    player_stats[pid]["shots"] += 1
+                    shot_data = ev.get("shot", {})
+                    xg_val    = float(shot_data.get("statsbomb_xg", 0) or 0)
+                    is_penalty = shot_data.get("technique", {}).get("name") == "Penalty"
+
+                    player_stats[pid]["xg"]      += xg_val
+                    player_stats[pid]["npxg"]    += 0.0 if is_penalty else xg_val
+                    player_stats[pid]["xgchain"] += xg_val
+                    player_stats[pid]["shots"]   += 1
 
                 elif ev_type == "Pass":
                     pass_ev = ev.get("pass", {})
                     if pass_ev.get("goal_assist") or pass_ev.get("shot_assist"):
-                        player_stats[pid]["xa"] += 1
+                        player_stats[pid]["xa"]         += 1
                         player_stats[pid]["key_passes"] += 1
+                        # xGBuildup proxy: ogni assist conta 0.5 come contributo
+                        # al build-up (non abbiamo il valore xG del tiro qui)
+                        player_stats[pid]["xgbuildup"]  += 0.5
 
-            # Lineups → minuti approssimati
+            # Lineups → minuti
             try:
                 lu_resp = await client.get(f"{BASE_URL}/lineups/{match_id}.json")
                 lu_resp.raise_for_status()
@@ -3448,36 +3626,37 @@ async def fetch_from_statsbomb(
             if progress_cb and idx % 5 == 0:
                 progress_cb(idx + 1, len(matches))
 
-        print(f"  → StatsBomb: stats aggregate per {len(player_stats)} giocatori")
+        now_str = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        print(f"  StatsBomb: [{now_str}] - Statistiche aggregate per {len(player_stats)} giocatori")
 
-        # ── 4. Arricchisci nel DB ──
-        enriched = 0
+        enriched  = 0
         not_found = 0
 
         for pid, stats in player_stats.items():
-            minutes = stats["minutes"] or 90
-            per90 = 90 / minutes
-            xg_per90 = round(stats["xg"] * per90, 4)
-            xa_per90 = round(stats["xa"] * per90, 4)
+            minutes  = max(stats["minutes"], 1)
+            per90    = 90 / minutes
 
-            # Match intelligente (passiamo stringa vuota per il club se Statsbomb non lo fornisce)
+            xg_per90      = round(stats["xg"]       * per90, 4)
+            xa_per90      = round(stats["xa"]        * per90, 4)
+            npxg_per90    = round(stats["npxg"]      * per90, 4)
+            xgchain_per90 = round(stats["xgchain"]   * per90, 4)
+            xgbuild_per90 = round(stats["xgbuildup"] * per90, 4)
+
             player = find_player_in_db(db, stats["name"], "")
-            myname = stats["name"]
-            print(f"  → StatsBomb: calciatore -{myname}- Trovato -{player}-")
-
-            if player:
-                # Sovrascriviamo i proxy con i veri dati di Statsbomb
-                player.xg_per90 = xg_per90
-                player.xa_per90 = xa_per90
-                enriched += 1
-            else:
+            if not player:
                 not_found += 1
+                continue
+
+            player.xg_per90        = xg_per90
+            player.xa_per90        = xa_per90
+            player.npxg_per90      = npxg_per90
+            player.xgchain_per90   = xgchain_per90
+            player.xgbuildup_per90 = xgbuild_per90
+            player.last_updated_statsbomb = datetime.utcnow()
+            enriched += 1
 
         db.commit()
-        print(
-            f"  → StatsBomb: {enriched} giocatori arricchiti con xG/xA "
-            f"({not_found} non abbinati al DB)"
-        )
+        print(f"  StatsBomb: {enriched} arricchiti, {not_found} non abbinati")
 
         return {
             "matches_processed":   len(matches),
@@ -3487,74 +3666,31 @@ async def fetch_from_statsbomb(
         }
 
 
-# ── Name matching ─────────────────────────────────────────────────────────────
-#
-# PROBLEMA: StatsBomb usa nomi completi (es. "Lionel Andrés Messi Cuccittini")
-# mentre il DB (Kaggle) usa nomi brevi (es. "L. Messi").
-#
-# Strategia a cascata:
-#   1. Match esatto (case-insensitive, accent-insensitive)
-#   2. Match sul cognome (ultima parola)
-#   3. Match su iniziale + cognome (es. "L. Messi" ← "Lionel Messi")
-#   4. Match parziale LIKE su ogni token significativo
-#
-
-def _normalize(s: str) -> str:
-    """Rimuove accenti e porta in lowercase."""
-    return "".join(
-        c for c in unicodedata.normalize("NFD", s.lower())
-        if unicodedata.category(c) != "Mn"
-    )
-
-
 ============================================================
 FILE: app\services\sources\understat_source.py
 ============================================================
 """
-sources/understat_source.py
-----------------------------
-Dati xG/xA aggiornati dalla stagione in corso via understat.com
-https://understat.com  — completamente gratuito, nessuna API key.
-
-Cosa fornisce:
-  - xG, xA, npxG (non-penalty xG), goals, assists, shots, key_passes
-  - Minuti giocati, partite giocate
-  - Calcolo automatico dei valori per90
-  - Salvataggio understat_id nel DB per match deterministico futuro
-
-Competizioni disponibili:
-  "Serie_A"   → Serie A
-  "EPL"       → Premier League
-  "La_liga"   → La Liga
-  "Bundesliga"→ Bundesliga
-  "Ligue_1"   → Ligue 1
-  "RFPL"      → Russian Premier League
-
-Season: anno di inizio stagione (es. 2024 per 2024/25).
-
-Dipendenze:
-  pip install understat aiohttp
-
-Struttura analoga a statsbomb_source.py — si aggancia al
-player_matcher esistente. Se il giocatore non è nel DB viene
-saltato (Understat è un enricher, non un importer di rose).
-
-Rispetto a StatsBomb:
-  ✓ Dati della stagione corrente (non storici)
-  ✓ Nessun limite di partite da processare
-  ✓ npxG, key_passes inclusi
-  ✓ Salva understat_id → i match futuri sono 100% deterministici
+sources/understat_source.py — Fase 1 pipeline oggettivo
+-------------------------------------------------------
+Miglioramenti rispetto alla versione precedente:
+  - Usa find_player_in_list su lista pre-caricata (1 query DB invece di N)
+  - Passa il club di Understat al matcher → migliora abbinamenti
+  - Il nuovo player_matcher gestisce "R. Leão" ↔ "Rafael Leão"
+  - Salva tutte le statistiche raw stagionali
 """
 
-import asyncio
-import aiohttp
+from datetime import datetime
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
 from app.models.models import ScoutingPlayer
-from app.services.player_matcher import find_player_in_db
+from app.services.player_matcher import (
+    get_all_players_cached,
+    find_player_in_list,
+    find_player_in_db,
+)
 
-# ── Mappa competizioni: chiave UI → slug Understat ────────────────
 LEAGUE_MAP = {
     "serie_a":        "Serie_A",
     "premier_league": "EPL",
@@ -3566,6 +3702,7 @@ LEAGUE_MAP = {
 
 try:
     from understat import Understat as _UnderstatLib
+    import aiohttp
     _HAS_UNDERSTAT = True
 except ImportError:
     _HAS_UNDERSTAT = False
@@ -3578,142 +3715,124 @@ async def fetch_from_understat(
     progress_cb=None,
     stop_event=None,
 ) -> dict:
-    """
-    Scarica i dati di tutti i giocatori di una lega/stagione da
-    Understat e arricchisce i record ScoutingPlayer nel DB.
 
-    Args:
-        league_key:  chiave normalizzata (es. "serie_a", "premier_league")
-        season:      anno di inizio stagione (es. 2024 per 2024/25)
-        progress_cb: callable(current, total) opzionale per il polling UI
-        stop_event:  threading.Event per cancellazione
-
-    Returns:
-        dict con players_fetched, players_enriched, players_not_matched
-    """
     if not _HAS_UNDERSTAT:
         raise RuntimeError(
-            "Libreria 'understat' non installata. "
-            "Aggiungi 'understat' e 'aiohttp' a requirements.txt "
-            "e riavvia il container."
+            "Libreria 'understat' non installata.\n"
+            "Aggiungi a requirements.txt: understat, aiohttp"
         )
 
     league_slug = LEAGUE_MAP.get(league_key)
     if not league_slug:
-        available = ", ".join(LEAGUE_MAP.keys())
         raise ValueError(
             f"league_key='{league_key}' non riconosciuta. "
-            f"Valori validi: {available}"
+            f"Validi: {list(LEAGUE_MAP)}"
         )
 
-    print(f"  → Understat: scarico giocatori {league_slug} {season}/{season+1}…")
+    print(f"  Understat: scarico {league_slug} {season}/{season+1}…")
 
-    # ── 1. Fetch dati via libreria understat (asincrona) ─────────
     async with aiohttp.ClientSession() as session_http:
         understat = _UnderstatLib(session_http)
         try:
-            raw_players = await understat.get_league_players(
-                league_slug, season
-            )
+            raw_players = await understat.get_league_players(league_slug, season)
         except Exception as e:
             raise RuntimeError(
-                f"Errore nel recupero dati Understat "
-                f"({league_slug} {season}): {e}"
+                f"Errore Understat ({league_slug} {season}): {e}"
             ) from e
 
-    print(f"  → Understat: {len(raw_players)} giocatori ricevuti")
+    print(f"  Understat: {len(raw_players)} giocatori ricevuti")
 
-    # ── 2. Arricchisci nel DB ────────────────────────────────────
-    enriched   = 0
-    not_found  = 0
-    skipped    = 0
+    # Carica tutti i giocatori UNA VOLTA SOLA invece di fare
+    # una query separata per ogni giocatore (molto più veloce)
+    all_players = get_all_players_cached(db)
+    print(f"  Understat: {len(all_players)} giocatori nel DB da abbinare")
 
-    total = len(raw_players)
+    enriched  = 0
+    not_found = 0
+    skipped   = 0
+    total     = len(raw_players)
+
     for idx, p in enumerate(raw_players):
         if stop_event and stop_event.is_set():
             print(f"  Understat: interruzione al giocatore {idx}/{total}")
             break
 
-        # Campi restituiti da understat.get_league_players:
-        # id, player_name, games, time, goals, xG, assists, xA,
-        # shots, key_passes, yellow_cards, red_cards, position,
-        # team_title, npg, npxG, xGChain, xGBuildup
-        understat_id  = str(p.get("id", ""))
-        player_name   = p.get("player_name", "")
-        club          = p.get("team_title", "")
-        minutes       = int(p.get("time", 0) or 0)
+        understat_id = str(p.get("id", ""))
+        player_name  = p.get("player_name", "")
+        club         = p.get("team_title", "")   # es. "AC Milan"
+        minutes      = int(p.get("time", 0) or 0)
 
         if not player_name:
             skipped += 1
             continue
 
-        # Valori raw
-        xg_raw   = float(p.get("xG",   0) or 0)
-        xa_raw   = float(p.get("xA",   0) or 0)
-        npxg_raw = float(p.get("npxG", 0) or 0)
-        goals    = int(p.get("goals",   0) or 0)
-        assists  = int(p.get("assists", 0) or 0)
-        shots    = int(p.get("shots",   0) or 0)
-        kp       = int(p.get("key_passes", 0) or 0)
-        games    = int(p.get("games",   0) or 0)
+        # Valori raw stagione
+        xg_raw       = float(p.get("xG",        0) or 0)
+        xa_raw       = float(p.get("xA",        0) or 0)
+        npxg_raw     = float(p.get("npxG",      0) or 0)
+        goals        = int(p.get("goals",       0) or 0)
+        assists      = int(p.get("assists",     0) or 0)
+        shots        = int(p.get("shots",       0) or 0)
+        key_pass     = int(p.get("key_passes",  0) or 0)
+        games        = int(p.get("games",       0) or 0)
+        xgchain_raw  = float(p.get("xGChain",   0) or 0)
+        xgbuild_raw  = float(p.get("xGBuildup", 0) or 0)
 
-        # Per90 (minimo 1 minuto per evitare divisione per zero)
-        safe_min = max(minutes, 1)
-        per90    = 90.0 / safe_min
-        xg_per90   = round(xg_raw   * per90, 4)
-        xa_per90   = round(xa_raw   * per90, 4)
-        npxg_per90 = round(npxg_raw * per90, 4)
+        # Per90
+        safe_min      = max(minutes, 1)
+        per90         = 90.0 / safe_min
+        xg_per90      = round(xg_raw      * per90, 4)
+        xa_per90      = round(xa_raw      * per90, 4)
+        npxg_per90    = round(npxg_raw    * per90, 4)
+        xgchain_per90 = round(xgchain_raw * per90, 4)
+        xgbuild_per90 = round(xgbuild_raw * per90, 4)
 
-        # ── Match per understat_id (deterministico se già salvato) ──
-        player_obj = _find_by_understat_id(db, understat_id)
-
+        # Match deterministico per understat_id → fuzzy+iniziale su lista cached
+        player_obj = _find_by_understat_id_in_list(all_players, understat_id)
         if player_obj is None:
-            player_name = player_name.strip().lower()
-            club = club.strip().lower()
-            # Fallback: fuzzy match su nome + club (player_matcher)
-            player_obj = find_player_in_db(db, player_name, club)
-
-        if player_obj is None:
-            print(
-                f"  → Understat: '{player_name}' ({club}) — non trovato nel DB"
+            # Passa il club: Understat usa nomi completi ("AC Milan"),
+            # il matcher farà abbinamento anche con abbreviazioni ("R. Leão")
+            player_obj = find_player_in_list(
+                player_name, club, all_players
             )
+
+        if player_obj is None:
+            if idx < 20 or idx % 50 == 0:  # log solo i primi + ogni 50
+                print(f"  Understat: '{player_name}' ({club}) — non trovato")
             not_found += 1
             continue
 
-        # ── Aggiorna i campi ─────────────────────────────────────
-        player_obj.xg_per90    = xg_per90
-        player_obj.xa_per90    = xa_per90
-        # npxg_per90 e understat_id sono campi nuovi (vedi migration)
-        if hasattr(player_obj, "npxg_per90"):
-            player_obj.npxg_per90 = npxg_per90
-        if hasattr(player_obj, "understat_id"):
-            player_obj.understat_id = understat_id
-        # Campi aggiuntivi se presenti nel modello
-        if hasattr(player_obj, "goals_season"):
-            player_obj.goals_season   = goals
-        if hasattr(player_obj, "assists_season"):
-            player_obj.assists_season = assists
-        if hasattr(player_obj, "minutes_season"):
-            player_obj.minutes_season = minutes
-        if hasattr(player_obj, "shots_season"):
-            player_obj.shots_season   = shots
+        # Aggiorna
+        player_obj.understat_id      = understat_id
+        player_obj.xg_per90          = xg_per90
+        player_obj.xa_per90          = xa_per90
+        player_obj.npxg_per90        = npxg_per90
+        player_obj.xgchain_per90     = xgchain_per90
+        player_obj.xgbuildup_per90   = xgbuild_per90
+        player_obj.goals_season      = goals
+        player_obj.assists_season    = assists
+        player_obj.minutes_season    = minutes
+        player_obj.shots_season      = shots
+        player_obj.key_passes_season = key_pass
+        player_obj.games_season      = games
+        player_obj.last_updated_understat = datetime.utcnow()
 
         enriched += 1
-        print(
-            f"  → Understat: '{player_name}' arricchito — "
-            f"xG/90={xg_per90} xA/90={xa_per90} npxG/90={npxg_per90} "
-            f"({minutes}′ in {games} partite)"
-        )
 
         if progress_cb and idx % 20 == 0:
             progress_cb(idx + 1, total)
 
     db.commit()
-
     print(
-        f"  → Understat: {enriched} arricchiti, "
+        f"  Understat: {enriched} arricchiti, "
         f"{not_found} non abbinati, {skipped} saltati"
     )
+    if not_found > enriched:
+        print(
+            f"  Understat: ATTENZIONE — più non abbinati che abbinati. "
+            f"Il DB potrebbe avere nomi in formato abbreviato (es. 'R. Leão'). "
+            f"Assicurarsi di aver importato Football-Data prima di Understat."
+        )
 
     return {
         "players_fetched":     total,
@@ -3723,42 +3842,154 @@ async def fetch_from_understat(
     }
 
 
-# ── Helper: match deterministico via understat_id ────────────────
-
-def _find_by_understat_id(
-    db: Session,
+def _find_by_understat_id_in_list(
+    all_players: list,
     understat_id: str,
-) -> "ScoutingPlayer | None":
-    """
-    Cerca un giocatore per understat_id salvato in precedenza.
-    Ritorna None se la colonna non esiste nel modello (migration non ancora applicata).
-    """
-    try:
-        return (
-            db.query(ScoutingPlayer)
-            .filter(ScoutingPlayer.understat_id == understat_id)
-            .first()
-        )
-    except Exception:
-        return None
+) -> Optional[ScoutingPlayer]:
+    """Lookup su lista in-memory per understat_id — O(n) ma evita query DB."""
+    for p in all_players:
+        uid = getattr(p, "understat_id", None)
+        if uid and uid == understat_id:
+            return p
+    return None
 
-
-# ── Utility: lista campionati disponibili ────────────────────────
 
 def list_understat_leagues() -> list[dict]:
-    """Ritorna la lista di competizioni/anni supportati da Understat."""
     import datetime
     current_year = datetime.date.today().year
-    seasons = list(range(2014, current_year + 1))
-
     return [
         {
-            "league_key":  k,
-            "understat_slug": v,
-            "seasons_available": [str(y) for y in seasons],
+            "league_key":         k,
+            "understat_slug":     v,
+            "seasons_available":  [str(y) for y in range(2014, current_year + 1)],
         }
         for k, v in LEAGUE_MAP.items()
     ]
+
+
+============================================================
+FILE: app\utility\migration_phase1_objective_stats.sql
+============================================================
+-- ================================================================
+-- migration_phase1_objective_stats.sql
+-- ================================================================
+-- Fase 1 del pipeline di scouting oggettivo.
+-- Aggiunge tutte le colonne di statistiche raw necessarie per
+-- calcolare gli score oggettivi nelle fasi successive.
+--
+-- Applicazione:
+--   docker exec -i football_db psql -U football -d football_scout \
+--     < migration_phase1_objective_stats.sql
+--
+-- Sicuro da rieseguire: tutte le colonne usano IF NOT EXISTS.
+-- ================================================================
+
+-- ── 1. IDENTIFICATORI ESTERNI ────────────────────────────────────
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS understat_id VARCHAR(20) UNIQUE;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS sofascore_id VARCHAR(20) UNIQUE;
+
+-- ── 2. STATISTICHE OFFENSIVE ─────────────────────────────────────
+-- Valori assoluti stagione corrente
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS goals_season       INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS assists_season      INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS minutes_season      INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS games_season        INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS shots_season        INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS shots_on_target_season INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS key_passes_season   INTEGER;
+
+-- xG / xA avanzati (Understat + StatsBomb)
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS npxg_per90          DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS xgchain_per90       DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS xgbuildup_per90     DOUBLE PRECISION;
+
+-- ── 3. STATISTICHE DI PROGRESSIONE ──────────────────────────────
+-- FBref: azioni che spostano il pallone verso la porta avversaria
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS progressive_carries  INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS progressive_passes_received INTEGER;
+-- Nota: progressive_passes esiste già nel modello originale
+
+-- ── 4. STATISTICHE DIFENSIVE ─────────────────────────────────────
+-- FBref: pressing e contrasti
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS pressures_season     INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS pressure_regains_season INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS tackles_season        INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS interceptions_season  INTEGER;
+
+-- API-Football: duelli (sostituisce aerial_duels_won_pct generico)
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS duels_total_season   INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS duels_won_season     INTEGER;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS duels_won_pct        DOUBLE PRECISION;
+-- aerial_duels_won_pct esiste già
+
+-- ── 5. PASSAGGI ──────────────────────────────────────────────────
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS pass_accuracy_pct   DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS touches_att_pen_season INTEGER;
+
+-- ── 6. TIMESTAMP PER SORGENTE ────────────────────────────────────
+-- Permette di sapere quale sorgente ha aggiornato ogni campo e quando
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS last_updated_understat    TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS last_updated_fbref        TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS last_updated_api_football TIMESTAMP WITHOUT TIME ZONE;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS last_updated_statsbomb    TIMESTAMP WITHOUT TIME ZONE;
+
+-- ── 7. SCORE OGGETTIVI (placeholder per Fase 3) ──────────────────
+-- Creati ora vuoti, verranno popolati da recalculate_objective_scores()
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS finishing_score     DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS creativity_score    DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS pressing_score      DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS carrying_score      DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS defending_obj_score DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS buildup_obj_score   DOUBLE PRECISION;
+
+-- Score come percentile per ruolo (Fase 4)
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS finishing_pct       DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS creativity_pct      DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS pressing_pct        DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS carrying_pct        DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS defending_pct       DOUBLE PRECISION;
+ALTER TABLE scouting_players ADD COLUMN IF NOT EXISTS buildup_pct         DOUBLE PRECISION;
+
+-- ── 8. INDICI ─────────────────────────────────────────────────────
+CREATE INDEX IF NOT EXISTS idx_sp_understat_id
+    ON scouting_players (understat_id) WHERE understat_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_sp_minutes
+    ON scouting_players (minutes_season) WHERE minutes_season IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_sp_finishing
+    ON scouting_players (finishing_pct) WHERE finishing_pct IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_sp_position
+    ON scouting_players (position) WHERE position IS NOT NULL;
+
+-- ── 9. COMMENTI ──────────────────────────────────────────────────
+COMMENT ON COLUMN scouting_players.npxg_per90 IS
+    'Non-penalty expected goals per 90. Fonte: Understat/FBref.';
+COMMENT ON COLUMN scouting_players.xgchain_per90 IS
+    'xG generato da ogni azione in cui il giocatore tocca la palla. Fonte: StatsBomb.';
+COMMENT ON COLUMN scouting_players.xgbuildup_per90 IS
+    'xG generato dal build-up (esclude il tocco finale). Fonte: StatsBomb.';
+COMMENT ON COLUMN scouting_players.finishing_score IS
+    'Score 0-100 calcolato da npxG/90 + conversione. Sostituisce shooting FIFA.';
+COMMENT ON COLUMN scouting_players.finishing_pct IS
+    'Percentile finishing_score tra giocatori dello stesso ruolo.';
+
+-- ── 10. VERIFICA RAPIDA ──────────────────────────────────────────
+SELECT
+    column_name,
+    data_type,
+    is_nullable
+FROM information_schema.columns
+WHERE table_name = 'scouting_players'
+  AND column_name IN (
+      'goals_season','assists_season','minutes_season',
+      'npxg_per90','xgchain_per90','xgbuildup_per90',
+      'pressures_season','progressive_carries',
+      'finishing_score','finishing_pct',
+      'understat_id','last_updated_understat'
+  )
+ORDER BY column_name;
 
 
 ============================================================

@@ -8,6 +8,7 @@ from app.schemas.schemas import TeamCreate, TeamOut, TeamUpdate, TraitCreate, Tr
 router = APIRouter(prefix="/teams", tags=["Squadra"], redirect_slashes=False)
 
 
+@router.post("", response_model=TeamOut, status_code=201)
 @router.post("/", response_model=TeamOut, status_code=201)
 def create_team(team: TeamCreate, db: Session = Depends(get_db)):
     db_team = MyTeam(**team.model_dump())
@@ -17,6 +18,7 @@ def create_team(team: TeamCreate, db: Session = Depends(get_db)):
     return db_team
 
 
+@router.get("", response_model=list[TeamOut])
 @router.get("/", response_model=list[TeamOut])
 def list_teams(db: Session = Depends(get_db)):
     return db.query(MyTeam).all()

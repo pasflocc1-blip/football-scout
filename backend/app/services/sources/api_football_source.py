@@ -1,61 +1,54 @@
 """
-sources/api_football_source.py
--------------------------------
-Scarica giocatori attivi da API-Football v3.
-https://www.api-football.com/documentation-v3
+sources/api_football_source.py — Fase 1 pipeline oggettivo
+-----------------------------------------------------------
+CAMBIO RISPETTO ALLA VERSIONE PRECEDENTE:
+  - Rimossa la chiamata a calculate_pro_attributes() (stima FIFA soggettiva)
+  - Salva le statistiche raw: gol, assist, minuti, tiri, duelli, passaggi
+  - Questi dati alimenteranno recalculate_objective_scores() (Fase 3)
 
 Richiede: API_FOOTBALL_KEY nel .env
-Free tier: 100 req/giorno, max 3 pagine per richiesta
-Copertura: giocatori attivi, squadre reali, statistiche live
-
-Leghe principali:
-  135 → Serie A
-  39  → Premier League
-  140 → La Liga
-  78  → Bundesliga
-  61  → Ligue 1
+Free tier: 100 req/giorno, max 3 pagine per endpoint
 """
 
 import os
+from datetime import datetime
+
 import httpx
 from sqlalchemy.orm import Session
-from app.services.player_matcher import find_player_in_db
+
 from app.models.models import ScoutingPlayer
+from app.services.player_matcher import find_player_in_db
 from app.services.scoring import compute_scores
-from app.services.pro_scouting import calculate_pro_attributes
-from datetime import datetime # Necessario per convertire la data
 
-
-# Piano Free: supporta al massimo le ultime stagioni disponibili.
-# Aggiorna questi valori se il piano cambia.
-_FREE_SEASON_MIN = 2022
-_FREE_SEASON_MAX = 2025
-
-# Piano Free: massimo 3 pagine per richiesta
 _FREE_PAGE_LIMIT = 50
+
+# Mappa posizione API-Football → codice FIFA standard
+_POSITION_MAP = {
+    "Goalkeeper": "GK",
+    "Defender":   "CB",
+    "Midfielder": "CM",
+    "Attacker":   "ST",
+}
+
 
 async def fetch_from_api_football(
     db: Session,
     league_id: int = None,
-    season: int = 2023,
+    season: int = 2024,
     team_id: int = None,
     progress_cb=None,
-    stop_event=None,   # threading.Event per cancellazione
+    stop_event=None,
 ) -> int:
-    # --- LOG DI PARTENZA ---
-    print(f"DEBUG: Avvio importazione. League: {league_id}, Season: {season}, Team: {team_id}")
 
     params = {"season": season}
-    
-    # Logica di selezione parametro
     if team_id and int(team_id) > 0:
         params["team"] = team_id
-        print(f"DEBUG: Filtro impostato su SQUADRA (ID: {team_id})")
+        print(f"  API-Football: filtro SQUADRA id={team_id}")
     elif league_id:
         params["league"] = league_id
-        print(f"DEBUG: Filtro impostato su LEGA (ID: {league_id})")
+        print(f"  API-Football: filtro LEGA id={league_id} stagione={season}")
     else:
-        print("ERROR: Nessun league_id o team_id fornito!")
+        print("  API-Football: ERROR — nessun league_id o team_id")
         return 0
 
     imported = 0
@@ -65,92 +58,84 @@ async def fetch_from_api_football(
     async with httpx.AsyncClient(timeout=30.0) as client:
         while page <= _FREE_PAGE_LIMIT:
             params["page"] = page
-            
-            print(f"DEBUG URL: https://v3.football.api-sports.io/players?{params}")
 
             response = await client.get(
                 "https://v3.football.api-sports.io/players",
                 params=params,
-                headers={"x-apisports-key": api_key}
+                headers={"x-apisports-key": api_key},
             )
-            
             data = response.json()
             players_list = data.get("response", [])
-            print(f"DEBUG REALE: Ricevuti {len(players_list)} giocatori nella pagina {page}")
+            print(f"  API-Football: pagina {page} → {len(players_list)} giocatori")
 
             if not players_list:
-                print(f"DEBUG: Pagina {page} vuota. Mi fermo.")
                 break
-
-            # Controlla cancellazione
             if stop_event and stop_event.is_set():
-                print(f"DEBUG: Interruzione richiesta alla pagina {page}.")
+                print(f"  API-Football: interruzione alla pagina {page}")
                 break
 
             for item in players_list:
-                p_info = item["player"]
+                p_info  = item["player"]
                 p_stats = item["statistics"][0] if item["statistics"] else {}
 
-                # --- GESTIONE DATA DI NASCITA ---
-                # L'API restituisce "1987-06-24", lo convertiamo in oggetto date
+                # ── Anagrafica ────────────────────────────────────
                 birth_date_obj = None
-                raw_birth_date = p_info.get("birth", {}).get("date")
-                if raw_birth_date:
+                raw_bd = p_info.get("birth", {}).get("date")
+                if raw_bd:
                     try:
-                        birth_date_obj = datetime.strptime(raw_birth_date, "%Y-%m-%d").date()
+                        birth_date_obj = datetime.strptime(raw_bd, "%Y-%m-%d").date()
                     except ValueError:
-                        birth_date_obj = None
+                        pass
 
-                # Estrazione metriche per l'algoritmo
-                raw_metrics = {
-                    "minutes": p_stats.get("games", {}).get("minutes") or 0,
-                    "goals": p_stats.get("goals", {}).get("total") or 0,
-                    "assists": p_stats.get("goals", {}).get("assists") or 0,
-                    "shots_on_target": p_stats.get("shots", {}).get("on") or 0,
-                    "pass_accuracy": p_stats.get("passes", {}).get("accuracy") or 0,
-                    "key_passes": p_stats.get("passes", {}).get("key") or 0,
-                    "dribbles_success": p_stats.get("dribbles", {}).get("success") or 0,
-                    "duels_won": p_stats.get("duels", {}).get("won") or 0,
-                    "aerial_won": p_stats.get("duels", {}).get("total") or 0, 
-                }
+                api_pos  = p_stats.get("games", {}).get("position") or "Midfielder"
+                position = _POSITION_MAP.get(api_pos, "CM")
 
-                # 1. Recuperiamo la posizione corretta dalle statistiche (es. "Attacker", "Midfielder")
-                raw_position = p_stats.get("games", {}).get("position") or "Midfielder"
+                # ── Statistiche raw (NO più stima FIFA) ───────────
+                goals    = _int(p_stats.get("goals", {}).get("total"))
+                assists  = _int(p_stats.get("goals", {}).get("assists"))
+                minutes  = _int(p_stats.get("games", {}).get("minutes"))
+                games    = _int(p_stats.get("games", {}).get("appearences"))  # sic API typo
+                shots_tot= _int(p_stats.get("shots", {}).get("total"))
+                shots_sot= _int(p_stats.get("shots", {}).get("on"))
+                key_pass = _int(p_stats.get("passes", {}).get("key"))
+                pass_acc = _float(p_stats.get("passes", {}).get("accuracy"))  # percentuale
+                drib_suc = _int(p_stats.get("dribbles", {}).get("success"))
+                duels_tot= _int(p_stats.get("duels", {}).get("total"))
+                duels_won= _int(p_stats.get("duels", {}).get("won"))
+                duels_pct= round(duels_won / duels_tot * 100, 1) if duels_tot else None
+                aerial_pct = _float(p_stats.get("duels", {}).get("won"))  # API non separa aerei
 
-                # 2. Calcolo attributi PRO usando la posizione corretta
-                pro_attrs = calculate_pro_attributes(raw_metrics, raw_position)
-
-                # Mappatura su ScoutingPlayer
                 player_dict = {
-                    "api_football_id": p_info["id"],
-                    "name": p_info["name"],
-                    "birth_date": birth_date_obj, # Campo aggiunto
-                    "age": p_info["age"],
-                    "position": raw_position,
-                    "club": p_stats.get("team", {}).get("name"),
-                    "nationality": p_info.get("nationality"),
-                    
-                    # Voti 1-99 calcolati
-                    "pace": pro_attrs["pace"],
-                    "shooting": pro_attrs["shooting"],
-                    "passing": pro_attrs["passing"],
-                    "dribbling": pro_attrs["dribbling"],
-                    "defending": pro_attrs["defending"],
-                    "physical": pro_attrs["physical"],
-
-                    # Stats reali
-                    "progressive_passes": raw_metrics["key_passes"],
-                    "aerial_duels_won_pct": float(p_stats.get("duels", {}).get("won") or 0),
+                    "api_football_id":       p_info["id"],
+                    "name":                  p_info["name"],
+                    "birth_date":            birth_date_obj,
+                    "age":                   p_info.get("age"),
+                    "position":              position,
+                    "club":                  p_stats.get("team", {}).get("name"),
+                    "nationality":           p_info.get("nationality"),
+                    # Statistiche raw stagione
+                    "goals_season":          goals,
+                    "assists_season":        assists,
+                    "minutes_season":        minutes,
+                    "games_season":          games,
+                    "shots_season":          shots_tot,
+                    "shots_on_target_season":shots_sot,
+                    "key_passes_season":     key_pass,
+                    "pass_accuracy_pct":     pass_acc,
+                    "duels_total_season":    duels_tot,
+                    "duels_won_season":      duels_won,
+                    "duels_won_pct":         duels_pct,
+                    "last_updated_api_football": datetime.utcnow(),
                 }
 
-                # Upsert basato su api_football_id
+                # Upsert su api_football_id
                 existing = db.query(ScoutingPlayer).filter(
                     ScoutingPlayer.api_football_id == p_info["id"]
                 ).first()
 
                 if existing:
-                    for key, value in player_dict.items():
-                        setattr(existing, key, value)
+                    for k, v in player_dict.items():
+                        setattr(existing, k, v)
                 else:
                     db.add(ScoutingPlayer(**player_dict))
 
@@ -161,11 +146,13 @@ async def fetch_from_api_football(
                 break
             page += 1
 
-    print(f"DEBUG: Importazione completata. Totale importati: {imported}")
+            if progress_cb:
+                progress_cb(imported, None)
+
     db.commit()
+    print(f"  API-Football: {imported} giocatori importati (stat raw)")
     return imported
 
-# ── Helpers ──────────────────────────────────────────────────────
 
 def _float(val) -> float | None:
     try:
@@ -174,17 +161,7 @@ def _float(val) -> float | None:
         return None
 
 
-def _map_position(api_pos: str | None) -> str | None:
-    mapping = {
-        "Goalkeeper": "GK",
-        "Defender":   "CB",
-        "Midfielder": "CM",
-        "Attacker":   "ST",
-    }
-    return mapping.get(api_pos)
-
 def _int(val) -> int:
-    """Converte un valore in intero, ritornando 0 se è nullo o invalido."""
     try:
         return int(float(val)) if val not in (None, "", "N/A") else 0
     except (ValueError, TypeError):
