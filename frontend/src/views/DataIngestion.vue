@@ -440,6 +440,7 @@
           Alternativa gratuita a StatsBomb. Standard Stats con xG, xAG, minuti.
           Attenzione: rate limit FBref — non abusare.
         </p>
+        <FBrefCsvImport />
         <div class="source-params">
           <span>🏆 {{ config.fbref_league }}</span>
           <span>📅 {{ config.fbref_season }}</span>
@@ -821,7 +822,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-//import api from '@/services/api'
+import FBrefCsvImport from '@/components/FBrefCsvImport.vue'
 import api from '@/api/client'
 const activeTab = ref('results')
 // ── StatsBomb: competizioni rapide pre-caricate ─────────────────

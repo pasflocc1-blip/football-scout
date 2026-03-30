@@ -11,12 +11,20 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.9
 requests>=2.31.0
-beautifulsoup4
-pandas>=2.0.0
-lxml>=4.9.0
-soccerdata>=0.7
+# ── FBref scraping ───────────────────────────────────────────────
 cloudscraper>=1.2.71
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+# ── Data processing ──────────────────────────────────────────────
+pandas>=2.0.0
+numpy>=1.26.0
+scipy>=1.12.0          # per percentileofscore in percentiles.py
+
+soccerdata>=0.7
 thefuzz>=0.22.1
 rapidfuzz>=3.14.3
-understat
-aiohttp
+# ── Understat ────────────────────────────────────────────────────
+understat>=1.1.0
+aiohttp>=3.9.0
+# ── Dev ──────────────────────────────────────────────────────────
+pytest>=8.0.0

@@ -1,30 +1,20 @@
 <template>
   <div>
-    <!-- ── Header ─────────────────────────────────────────────── -->
     <h1 class="page-title">🔥 Scouting Globale</h1>
     <p style="color: var(--color-muted); margin-bottom: 1.5rem; font-size: .9rem;">
       Esplora liberamente il database, scopri talenti nascosti e confronta giocatori.
     </p>
 
-    <!-- ── Tab bar ────────────────────────────────────────────── -->
+    <!-- Tab bar -->
     <div class="tab-bar">
-      <button
-        v-for="tab in TABS"
-        :key="tab.id"
-        class="tab-btn"
-        :class="{ active: activeTab === tab.id }"
-        @click="switchTab(tab.id)"
-      >
+      <button v-for="tab in TABS" :key="tab.id" class="tab-btn" :class="{ active: activeTab === tab.id }" @click="switchTab(tab.id)">
         {{ tab.label }}
       </button>
     </div>
 
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- TAB: RICERCA ────────────────────────────────────────── -->
-    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- TAB: RICERCA -->
     <div v-if="activeTab === 'search'" class="card" style="margin-top:1.5rem">
       <h2 class="section-title">🔍 Ricerca avanzata</h2>
-
       <div class="filters-grid">
         <div class="filter-group">
           <label>Testo libero</label>
@@ -32,7 +22,9 @@
         </div>
         <div class="filter-group">
           <label>Ruolo</label>
-          <input v-model="searchFilters.position" placeholder="Es: ST, CM, CB, GK" />
+          <select v-model="searchFilters.position">
+            <option v-for="opt in posOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
         </div>
         <div class="filter-group">
           <label>Nazionalità</label>
@@ -72,11 +64,16 @@
             <option value="name">Nome</option>
             <option value="xg_per90">xG/90</option>
             <option value="xa_per90">xA/90</option>
+            <option value="npxg_per90">npxG/90</option>
             <option value="age">Età</option>
-            <option value="pace">Velocità</option>
-            <option value="shooting">Tiro</option>
-            <option value="passing">Passaggi</option>
-            <option value="dribbling">Dribbling</option>
+            <option value="finishing_score">Finishing score</option>
+            <option value="creativity_score">Creativity score</option>
+            <option value="pressing_score">Pressing score</option>
+            <option value="carrying_score">Carrying score</option>
+            <option value="finishing_pct">Finishing %ile</option>
+            <option value="creativity_pct">Creativity %ile</option>
+            <option value="minutes_season">Minuti</option>
+            <option value="goals_season">Goal</option>
           </select>
         </div>
         <div class="filter-group">
@@ -96,7 +93,6 @@
           </select>
         </div>
       </div>
-
       <div style="margin-top:1rem; display:flex; gap:.75rem; flex-wrap:wrap;">
         <button class="btn btn-primary" @click="runSearch" :disabled="loading">
           {{ loading ? '⏳ Ricerca…' : '🔍 Cerca' }}
@@ -105,16 +101,15 @@
       </div>
     </div>
 
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- TAB: RANKING ────────────────────────────────────────── -->
-    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- TAB: RANKING -->
     <div v-if="activeTab === 'ranking'" class="card" style="margin-top:1.5rem">
       <h2 class="section-title">🏆 Classifiche</h2>
-
       <div class="ranking-controls">
-        <div class="filter-group" style="max-width:180px">
+        <div class="filter-group" style="max-width:220px">
           <label>Filtra ruolo</label>
-          <input v-model="rankFilters.position" placeholder="ST, CM, CB…" />
+          <select v-model="rankFilters.position">
+            <option v-for="opt in posOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
         </div>
         <div class="filter-group" style="max-width:160px">
           <label>Minuti min</label>
@@ -129,30 +124,23 @@
           </select>
         </div>
       </div>
-
       <div class="ranking-buttons">
-        <button class="btn btn-primary"  @click="runTopXG"         :disabled="loading">🎯 Top xG/90</button>
-        <button class="btn btn-success"  @click="runOverperforming" :disabled="loading">📈 Overperforming</button>
-        <button class="btn btn-danger"   @click="runUnderperforming":disabled="loading">📉 Underperforming</button>
+        <button class="btn btn-primary"  @click="runTopXG"          :disabled="loading">🎯 Top xG/90</button>
+        <button class="btn btn-success"  @click="runOverperforming"  :disabled="loading">📈 Overperforming</button>
+        <button class="btn btn-danger"   @click="runUnderperforming" :disabled="loading">📉 Underperforming</button>
       </div>
-
       <p v-if="rankingMode" class="rank-mode-label">
         Modalità: <strong>{{ rankingModeLabel }}</strong>
-        <span v-if="rankingMode === 'over' || rankingMode === 'under'">
-          — delta = goal segnati − xG stimati
-        </span>
+        <span v-if="rankingMode === 'over' || rankingMode === 'under'">— delta = goal segnati − xG stimati</span>
       </p>
     </div>
 
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- TAB: CONFRONTO ──────────────────────────────────────── -->
-    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- TAB: CONFRONTO -->
     <div v-if="activeTab === 'compare'" class="card" style="margin-top:1.5rem">
       <h2 class="section-title">⚔️ Confronto giocatori</h2>
       <p style="color:var(--color-muted); font-size:.88rem; margin-bottom:1rem;">
         Inserisci il nome (o parte del nome) di due giocatori per confrontarli.
       </p>
-
       <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
         <div class="filter-group" style="flex:1; min-width:180px">
           <label>Giocatore 1</label>
@@ -168,48 +156,32 @@
       </div>
     </div>
 
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- AREA RISULTATI ──────────────────────────────────────── -->
-    <!-- ════════════════════════════════════════════════════════ -->
-
     <!-- Spinner -->
     <div v-if="loading" class="spinner" style="margin-top:2rem"></div>
 
     <!-- Errore -->
     <div v-if="error" class="error-msg" style="margin-top:1rem">⚠️ {{ error }}</div>
 
-    <!-- Risultato COMPARE ──────────────────────────────────── -->
+    <!-- Risultato COMPARE -->
     <div v-if="compareResult && !loading && activeTab === 'compare'" class="card" style="margin-top:1.5rem">
       <h3 class="section-title">Risultato confronto</h3>
       <div class="compare-grid">
-        <!-- Intestazione -->
         <div class="compare-header">Metrica</div>
         <div class="compare-header player-col">{{ compareResult.player1.name }}</div>
         <div class="compare-header player-col">{{ compareResult.player2.name }}</div>
-
-        <!-- Riga info -->
         <template v-for="row in compareRows" :key="row.key">
           <div class="compare-metric">{{ row.label }}</div>
-          <div class="compare-val" :class="cellClass(row.key, 'p1')">
-            {{ fmtVal(compareResult.player1[row.key]) }}
-          </div>
-          <div class="compare-val" :class="cellClass(row.key, 'p2')">
-            {{ fmtVal(compareResult.player2[row.key]) }}
-          </div>
+          <div class="compare-val" :class="cellClass(row.key, 'p1')">{{ fmtVal(compareResult.player1[row.key]) }}</div>
+          <div class="compare-val" :class="cellClass(row.key, 'p2')">{{ fmtVal(compareResult.player2[row.key]) }}</div>
         </template>
       </div>
     </div>
 
-    <!-- Tabella risultati (search + ranking) ───────────────── -->
-    <div
-      v-if="players.length && !loading && activeTab !== 'compare'"
-      class="card"
-      style="margin-top:1.5rem; overflow-x:auto"
-    >
+    <!-- Tabella risultati (search + ranking) -->
+    <div v-if="players.length && !loading && activeTab !== 'compare'" class="card" style="margin-top:1.5rem; overflow-x:auto">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
         <h3 class="section-title" style="margin-bottom:0">{{ players.length }} risultati</h3>
       </div>
-
       <table class="data-table">
         <thead>
           <tr>
@@ -229,7 +201,12 @@
         <tbody>
           <tr v-for="p in players" :key="p.id ?? p.name">
             <td class="name-cell">{{ p.name }}</td>
-            <td><span class="badge badge-blue">{{ p.position ?? '—' }}</span></td>
+            <td>
+              <div class="pos-cell">
+                <span class="badge badge-blue pos-code">{{ p.position ?? '—' }}</span>
+                <span class="pos-desc">{{ posLabel(p.position) }}</span>
+              </div>
+            </td>
             <td>{{ p.club ?? '—' }}</td>
             <td>{{ p.nationality ?? '—' }}</td>
             <td>{{ p.age ?? '—' }}</td>
@@ -242,18 +219,14 @@
                 {{ p.delta != null ? (p.delta > 0 ? '+' : '') + p.delta : '—' }}
               </td>
             </template>
-            <td class="stat-cell">{{ p.minutes ?? '—' }}</td>
+            <td class="stat-cell">{{ p.minutes ?? p.minutes_season ?? '—' }}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <!-- Placeholder vuoto -->
-    <div
-      v-if="!players.length && !compareResult && !loading && !error"
-      class="card empty-state"
-      style="margin-top:1.5rem; text-align:center; color:var(--color-muted); padding:3rem;"
-    >
+    <div v-if="!players.length && !compareResult && !loading && !error" class="card empty-state" style="margin-top:1.5rem; text-align:center; color:var(--color-muted); padding:3rem;">
       <div style="font-size:3rem; margin-bottom:.5rem">🔭</div>
       <p>Usa i filtri in alto per esplorare il database dei giocatori.</p>
     </div>
@@ -263,8 +236,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { globalScoutingApi } from '@/api/client'
+import { posLabel, posOptions } from '@/utils/positions.js'
 
-// ── Tab ──────────────────────────────────────────────────────────
 const TABS = [
   { id: 'search',  label: '🔍 Ricerca' },
   { id: 'ranking', label: '🏆 Ranking' },
@@ -274,76 +247,73 @@ const activeTab = ref('search')
 
 function switchTab(id) {
   activeTab.value = id
-  error.value     = null
-  // Non svuota i risultati per permettere confronto tra tab
+  error.value = null
 }
 
-// ── State ────────────────────────────────────────────────────────
 const players       = ref([])
 const compareResult = ref(null)
 const loading       = ref(false)
 const error         = ref(null)
-const rankingMode   = ref('')   // '' | 'topxg' | 'over' | 'under'
+const rankingMode   = ref('')
 
-// ── Filtri ricerca ────────────────────────────────────────────────
 const searchFilters = ref({
-  q:             '',
-  position:      '',
-  nationality:   '',
-  club:          '',
-  min_age:       null,
-  max_age:       null,
-  min_xg:        null,
-  min_xa:        null,
-  preferred_foot:'',
-  sort_by:       'name',
-  sort_dir:      'asc',
-  limit:         50,
+  q: '', position: '', nationality: '', club: '',
+  min_age: null, max_age: null, min_xg: null, min_xa: null,
+  preferred_foot: '', sort_by: 'name', sort_dir: 'asc', limit: 50,
 })
 
-// ── Filtri ranking ────────────────────────────────────────────────
-const rankFilters = ref({
-  position:    '',
-  min_minutes: 300,
-  limit:       20,
-})
-
-// ── Filtri confronto ──────────────────────────────────────────────
+const rankFilters = ref({ position: '', min_minutes: 300, limit: 20 })
 const compareName1 = ref('')
 const compareName2 = ref('')
 
-// ── Computed ──────────────────────────────────────────────────────
-const showDeltaCol = computed(
-  () => rankingMode.value === 'over' || rankingMode.value === 'under'
-)
-
+const showDeltaCol = computed(() => rankingMode.value === 'over' || rankingMode.value === 'under')
 const rankingModeLabel = computed(() => ({
-  topxg: 'Top xG/90',
-  over:  'Overperforming',
-  under: 'Underperforming',
+  topxg: 'Top xG/90', over: 'Overperforming', under: 'Underperforming',
 }[rankingMode.value] ?? ''))
 
-// ── Righe per la tabella compare ──────────────────────────────────
+// Compare rows — usa solo colonne realmente nel modello aggiornato
 const compareRows = [
-  { key: 'position',             label: 'Ruolo' },
-  { key: 'club',                 label: 'Club' },
-  { key: 'nationality',          label: 'Nazionalità' },
-  { key: 'age',                  label: 'Età' },
-  { key: 'pace',                 label: 'Velocità' },
-  { key: 'shooting',             label: 'Tiro' },
-  { key: 'passing',              label: 'Passaggi' },
-  { key: 'dribbling',            label: 'Dribbling' },
-  { key: 'defending',            label: 'Difesa' },
-  { key: 'physical',             label: 'Fisico' },
-  { key: 'xg_per90',             label: 'xG/90' },
-  { key: 'xa_per90',             label: 'xA/90' },
-  { key: 'heading_score',        label: 'Testa' },
-  { key: 'build_up_score',       label: 'Build-up' },
-  { key: 'defensive_score',      label: 'Score difensivo' },
+  { key: 'position',            label: 'Ruolo' },
+  { key: 'club',                label: 'Club' },
+  { key: 'nationality',         label: 'Nazionalità' },
+  { key: 'age',                 label: 'Età' },
+  // xG / xA
+  { key: 'xg_per90',            label: 'xG/90' },
+  { key: 'xa_per90',            label: 'xA/90' },
+  { key: 'npxg_per90',          label: 'npxG/90' },
+  { key: 'xgchain_per90',       label: 'xGChain/90' },
+  { key: 'xgbuildup_per90',     label: 'xGBuildup/90' },
+  // Score oggettivi (Fase 3)
+  { key: 'finishing_score',     label: 'Finishing score' },
+  { key: 'creativity_score',    label: 'Creativity score' },
+  { key: 'pressing_score',      label: 'Pressing score' },
+  { key: 'carrying_score',      label: 'Carrying score' },
+  { key: 'defending_obj_score', label: 'Defending score' },
+  { key: 'buildup_obj_score',   label: 'Build-up score' },
+  // Percentili (Fase 4)
+  { key: 'finishing_pct',       label: 'Finishing %ile' },
+  { key: 'creativity_pct',      label: 'Creativity %ile' },
+  { key: 'pressing_pct',        label: 'Pressing %ile' },
+  { key: 'carrying_pct',        label: 'Carrying %ile' },
+  { key: 'defending_pct',       label: 'Defending %ile' },
+  { key: 'buildup_pct',         label: 'Build-up %ile' },
+  // Duelli
   { key: 'aerial_duels_won_pct', label: 'Duelli aerei %' },
+  { key: 'duels_won_pct',        label: 'Duelli vinti %' },
+  // Progressione
+  { key: 'progressive_passes',  label: 'Passaggi progressivi' },
+  { key: 'progressive_carries', label: 'Conduzioni progressive' },
 ]
 
-// ── Helpers UI ────────────────────────────────────────────────────
+const NUMERIC_KEYS = new Set([
+  'xg_per90','xa_per90','npxg_per90','xgchain_per90','xgbuildup_per90',
+  'finishing_score','creativity_score','pressing_score','carrying_score',
+  'defending_obj_score','buildup_obj_score',
+  'finishing_pct','creativity_pct','pressing_pct','carrying_pct','defending_pct','buildup_pct',
+  'aerial_duels_won_pct','duels_won_pct',
+  'progressive_passes','progressive_carries',
+])
+
 function fmtStat(v) {
   if (v == null) return '—'
   return typeof v === 'number' ? v.toFixed(2) : v
@@ -360,15 +330,8 @@ function deltaClass(delta) {
   return delta > 0 ? 'delta-positive' : delta < 0 ? 'delta-negative' : ''
 }
 
-// Colora la cella del confronto: verde = valore più alto
 function cellClass(key, side) {
-  if (!compareResult.value) return ''
-  const numericKeys = [
-    'pace','shooting','passing','dribbling','defending','physical',
-    'xg_per90','xa_per90','heading_score','build_up_score',
-    'defensive_score','aerial_duels_won_pct','progressive_passes',
-  ]
-  if (!numericKeys.includes(key)) return ''
+  if (!compareResult.value || !NUMERIC_KEYS.has(key)) return ''
   const v1 = compareResult.value.player1[key]
   const v2 = compareResult.value.player2[key]
   if (v1 == null || v2 == null) return ''
@@ -377,26 +340,16 @@ function cellClass(key, side) {
   return ''
 }
 
-// ── Azioni API ────────────────────────────────────────────────────
 async function runSearch() {
-  loading.value  = true
-  error.value    = null
-  compareResult.value = null
-  rankingMode.value   = ''
+  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = ''
   try {
-    // Pulisce i parametri vuoti/null prima di inviare
     const params = Object.fromEntries(
-      Object.entries(searchFilters.value).filter(
-        ([, v]) => v !== null && v !== '' && v !== undefined
-      )
+      Object.entries(searchFilters.value).filter(([, v]) => v !== null && v !== '' && v !== undefined)
     )
     const { data } = await globalScoutingApi.search(params)
     players.value = data
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { error.value = e.message }
+  finally { loading.value = false }
 }
 
 function resetSearch() {
@@ -405,96 +358,66 @@ function resetSearch() {
     min_age: null, max_age: null, min_xg: null, min_xa: null,
     preferred_foot: '', sort_by: 'name', sort_dir: 'asc', limit: 50,
   }
-  players.value = []
-  error.value   = null
+  players.value = []; error.value = null
 }
 
 async function runTopXG() {
-  loading.value = true
-  error.value   = null
-  compareResult.value = null
-  rankingMode.value   = 'topxg'
+  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = 'topxg'
   try {
     const { data } = await globalScoutingApi.topXg({
-      limit:       rankFilters.value.limit,
+      limit: rankFilters.value.limit,
       min_minutes: rankFilters.value.min_minutes,
-      position:    rankFilters.value.position || undefined,
+      position: rankFilters.value.position || undefined,
     })
     players.value = data
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { error.value = e.message }
+  finally { loading.value = false }
 }
 
 async function runOverperforming() {
-  loading.value = true
-  error.value   = null
-  compareResult.value = null
-  rankingMode.value   = 'over'
+  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = 'over'
   try {
     const { data } = await globalScoutingApi.overperforming({
-      limit:       rankFilters.value.limit,
+      limit: rankFilters.value.limit,
       min_minutes: rankFilters.value.min_minutes,
-      position:    rankFilters.value.position || undefined,
+      position: rankFilters.value.position || undefined,
     })
     players.value = data
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { error.value = e.message }
+  finally { loading.value = false }
 }
 
 async function runUnderperforming() {
-  loading.value = true
-  error.value   = null
-  compareResult.value = null
-  rankingMode.value   = 'under'
+  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = 'under'
   try {
     const { data } = await globalScoutingApi.underperforming({
-      limit:       rankFilters.value.limit,
+      limit: rankFilters.value.limit,
       min_minutes: rankFilters.value.min_minutes,
-      position:    rankFilters.value.position || undefined,
+      position: rankFilters.value.position || undefined,
     })
     players.value = data
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { error.value = e.message }
+  finally { loading.value = false }
 }
 
 async function runCompare() {
   if (!compareName1.value || !compareName2.value) return
-  loading.value  = true
-  error.value    = null
-  players.value  = []
-  compareResult.value = null
+  loading.value = true; error.value = null; players.value = []; compareResult.value = null
   try {
-    const { data } = await globalScoutingApi.compare(
-      compareName1.value,
-      compareName2.value
-    )
+    const { data } = await globalScoutingApi.compare(compareName1.value, compareName2.value)
     compareResult.value = data
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { error.value = e.message }
+  finally { loading.value = false }
 }
 </script>
 
 <style scoped>
-/* ── Tab bar ─────────────────────────────────────────────────── */
 .tab-bar {
   display: flex;
   gap: .5rem;
   border-bottom: 1px solid var(--color-border);
   padding-bottom: 0;
 }
-
 .tab-btn {
   padding: .55rem 1.3rem;
   border: none;
@@ -508,132 +431,103 @@ async function runCompare() {
   border-radius: var(--radius) var(--radius) 0 0;
 }
 .tab-btn:hover { color: var(--color-text); }
-.tab-btn.active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
-}
+.tab-btn.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
 
-/* ── Sezioni ─────────────────────────────────────────────────── */
-.section-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: var(--color-text);
-}
+.section-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-text); }
 
-/* ── Filtri ──────────────────────────────────────────────────── */
 .filters-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: .75rem;
 }
+.filter-group { display: flex; flex-direction: column; gap: .3rem; }
+.filter-group label { font-size: .78rem; font-weight: 600; color: var(--color-muted); text-transform: uppercase; letter-spacing: .04em; }
 
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: .3rem;
-}
-.filter-group label {
-  font-size: .78rem;
-  font-weight: 600;
-  color: var(--color-muted);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
+.ranking-controls { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.ranking-buttons { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: .75rem; }
+.rank-mode-label { margin-top: .75rem; font-size: .85rem; color: var(--color-muted); }
 
-/* ── Ranking ─────────────────────────────────────────────────── */
-.ranking-controls {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.ranking-buttons {
-  display: flex;
-  gap: .75rem;
-  flex-wrap: wrap;
-  margin-top: .75rem;
-}
-
-.rank-mode-label {
-  margin-top: .75rem;
-  font-size: .85rem;
-  color: var(--color-muted);
-}
-
-/* ── Tabella ─────────────────────────────────────────────────── */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: .875rem;
-}
-
+/* Tabella risultati */
+.data-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
 .data-table th {
   text-align: left;
   padding: .6rem .9rem;
-  background: rgba(255,255,255,.04);
-  color: var(--color-muted);
-  font-size: .75rem;
+  background: rgba(255,255,255,.06);   /* ← era .04 — più visibile */
+  color: var(--color-text);            /* ← era var(--color-muted) */
+  font-size: .78rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .05em;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 2px solid var(--color-border);
   white-space: nowrap;
 }
-
 .data-table td {
   padding: .6rem .9rem;
-  border-bottom: 1px solid rgba(255,255,255,.04);
+  border-bottom: 1px solid rgba(255,255,255,.06);
   vertical-align: middle;
+  color: var(--color-text);
+  font-weight: 500;                    /* ← aggiunto */
 }
 
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: rgba(255,255,255,.02); }
+.data-table tr:hover td { background: rgba(255,255,255,.03); }
 
-.name-cell { font-weight: 600; }
-.stat-cell { font-family: 'Fira Code', monospace; font-size: .82rem; }
+.name-cell  { font-weight: 700; color: var(--color-text) !important; }
+.stat-cell  { font-family: 'Fira Code', monospace; font-size: .88rem;
+              color: var(--color-text) !important; font-weight: 700; }
+.delta-positive { color: var(--color-success) !important; font-weight: 800; }
+.delta-negative { color: var(--color-danger)  !important; font-weight: 700; }
 
-.delta-positive { color: var(--color-success); font-weight: 700; }
-.delta-negative { color: var(--color-danger);  font-weight: 700; }
+.pos-cell { display: flex; align-items: center; gap: .5rem; }
+.pos-code { font-size: .7rem; flex-shrink: 0; }
+.pos-desc { font-size: .78rem; color: var(--color-muted); }
 
-/* ── Compare table ───────────────────────────────────────────── */
+/* Compare table */
 .compare-grid {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr;
   gap: 0;
   font-size: .88rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
-
 .compare-header {
   padding: .65rem 1rem;
   font-size: .75rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: #fff;                          /* ← era var(--color-muted) */
   letter-spacing: .05em;
-  background: rgba(255,255,255,.04);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--color-primary);     /* ← intestazioni blu solide */
+  border-bottom: 2px solid var(--color-border);
 }
-
+.player-col {
+  text-align: center;
+  font-weight: 700;
+  color: #fff;                          /* ← era var(--color-text) */
+  background: var(--color-primary);
+}
 .compare-metric {
   padding: .55rem 1rem;
-  color: var(--color-muted);
+  color: var(--color-text);             /* ← era var(--color-muted) — ora testo pieno */
   font-size: .82rem;
-  border-bottom: 1px solid rgba(255,255,255,.04);
+  font-weight: 600;                     /* ← aggiunto */
+  background: rgba(255,255,255,.03);
+  border-bottom: 1px solid var(--color-border);
 }
-
 .compare-val {
   padding: .55rem 1rem;
   font-family: 'Fira Code', monospace;
-  font-size: .82rem;
-  border-bottom: 1px solid rgba(255,255,255,.04);
-  border-left: 1px solid rgba(255,255,255,.04);
+  font-size: .88rem;                    /* ← era .82rem */
+  border-bottom: 1px solid var(--color-border);
+  border-left: 1px solid rgba(255,255,255,.08);
   text-align: center;
+  color: var(--color-text);             /* ← era var(--color-text) ma ora garantito visibile */
+  font-weight: 700;                     /* ← aggiunto */
 }
+.cell-win  { color: var(--color-success) !important; font-weight: 800; }
+.cell-lose { color: var(--color-danger)  !important; font-weight: 600; opacity: 0.85; }
 
-.player-col { text-align: center; font-weight: 700; color: var(--color-text); }
-
-.cell-win  { color: var(--color-success); font-weight: 700; }
-.cell-lose { color: var(--color-danger); }
+.empty-state { color: var(--color-muted); }
 </style>

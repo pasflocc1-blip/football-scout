@@ -15,11 +15,11 @@
           </div>
           <div>
             <label class="form-label">Posizione</label>
+            <!-- Select con codice + descrizione -->
             <select v-model="form.position">
-              <option value="">—</option>
-              <option>GK</option><option>CB</option><option>LB</option><option>RB</option>
-              <option>DM</option><option>CM</option><option>AM</option>
-              <option>LW</option><option>RW</option><option>ST</option>
+              <option v-for="opt in posOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
             </select>
           </div>
           <div>
@@ -49,7 +49,7 @@
           <thead>
             <tr style="border-bottom:1px solid var(--color-border)">
               <th class="th">Giocatore</th>
-              <th class="th">Posizione</th>
+              <th class="th">Ruolo</th>
               <th class="th">Età</th>
               <th class="th">Piede</th>
               <th class="th">Rating</th>
@@ -58,10 +58,17 @@
           </thead>
           <tbody>
             <tr v-for="p in players" :key="p.id" style="border-bottom:1px solid var(--color-border)">
-              <td class="td" style="font-weight:600">{{ p.name }}</td>
-              <td class="td"><span class="badge badge-blue">{{ p.position || '—' }}</span></td>
+              <td class="td name-cell">{{ p.name }}</td>
+              <td class="td">
+                <div class="pos-cell">
+                  <!-- Badge con codice tecnico -->
+                  <span class="badge badge-blue pos-code">{{ p.position || '—' }}</span>
+                  <!-- Descrizione ruolo per esteso -->
+                  <span class="pos-desc">{{ posLabel(p.position) }}</span>
+                </div>
+              </td>
               <td class="td">{{ p.age || '—' }}</td>
-              <td class="td">{{ p.preferred_foot || '—' }}</td>
+              <td class="td">{{ footLabel(p.preferred_foot) }}</td>
               <td class="td">
                 <span v-if="p.rating" :style="`color:${ratingColor(p.rating)}`">
                   {{ p.rating.toFixed(1) }}
@@ -69,8 +76,11 @@
                 <span v-else>—</span>
               </td>
               <td class="td">
-                <button class="btn btn-danger" style="padding:.3rem .7rem; font-size:.8rem"
-                  @click="removePlayer(p)">✕</button>
+                <button
+                  class="btn btn-danger"
+                  style="padding:.3rem .7rem; font-size:.8rem"
+                  @click="removePlayer(p)"
+                >✕</button>
               </td>
             </tr>
           </tbody>
@@ -84,6 +94,7 @@
 import { ref, onMounted } from 'vue'
 import { useTeamStore } from '@/stores/teamStore'
 import { rosterApi }    from '@/api/client'
+import { posLabel, posOptions } from '@/utils/positions.js'
 
 const teamStore = useTeamStore()
 const players   = ref([])
@@ -109,6 +120,11 @@ async function removePlayer(p) {
   players.value = players.value.filter(x => x.id !== p.id)
 }
 
+function footLabel(foot) {
+  const map = { Right: 'Destro', Left: 'Mancino' }
+  // Usiamo le parentesi per dire a JS di valutare prima il ??
+  return (map[foot] ?? foot) || '—'
+}
 function ratingColor(r) {
   if (r >= 80) return 'var(--color-success)'
   if (r >= 65) return 'var(--color-warning)'
@@ -117,7 +133,37 @@ function ratingColor(r) {
 </script>
 
 <style scoped>
-.form-label { display:block; font-size:.8rem; color:var(--color-muted); margin-bottom:.3rem; }
-.th { text-align:left; padding:.6rem 1rem; font-size:.8rem; color:var(--color-muted); text-transform:uppercase; letter-spacing:.05em; }
-.td { padding:.75rem 1rem; font-size:.9rem; }
+.form-label {
+  display: block;
+  font-size: .8rem;
+  color: var(--color-muted);
+  margin-bottom: .3rem;
+}
+.th {
+  text-align: left;
+  padding: .6rem 1rem;
+  font-size: .8rem;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.td { padding: .75rem 1rem; font-size: .9rem; }
+.name-cell { font-weight: 600; }
+
+/* Ruolo: badge codice + testo descrizione affiancati */
+.pos-cell {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.pos-code {
+  font-size: .72rem;
+  flex-shrink: 0;
+  font-family: 'Fira Code', monospace;
+  letter-spacing: .03em;
+}
+.pos-desc {
+  font-size: .82rem;
+  color: var(--color-muted);
+}
 </style>

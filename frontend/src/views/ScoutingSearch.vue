@@ -29,9 +29,8 @@
           style="flex:1"
           @keyup.enter="doSearch"
         />
-        <button class="btn btn-primary" :disabled="scoutingStore.loading || !query.trim()" @click="doSearch">
+        <button class="btn btn-primary" :disabled="scoutingStore.loading || !canSearch" @click="doSearch"></button>
           {{ scoutingStore.loading ? '...' : '🔍 Cerca' }}
-        </button>
         <button v-if="scoutingStore.results.length" class="btn btn-ghost" @click="clearSearch">
           ✕ Pulisci
         </button>
@@ -44,10 +43,9 @@
           <div>
             <label class="form-label">Posizione</label>
             <select v-model="filters.position">
-              <option value="">Tutte</option>
-              <option>GK</option><option>CB</option><option>LB</option><option>RB</option>
-              <option>DM</option><option>CM</option><option>AM</option>
-              <option>LW</option><option>RW</option><option>ST</option>
+              <option v-for="opt in posOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
             </select>
           </div>
           <div>
@@ -93,12 +91,23 @@
   </div>
 </template>
 
+<!--
+FIX_5_ScoutingSearch.vue — patch della sezione <script setup>
+
+PROBLEMA: Il pulsante "Cerca" era disabilitato se query.value era vuota,
+impedendo la ricerca con soli filtri avanzati.
+
+CAMBIAMENTO: Il pulsante si attiva anche se ci sono filtri impostati.
+Sostituire la sezione <script setup> esistente con questa versione.
+-->
+
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useScoutingStore } from '@/stores/scoutingStore'
 import { useTeamStore }     from '@/stores/teamStore'
 import PlayerCard from '@/components/PlayerCard.vue'
+import { posOptions } from '@/utils/positions.js'
 
 const scoutingStore = useScoutingStore()
 const teamStore     = useTeamStore()
@@ -111,6 +120,15 @@ const filters  = ref({ position: '', min_age: null, max_age: null, nationality: 
 // Suggerimenti dai punti deboli della squadra
 const suggestions = computed(() => teamStore.scoutingSuggestions)
 
+// Il bottone Cerca è attivo se c'è una query O almeno un filtro impostato
+const canSearch = computed(() => {
+  return query.value.trim() ||
+    filters.value.position ||
+    filters.value.min_age != null ||
+    filters.value.max_age != null ||
+    filters.value.nationality
+})
+
 // Avvia ricerca da query-string (es: dal link in TeamTraits)
 onMounted(() => {
   if (route.query.q) {
@@ -120,13 +138,18 @@ onMounted(() => {
 })
 
 async function doSearch() {
-  if (!query.value.trim()) return
+  if (!canSearch.value) return
   searched.value = true
-  const params = { q: query.value, limit: 20 }
+  const params = { limit: 20 }
+
+  // q è opzionale: se presente lo aggiunge
+  if (query.value.trim()) params.q = query.value
+
   if (filters.value.position)    params.position    = filters.value.position
   if (filters.value.min_age)     params.min_age     = filters.value.min_age
   if (filters.value.max_age)     params.max_age     = filters.value.max_age
   if (filters.value.nationality) params.nationality = filters.value.nationality
+
   await scoutingStore.search(params)
 }
 
@@ -141,6 +164,15 @@ function clearSearch() {
   scoutingStore.clear()
 }
 </script>
+
+<!--
+Nella sezione <template>, cambia anche il bottone Cerca:
+PRIMA:
+  <button class="btn btn-primary" :disabled="scoutingStore.loading || !query.trim()" @click="doSearch">
+
+DOPO:
+  <button class="btn btn-primary" :disabled="scoutingStore.loading || !canSearch" @click="doSearch">
+-->
 
 <style scoped>
 .form-label { display:block; font-size:.8rem; color:var(--color-muted); margin-bottom:.3rem; }

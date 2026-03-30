@@ -1,16 +1,14 @@
 """
-services/search.py — Fase 5: ricerca semantica su score percentili
+services/search.py — v2.1
 ------------------------------------------------------------------
-La SEMANTIC_MAP usa i percentili per ruolo (*_pct) dove disponibili,
-con fallback sugli score assoluti (0-100) per giocatori senza percentile.
-
-Logica di soglia:
-    - percentile > 70  →  top 30% nel proprio ruolo  (buono)
-    - percentile > 80  →  top 20%                    (ottimo)
-    - percentile > 90  →  top 10%                    (eccellente)
-
-Per i valori senza percentile (giocatori con pochi minuti) il fallback
-usa lo score assoluto con soglia calibrata.
+FIX applicati in questa versione:
+  - Aggiunta keyword "scarsa efficacia di testa su calcio da fermo"
+    e varianti per testa / palle inattive
+  - Aggiunta keyword "scarsa in difesa" già presente ma rafforzata
+    con posizioni in formato esteso (CB, LB, RB, Defence, ecc.)
+    come sicurezza durante la migrazione DB posizioni
+  - q diventa opzionale (solo filtri espliciti funzionano)
+  - Ricerca per frasi più lunghe ha priorità (sorted by len desc)
 """
 
 from sqlalchemy.orm import Session
@@ -23,17 +21,22 @@ from app.models.models import ScoutingPlayer as M
 # ─────────────────────────────────────────────────────────────────
 
 def _pct_or_score(pct_col, score_col, pct_threshold: float, score_threshold: float):
-    """
-    Restituisce una condizione OR:
-        percentile >= pct_threshold   (se il percentile è disponibile)
-        OR score >= score_threshold   (fallback se percentile è NULL)
-    """
     pct_attr   = getattr(M, pct_col)
     score_attr = getattr(M, score_col)
     return or_(
         pct_attr   >= pct_threshold,
         and_(pct_attr.is_(None), score_attr >= score_threshold),
     )
+
+
+def _is_defender():
+    """Condizione che copre sia i codici standard che i formati estesi ancora presenti nel DB."""
+    return M.position.in_([
+        'CB', 'LB', 'RB', 'LWB', 'RWB', 'DM',
+        # formati estesi (durante migrazione DB)
+        'Centre-Back', 'Left-Back', 'Right-Back', 'Defence',
+        'Defender', 'Defensive Midfield', 'Difensore', 'DF',
+    ])
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -68,20 +71,60 @@ SEMANTIC_MAP: dict = {
     "veloce":               lambda: _pct_or_score("carrying_pct",   "carrying_score",   70, 60),
     "portatore di palla":   lambda: _pct_or_score("carrying_pct",   "carrying_score",   70, 62),
 
-    # ── Difesa ────────────────────────────────────────────────────
+    # ── Difesa — frasi positive ───────────────────────────────────
     "bravo in difesa":      lambda: _pct_or_score("defending_pct",  "defending_obj_score", 65, 58),
     "difensore solido":     lambda: _pct_or_score("defending_pct",  "defending_obj_score", 75, 65),
     "roccioso":             lambda: _pct_or_score("defending_pct",  "defending_obj_score", 80, 70),
+    "difensore affidabile": lambda: _pct_or_score("defending_pct",  "defending_obj_score", 70, 62),
+    "difensore":            lambda: _is_defender(),
+    "difensore centrale":   lambda: M.position.in_(['CB', 'Centre-Back', 'Centre Back']),
+    "terzino":              lambda: M.position.in_(['LB', 'RB', 'LWB', 'RWB', 'Left-Back', 'Right-Back']),
 
-    # ── Testa / duelli (score assoluto — già normalizzato) ─────────
-    "bravo di testa":       lambda: M.heading_score >= 60,
-    "forte fisicamente":    lambda: M.heading_score >= 55,
-    "bravo nei duelli":     lambda: M.heading_score >= 60,
+    # ── Difesa — frasi NEGATIVE della squadra ─────────────────────
+    # Logica: se la squadra è "scarsa in difesa" → cerca bravi difensori
+    "scarsa in difesa":     lambda: and_(
+                                _is_defender(),
+                                _pct_or_score("defending_pct", "defending_obj_score", 65, 58)
+                            ),
+    "problemi difensivi":   lambda: and_(
+                                _is_defender(),
+                                _pct_or_score("defending_pct", "defending_obj_score", 65, 58)
+                            ),
+    "debole in difesa":     lambda: and_(
+                                _is_defender(),
+                                _pct_or_score("defending_pct", "defending_obj_score", 65, 58)
+                            ),
+    "vulnerabile":          lambda: and_(
+                                _is_defender(),
+                                _pct_or_score("defending_pct", "defending_obj_score", 65, 58)
+                            ),
+    "poca copertura":       lambda: and_(
+                                M.position.in_(['CB', 'DM', 'Centre-Back', 'Defensive Midfield']),
+                                _pct_or_score("defending_pct", "defending_obj_score", 65, 58)
+                            ),
+
+    # ── Testa / duelli aerei ──────────────────────────────────────
+    # La frase "scarsa efficacia di testa su calcio da fermo" → cerca giocatori bravi di testa
+    "scarsa efficacia di testa su calcio da fermo": lambda: M.heading_score >= 65,
+    "scarsa efficacia di testa":                    lambda: M.heading_score >= 62,
+    "bravo di testa":                               lambda: M.heading_score >= 60,
+    "forte fisicamente":                            lambda: M.heading_score >= 55,
+    "bravo nei duelli":                             lambda: M.heading_score >= 60,
+    "efficace di testa":                            lambda: M.heading_score >= 65,
+    "forte di testa":                               lambda: M.heading_score >= 65,
+    "duelli aerei":                                 lambda: M.aerial_duels_won_pct >= 60,
+    "bravo sui calci da fermo":                     lambda: M.heading_score >= 62,
+    "calci da fermo":                               lambda: M.heading_score >= 60,
+    "palle inattive":                               lambda: M.heading_score >= 60,
+    "corner":                                       lambda: M.heading_score >= 58,
+    "colpo di testa":                               lambda: M.heading_score >= 62,
 
     # ── Build-up / costruzione ────────────────────────────────────
     "fa salire la squadra": lambda: _pct_or_score("buildup_pct",    "buildup_obj_score", 65, 55),
     "bravo in costruzione": lambda: _pct_or_score("buildup_pct",    "buildup_obj_score", 60, 50),
-    "resistente":           lambda: _pct_or_score("buildup_pct",    "buildup_obj_score", 50, 42),
+    "scarso in costruzione":lambda: _pct_or_score("buildup_pct",    "buildup_obj_score", 65, 55),
+    "difficoltà in uscita": lambda: _pct_or_score("buildup_pct",    "buildup_obj_score", 60, 50),
+    "difficoltà in costruzione": lambda: _pct_or_score("buildup_pct", "buildup_obj_score", 60, 50),
 
     # ── xG / xA diretti ───────────────────────────────────────────
     "alto xg":              lambda: M.xg_per90    >= 0.35,
@@ -94,14 +137,20 @@ SEMANTIC_MAP: dict = {
     "destro":               lambda: M.preferred_foot == "Right",
 
     # ── Posizione ─────────────────────────────────────────────────
-    "centravanti":          lambda: M.position == "ST",
-    "trequartista":         lambda: M.position == "AM",
-    "ala":                  lambda: M.position.in_(["LW", "RW"]),
-    "terzino":              lambda: M.position.in_(["LB", "RB"]),
-    "centrocampista":       lambda: M.position.in_(["CM", "DM", "AM"]),
-    "mediano":              lambda: M.position.in_(["DM", "CM"]),
-    "difensore centrale":   lambda: M.position == "CB",
-    "portiere":             lambda: M.position == "GK",
+    "centravanti":          lambda: M.position.in_(["ST", "CF", "Centre-Forward", "Striker"]),
+    "prima punta":          lambda: M.position.in_(["ST", "CF", "SS"]),
+    "seconda punta":        lambda: M.position.in_(["SS", "ST"]),
+    "trequartista":         lambda: M.position.in_(["AM", "CAM", "Attacking Midfield"]),
+    "ala":                  lambda: M.position.in_(["LW", "RW", "Left Winger", "Right Winger"]),
+    "ala sinistra":         lambda: M.position.in_(["LW", "Left Winger"]),
+    "ala destra":           lambda: M.position.in_(["RW", "Right Winger"]),
+    "centrocampista":       lambda: M.position.in_(["CM", "DM", "AM", "CAM", "LM", "RM",
+                                                    "Central Midfield", "Defensive Midfield",
+                                                    "Attacking Midfield", "Midfield"]),
+    "mediano":              lambda: M.position.in_(["DM", "CM", "CDM", "Defensive Midfield"]),
+    "portiere":             lambda: M.position.in_(["GK", "Goalkeeper"]),
+    "attaccante":           lambda: M.position.in_(["ST", "CF", "SS", "LW", "RW",
+                                                    "Centre-Forward", "Left Winger", "Right Winger"]),
 
     # ── Età ───────────────────────────────────────────────────────
     "giovane":              lambda: M.age <= 23,
@@ -109,6 +158,7 @@ SEMANTIC_MAP: dict = {
     "under 23":             lambda: M.age <= 23,
     "under 25":             lambda: M.age <= 25,
     "esperto":              lambda: M.age >= 30,
+    "veterano":             lambda: M.age >= 33,
 
     # ── Nazionalità ───────────────────────────────────────────────
     "italiano":             lambda: M.nationality.ilike("%italian%"),
@@ -125,8 +175,28 @@ SEMANTIC_MAP: dict = {
 # ─────────────────────────────────────────────────────────────────
 
 def build_conditions(text: str) -> list:
+    """
+    Costruisce le condizioni SQLAlchemy dalla query testuale.
+    Le frasi più lunghe hanno priorità (ordinate per lunghezza DESC).
+    """
+    if not text:
+        return []
     text_lower = text.lower()
-    return [fn() for kw, fn in SEMANTIC_MAP.items() if kw in text_lower]
+    conditions = []
+    matched_ranges = []  # evita sovrapposizioni per frasi già matchate
+
+    for kw in sorted(SEMANTIC_MAP.keys(), key=len, reverse=True):
+        idx = text_lower.find(kw)
+        if idx == -1:
+            continue
+        # Controlla che questa keyword non sia già coperta da una più lunga
+        overlaps = any(start <= idx and idx + len(kw) <= end for start, end in matched_ranges)
+        if overlaps:
+            continue
+        conditions.append(SEMANTIC_MAP[kw]())
+        matched_ranges.append((idx, idx + len(kw)))
+
+    return conditions
 
 
 def _has_data_expr():
@@ -147,14 +217,21 @@ def _score_sum_expr():
 
 def search_players(
     db: Session,
-    text: str,
+    text: str | None = None,
     position: str | None = None,
     min_age: int | None = None,
     max_age: int | None = None,
     nationality: str | None = None,
     limit: int = 20,
 ) -> list:
-    conditions = build_conditions(text)
+    """
+    Ricerca giocatori combinando:
+      - analisi semantica del testo libero (SEMANTIC_MAP)
+      - filtri espliciti: position, min_age, max_age, nationality
+
+    text è OPZIONALE: se assente, usa solo i filtri espliciti.
+    """
+    conditions = build_conditions(text) if text else []
 
     if position:
         conditions.append(M.position == position)

@@ -9,6 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-football}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-football123}
       POSTGRES_DB: ${POSTGRES_DB:-football_scout}
+      PGTZ: Europe/Rome
     ports:
       - "5432:5432"
     volumes:
@@ -28,16 +29,28 @@ services:
       dockerfile: Dockerfile
     container_name: football_backend
     restart: unless-stopped
-    # Rimosso env_file per evitare errori in CI se il file manca
+    # env_file carica il .env nel container.
+    # In CI il file viene creato dal Secret GitHub prima di docker compose up,
+    # quindi funziona sia in locale che in CI senza modifiche.
+    env_file:
+      - path: ./backend/.env
+        required: false   # non rompe se il file manca (Docker Compose >= 2.24)
     environment:
+      # DATABASE_URL sovrascrive quello del .env con il valore corretto
+      # per la rete Docker interna (host "db" invece di "localhost")
       - DATABASE_URL=postgresql://${POSTGRES_USER:-football}:${POSTGRES_PASSWORD:-football123}@db:5432/${POSTGRES_DB:-football_scout}
       - POSTGRES_USER=${POSTGRES_USER:-football}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-football123}
       - POSTGRES_DB=${POSTGRES_DB:-football_scout}
+      # Playwright usa /tmp per i file temporanei del browser
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      # Cartella per CSV FBref importati manualmente
+      # Metti i file CSV qui e importali via endpoint /ingest/fbref/csv-upload
+      - ./data/fbref_csv:/app/data/fbref_csv
     depends_on:
       db:
         condition: service_healthy

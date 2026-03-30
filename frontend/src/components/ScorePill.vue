@@ -25,11 +25,11 @@ const color = computed(() => {
 .score-pill {
   display: inline-flex;
   align-items: center;
-  gap: .35rem;
-  padding: .2rem .6rem;
-  border-radius: 20px;
-  border: 1px solid;
-  font-size: .75rem;
+  gap: .3rem;
+  padding: .2rem .55rem;
+  border-radius: 999px;
+  border: 2px solid;
+  font-size: .78rem;
   background: rgba(255,255,255,.04);
 }
 .score-pill strong { font-size: .85rem; }

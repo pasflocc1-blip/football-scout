@@ -4,7 +4,7 @@
 :root {
   --bg: #f9fafb;
   --surface: #ffffff;
-  --border: #e5e7eb;
+  --border: #2b3648;
 
   --text: #111827;
   --text-muted: #4b5563;
@@ -23,13 +23,13 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0b1220;
-    --surface: #111827;
-    --border: #1f2937;
+    --surface: #172036;
+    --border: #2b3648;
 
-    --text: #f9fafb;
-    --text-muted: #9ca3af;
+    --text: #f3f4f6;
+    --text-muted: #b8c1cc;
 
-    --primary: #3b82f6;
+    --primary: #60a5fa;
 
     /* Compatibilità */
     --color-bg: var(--bg);
@@ -59,10 +59,23 @@ a {
 
 /* Card */
 .card {
-  background: var(--surface);
+  background: rgba(23, 32, 54, 0.85); 
   border: 1px solid var(--border);
-}
+  border-radius: 12px;
 
+  /* ⚠️ migliora il blur */
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  /* 🔥 profondità */
+  box-shadow: 0 6px 20px rgba(0,0,0,.35);
+
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0,0,0,.55);
+  border-color: rgba(96,165,250,.4); /* blu soft */
+}
 /* Inputs */
 input,
 select,
@@ -73,10 +86,33 @@ textarea {
 }
 
 /* Scrollbar */
-::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar       { width: 12px; height: 12px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
 /* Details */
 details summary { user-select: none; }
 details[open] summary { margin-bottom: .5rem; }
+
+/* =========================
+   FIX VISIBILITÀ COMPONENTI
+   ========================= */
+
+/* Barre statistiche */
+.bar-track {
+  background: rgba(255,255,255,.15);
+}
+
+/* Pills / badge punteggio */
+.score-pill {
+  background: rgba(255,255,255,.08);
+  border: 2px solid rgba(255,255,255,.25);
+  font-weight: 600;
+}
+
+/* Badge ruolo (Centravanti) */
+.badge {
+  background: rgba(59,130,246,.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59,130,246,.4);
+}

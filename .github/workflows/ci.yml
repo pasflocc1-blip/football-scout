@@ -7,7 +7,6 @@ on:
     branches: [ main ]
 
 jobs:
-  # Mantengo il tuo Job 1 identico (molto utile per il Mac)
   line-endings:
     name: "🔍 Verifica LF (cross-platform guard)"
     runs-on: ubuntu-latest
@@ -19,10 +18,11 @@ jobs:
           CRLF_FILES=$(find . -not -path './.git/*' -not -path './node_modules/*' -type f \( -name '*.py' -o -name '*.yml' -o -name '*.sh' \) | xargs grep -rlP '\r$' 2>/dev/null || true)
           if [ -n "$CRLF_FILES" ]; then
             echo "❌ ERRORE: File con CRLF trovati."
+            echo "$CRLF_FILES"
             exit 1
           fi
+          echo "✅ Nessun CRLF trovato."
 
-  # Mantengo il tuo Job 2 identico
   test-backend:
     name: "🐍 Test Backend (FastAPI + pytest)"
     runs-on: ubuntu-latest
@@ -36,6 +36,11 @@ jobs:
           POSTGRES_DB: football_scout_test
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -46,7 +51,6 @@ jobs:
           pip install -r backend/requirements.txt pytest
           cd backend && DATABASE_URL=postgresql://football:football123@localhost:5432/football_scout_test pytest tests/ -v
 
-  # Mantengo il tuo Job 3 identico
   build-frontend:
     name: "🎨 Build Frontend (Vue 3 + Vite)"
     runs-on: ubuntu-latest
@@ -57,7 +61,6 @@ jobs:
         run: |
           cd frontend && npm install && npm run build
 
-  # JOB 4 MODIFICATO: Qui usiamo il tuo Secret DOT_ENV_FILE
   docker-smoke-test:
     name: "🐳 Smoke test: git clone → docker compose up (simula Mac)"
     runs-on: ubuntu-latest
@@ -66,27 +69,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # MODIFICA QUI: Invece di cp .env.example, usiamo il Secret
-      - name: "Genera .env dai Secrets di GitHub"
+      - name: "Genera backend/.env dal Secret GitHub"
         run: |
           mkdir -p backend
+          # Scrive il contenuto del Secret nel file .env
+          # docker-compose.yml lo carica via env_file (required: false)
           echo "${{ secrets.DOT_ENV_FILE }}" > backend/.env
-          # Forziamo la DATABASE_URL corretta per il network interno di Docker
+          # DATABASE_URL viene sovrascritta da docker-compose.yml con
+          # l'host "db" corretto per la rete Docker interna —
+          # ma la scriviamo anche qui come fallback
           echo "DATABASE_URL=postgresql://football:football123@db:5432/football_scout" >> backend/.env
+          echo "✅ backend/.env creato ($(wc -l < backend/.env) righe)"
 
       - name: "Simula: docker compose up --build"
         run: docker compose up --build -d
 
-      - name: Attendi health check backend
+      - name: "Attendi health check backend"
         run: |
           for i in $(seq 1 30); do
             if curl -sf http://localhost:8000 > /dev/null 2>&1; then
-              echo "✅ Backend OK"
+              echo "✅ Backend risponde"
               exit 0
             fi
+            echo "  attendo... ($i/30)"
             sleep 2
           done
-          docker compose logs && exit 1
+          echo "❌ Backend non risponde dopo 60s"
+          docker compose logs backend
+          exit 1
+
+      - name: "Verifica variabili d'ambiente nel container"
+        run: |
+          # Controlla che le variabili dal Secret siano visibili dentro il container
+          docker compose exec -T backend env | grep -E "API_FOOTBALL_KEY|FOOTBALL_DATA_KEY|DATABASE_URL" | \
+            sed 's/=.*/=***/' || echo "Variabili non trovate (verificare il Secret)"
 
       - name: Cleanup
         if: always()

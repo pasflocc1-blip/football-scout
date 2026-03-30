@@ -38,45 +38,42 @@ export const rosterApi = {
   remove: (teamId, id)   => api.delete(`/teams/${teamId}/players/${id}`),
 }
 
-// ── Scouting (team-based) ─────────────────────────────────────────
+// ── Scouting (team-based, ricerca semantica) ──────────────────────
+// Endpoint: GET /scouting/search — richiede q obbligatorio
 export const scoutingApi = {
   search: (params) => api.get('/scouting/search', { params }),
 }
 
 // ── Global Scouting 🔥 ───────────────────────────────────────────
-// Esplorazione libera del database, ranking, confronto e discovery.
+// Endpoint: /global-scouting/... (prefisso separato per evitare conflitti)
 export const globalScoutingApi = {
   /**
-   * Ricerca avanzata con filtri combinabili.
+   * Ricerca avanzata con filtri combinabili — tutti i parametri opzionali.
    * @param {Object} params - { q, position, min_age, max_age, nationality, club,
    *                            min_xg, min_xa, preferred_foot, sort_by, sort_dir, limit }
    */
-  search: (params) => api.get('/scouting/search', { params }),
+  search: (params) => api.get('/global-scouting/search', { params }),
 
   /**
    * Classifica per xG/90.
    * @param {Object} params - { limit, min_minutes, position }
    */
-  topXg: (params = {}) => api.get('/scouting/top-xg', { params }),
+  topXg: (params = {}) => api.get('/global-scouting/top-xg', { params }),
 
   /**
    * Giocatori che segnano più del loro xG previsto.
-   * @param {Object} params - { limit, min_minutes, position }
    */
-  overperforming: (params = {}) => api.get('/scouting/overperforming', { params }),
+  overperforming: (params = {}) => api.get('/global-scouting/overperforming', { params }),
 
   /**
    * Giocatori che segnano meno del loro xG previsto.
-   * @param {Object} params - { limit, min_minutes, position }
    */
-  underperforming: (params = {}) => api.get('/scouting/underperforming', { params }),
+  underperforming: (params = {}) => api.get('/global-scouting/underperforming', { params }),
 
   /**
    * Confronto testa-a-testa tra due giocatori.
-   * @param {string} name1 - Nome (parziale) del primo giocatore
-   * @param {string} name2 - Nome (parziale) del secondo giocatore
    */
-  compare: (name1, name2) => api.get('/scouting/compare', { params: { name1, name2 } }),
+  compare: (name1, name2) => api.get('/global-scouting/compare', { params: { name1, name2 } }),
 }
 
 export default api

@@ -23,7 +23,7 @@
               {{ t.name }}
             </option>
           </select>
-          <button class="btn btn-primary" style="margin-left:auto" @click="showForm = true">
+          <button class="btn btn-primary" style="margin-left:auto" @click="openNew">
             + Nuova Squadra
           </button>
         </div>
@@ -42,7 +42,7 @@
             <InfoRow label="Allenatore" :value="teamStore.activeTeam.coach" />
             <InfoRow label="Budget"     :value="teamStore.activeTeam.budget ? `€${teamStore.activeTeam.budget.toLocaleString('it')}` : '—'" />
           </div>
-          <button class="btn btn-ghost" style="margin-top:1rem; width:100%" @click="showForm = true">
+          <button class="btn btn-ghost" style="margin-top:1rem; width:100%" @click="openEdit">
             ✏️ Modifica
           </button>
         </div>
@@ -81,7 +81,7 @@
     </template>
 
     <!-- Modal form -->
-    <ModalForm v-if="showForm" :team="teamStore.activeTeam" @close="showForm = false" @saved="showForm = false" />
+    <ModalForm v-if="showForm" :team="editingTeam" @close="showForm = false" @saved="showForm = false" />
   </div>
 </template>
 
@@ -92,6 +92,10 @@ import { useTeamStore } from '@/stores/teamStore'
 import ModalForm from '@/components/TeamForm.vue'
 import InfoRow from '@/components/InfoRow.vue'
 
-const teamStore = useTeamStore()
-const showForm  = ref(false)
+const teamStore  = useTeamStore()
+const showForm   = ref(false)
+const editingTeam = ref(null)   // null = nuova squadra, oggetto = modifica
+
+function openNew()  { editingTeam.value = null;                    showForm.value = true }
+function openEdit() { editingTeam.value = teamStore.activeTeam;    showForm.value = true }
 </script>

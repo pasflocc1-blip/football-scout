@@ -6,6 +6,7 @@ from app.routers import global_scouting as global_scouting_router
 from app.database import engine, Base
 from app.routers import ingest as ingest_router
 from app.routers import db_explorer as db_explorer_router
+from app.routers import ingest_fbref_csv
 
 # Crea tutte le tabelle all'avvio (in prod usa Alembic)
 Base.metadata.create_all(bind=engine)
@@ -42,6 +43,7 @@ app.include_router(global_scouting_router.router)   # ← Global Scouting 🔥
 app.include_router(admin.router)
 app.include_router(ingest_router.router)
 app.include_router(db_explorer_router.router)
+app.include_router(ingest_fbref_csv.router)
 
 @app.get("/", tags=["health"])
 def health_check():

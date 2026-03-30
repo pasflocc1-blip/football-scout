@@ -1,5 +1,5 @@
 PROGETTO: D:\Progetti\football-scout\frontend
-TOTALE FILE: 22
+TOTALE FILE: 23
 ============================================================
 
 ============================================================
@@ -3163,45 +3163,42 @@ export const rosterApi = {
   remove: (teamId, id)   => api.delete(`/teams/${teamId}/players/${id}`),
 }
 
-// ── Scouting (team-based) ─────────────────────────────────────────
+// ── Scouting (team-based, ricerca semantica) ──────────────────────
+// Endpoint: GET /scouting/search — richiede q obbligatorio
 export const scoutingApi = {
   search: (params) => api.get('/scouting/search', { params }),
 }
 
 // ── Global Scouting 🔥 ───────────────────────────────────────────
-// Esplorazione libera del database, ranking, confronto e discovery.
+// Endpoint: /global-scouting/... (prefisso separato per evitare conflitti)
 export const globalScoutingApi = {
   /**
-   * Ricerca avanzata con filtri combinabili.
+   * Ricerca avanzata con filtri combinabili — tutti i parametri opzionali.
    * @param {Object} params - { q, position, min_age, max_age, nationality, club,
    *                            min_xg, min_xa, preferred_foot, sort_by, sort_dir, limit }
    */
-  search: (params) => api.get('/scouting/search', { params }),
+  search: (params) => api.get('/global-scouting/search', { params }),
 
   /**
    * Classifica per xG/90.
    * @param {Object} params - { limit, min_minutes, position }
    */
-  topXg: (params = {}) => api.get('/scouting/top-xg', { params }),
+  topXg: (params = {}) => api.get('/global-scouting/top-xg', { params }),
 
   /**
    * Giocatori che segnano più del loro xG previsto.
-   * @param {Object} params - { limit, min_minutes, position }
    */
-  overperforming: (params = {}) => api.get('/scouting/overperforming', { params }),
+  overperforming: (params = {}) => api.get('/global-scouting/overperforming', { params }),
 
   /**
    * Giocatori che segnano meno del loro xG previsto.
-   * @param {Object} params - { limit, min_minutes, position }
    */
-  underperforming: (params = {}) => api.get('/scouting/underperforming', { params }),
+  underperforming: (params = {}) => api.get('/global-scouting/underperforming', { params }),
 
   /**
    * Confronto testa-a-testa tra due giocatori.
-   * @param {string} name1 - Nome (parziale) del primo giocatore
-   * @param {string} name2 - Nome (parziale) del secondo giocatore
    */
-  compare: (name1, name2) => api.get('/scouting/compare', { params: { name1, name2 } }),
+  compare: (name1, name2) => api.get('/global-scouting/compare', { params: { name1, name2 } }),
 }
 
 export default api
@@ -3242,31 +3239,31 @@ FILE: src\components\PlayerCard.vue
 <template>
   <div class="player-card card">
 
-    <!-- Header: nome + club + posizione -->
     <div class="player-header">
       <div class="player-info">
         <h3 class="player-name">{{ player.name }}</h3>
         <p class="player-sub">{{ player.club || 'Club N/D' }} · {{ player.nationality || '?' }}</p>
       </div>
       <div class="player-meta">
-        <span class="badge badge-blue">{{ player.position || '?' }}</span>
+        <!-- Badge: testo leggibile, tooltip con codice tecnico -->
+        <span class="badge badge-blue pos-badge" :title="positionCode">
+          {{ positionLabel }}
+        </span>
         <p class="player-age">{{ player.age }} anni · {{ footLabel }}</p>
       </div>
     </div>
 
-    <!-- Stats base in griglia 3x2 -->
+    <!-- Stats: il tooltip è gestito dentro StatBar (cursor: help) -->
     <div class="stats-grid">
       <StatBar v-for="s in baseStats" :key="s.label" :label="s.label" :value="s.value" />
     </div>
 
-    <!-- Score calcolati -->
     <div v-if="hasScores" class="scores-row">
       <ScorePill v-if="player.heading_score"   label="🎯 Testa"   :value="player.heading_score" />
       <ScorePill v-if="player.build_up_score"  label="⬆ Gioco"  :value="player.build_up_score" />
       <ScorePill v-if="player.defensive_score" label="🛡 Difesa" :value="player.defensive_score" />
     </div>
 
-    <!-- xG / xA -->
     <div v-if="player.xg_per90 || player.xa_per90" class="xg-row">
       <span v-if="player.xg_per90">xG/90: <strong>{{ player.xg_per90.toFixed(2) }}</strong></span>
       <span v-if="player.xa_per90">xA/90: <strong>{{ player.xa_per90.toFixed(2) }}</strong></span>
@@ -3277,12 +3274,23 @@ FILE: src\components\PlayerCard.vue
 
 <script setup>
 import { computed } from 'vue'
-import StatBar  from '@/components/StatBar.vue'
+import StatBar   from '@/components/StatBar.vue'
 import ScorePill from '@/components/ScorePill.vue'
+import { POSITION_LABELS } from '@/utils/positions.js'
 
 const props = defineProps({
   player: { type: Object, required: true },
 })
+
+// Codice tecnico (es. "ST") usato come tooltip sul badge
+const positionCode  = computed(() => props.player.position
+  ? `Codice: ${props.player.position}`
+  : '')
+
+// Etichetta leggibile (es. "Centravanti")
+const positionLabel = computed(() =>
+  POSITION_LABELS[props.player.position] ?? props.player.position ?? '?'
+)
 
 const footLabel = computed(() => {
   const map = { Left: 'Mancino', Right: 'Destro' }
@@ -3317,6 +3325,16 @@ const hasScores = computed(() =>
 .player-sub  { font-size: .75rem; color: var(--color-muted); margin-top: .15rem; }
 .player-meta { text-align: right; }
 .player-age  { font-size: .75rem; color: var(--color-muted); margin-top: .25rem; }
+
+.pos-badge {
+  cursor: help;
+  font-size: .7rem;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
 
 .stats-grid  { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; margin-bottom: .75rem; }
 .scores-row  { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .5rem; }
@@ -3370,26 +3388,44 @@ const color = computed(() => {
 FILE: src\components\StatBar.vue
 ============================================================
 <template>
-  <div class="stat-bar">
+  <!-- title="..." usa il tooltip nativo del browser — funziona su tutti i browser -->
+  <div class="stat-bar" :title="fullLabel">
     <span class="stat-label">{{ label }}</span>
     <div class="bar-track">
-      <div class="bar-fill" :style="{ width: pct, background: color }" />
+      <div
+        v-if="props.value != null"
+        class="bar-fill"
+        :style="{ width: pct, background: color }"
+      />
+      <div v-else class="bar-empty" />
     </div>
-    <span class="stat-val">{{ display }}</span>
+    <span class="stat-val" :class="{ 'nd': props.value == null }">{{ display }}</span>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 
+/* Tooltip nativo (title=""): appare dopo ~1s di hover su tutti i browser.
+   Non serve libreria esterna. */
+const FULL_LABELS = {
+  PAC: 'Velocità — Pace',
+  TIR: 'Tiro — Shooting',
+  PAS: 'Passaggio — Passing',
+  DRI: 'Dribbling',
+  DIF: 'Difesa — Defending',
+  FIS: 'Fisico — Physical',
+}
+
 const props = defineProps({
   label: { type: String, required: true },
   value: { type: Number, default: null },
 })
 
-const display = computed(() => props.value != null ? props.value : '—')
-const pct     = computed(() => props.value != null ? `${props.value}%` : '0%')
-const color   = computed(() => {
+const fullLabel = computed(() => FULL_LABELS[props.label] ?? props.label)
+const display   = computed(() => props.value != null ? props.value : 'N/D')
+const pct       = computed(() => props.value != null ? `${Math.min(props.value, 100)}%` : '0%')
+const color     = computed(() => {
   const v = props.value ?? 0
   if (v >= 80) return 'var(--color-success)'
   if (v >= 65) return 'var(--color-warning)'
@@ -3403,6 +3439,7 @@ const color   = computed(() => {
   align-items: center;
   gap: .35rem;
   font-size: .75rem;
+  cursor: help;   /* cursore a punto interrogativo → indica tooltip disponibile */
 }
 .stat-label {
   width: 26px;
@@ -3423,11 +3460,29 @@ const color   = computed(() => {
   border-radius: 3px;
   transition: width .4s ease;
 }
+.bar-empty {
+  height: 100%;
+  width: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-border) 0px,
+    var(--color-border) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  opacity: 0.5;
+}
 .stat-val {
-  width: 24px;
+  width: 28px;
   text-align: right;
   color: var(--color-text);
   font-weight: 700;
+}
+.stat-val.nd {
+  font-size: .68rem;
+  font-weight: 500;
+  color: var(--color-muted);
+  opacity: 0.6;
 }
 </style>
 
@@ -3774,6 +3829,81 @@ export const useTeamStore = defineStore('team', () => {
     addTrait, deleteTrait,
   }
 })
+
+
+============================================================
+FILE: src\utils\positions.js
+============================================================
+/**
+ * positions.js — dizionario centralizzato ruoli calcio
+ * Importato da PlayerCard, TeamRoster, GlobalScoutingView, ScoutingSearch
+ *
+ * posLabel(code)   → etichetta leggibile (es. "ST" → "Centravanti")
+ * posOptions       → array per i <select> con label + value
+ */
+
+export const POSITION_LABELS = {
+  // Portieri
+  GK:  'Portiere',
+  // Difensori
+  CB:  'Difensore Centrale',
+  LB:  'Terzino Sinistro',
+  RB:  'Terzino Destro',
+  LWB: 'Quinto Sinistro',
+  RWB: 'Quinto Destro',
+  SW:  'Libero',
+  // Centrocampisti
+  DM:  'Mediano Difensivo',
+  CDM: 'Mediano Difensivo',
+  CM:  'Centrocampista',
+  AM:  'Trequartista',
+  CAM: 'Trequartista',
+  LM:  'Mezzala Sinistra',
+  RM:  'Mezzala Destra',
+  // Attaccanti
+  LW:  'Ala Sinistra',
+  RW:  'Ala Destra',
+  SS:  'Seconda Punta',
+  CF:  'Prima Punta',
+  ST:  'Centravanti',
+  // Generici (dataset Kaggle/API)
+  MF:  'Centrocampista',
+  FW:  'Attaccante',
+  DF:  'Difensore',
+}
+
+/**
+ * Restituisce l'etichetta leggibile per un codice posizione.
+ * Se il codice non è in mappa, ritorna il codice stesso.
+ */
+export function posLabel(code) {
+  if (!code) return '—'
+  return POSITION_LABELS[code] ?? code
+}
+
+/**
+ * Array di opzioni per <select> — include il codice nel label
+ * per mantenere la familiarità con la nomenclatura tecnica.
+ */
+export const posOptions = [
+  { value: '',    label: 'Tutti i ruoli' },
+  { value: 'GK',  label: 'GK — Portiere' },
+  { value: 'CB',  label: 'CB — Difensore Centrale' },
+  { value: 'LB',  label: 'LB — Terzino Sinistro' },
+  { value: 'RB',  label: 'RB — Terzino Destro' },
+  { value: 'LWB', label: 'LWB — Quinto Sinistro' },
+  { value: 'RWB', label: 'RWB — Quinto Destro' },
+  { value: 'DM',  label: 'DM — Mediano Difensivo' },
+  { value: 'CM',  label: 'CM — Centrocampista' },
+  { value: 'AM',  label: 'AM — Trequartista' },
+  { value: 'LM',  label: 'LM — Mezzala Sinistra' },
+  { value: 'RM',  label: 'RM — Mezzala Destra' },
+  { value: 'LW',  label: 'LW — Ala Sinistra' },
+  { value: 'RW',  label: 'RW — Ala Destra' },
+  { value: 'CF',  label: 'CF — Prima Punta' },
+  { value: 'ST',  label: 'ST — Centravanti' },
+  { value: 'SS',  label: 'SS — Seconda Punta' },
+]
 
 
 ============================================================
@@ -5788,35 +5918,14 @@ FILE: src\views\DatabaseExplorer.vue
 
         <!-- Tab selector -->
         <div class="tab-bar card">
-          <button
-            class="tab-btn"
-            :class="{ active: activeTab === 'browse' }"
-            @click="activeTab = 'browse'"
-          >
-            📋 Sfoglia dati
-          </button>
-          <button
-            class="tab-btn"
-            :class="{ active: activeTab === 'schema' }"
-            @click="activeTab = 'schema'"
-          >
-            🏗 Schema
-          </button>
-          <button
-            class="tab-btn"
-            :class="{ active: activeTab === 'query' }"
-            @click="activeTab = 'query'"
-          >
-            💬 SQL Query
-          </button>
+          <button class="tab-btn" :class="{ active: activeTab === 'browse' }" @click="activeTab = 'browse'">📋 Sfoglia dati</button>
+          <button class="tab-btn" :class="{ active: activeTab === 'schema' }" @click="activeTab = 'schema'">🏗 Schema</button>
+          <button class="tab-btn" :class="{ active: activeTab === 'query' }"  @click="activeTab = 'query'">💬 SQL Query</button>
         </div>
 
         <!-- ── TAB: Sfoglia ───────────────────────────────────── -->
         <div v-if="activeTab === 'browse'" class="tab-content card">
-          <div v-if="!selectedTable" class="empty-state">
-            ← Seleziona una tabella dalla sidebar
-          </div>
-
+          <div v-if="!selectedTable" class="empty-state">← Seleziona una tabella dalla sidebar</div>
           <template v-else>
             <div class="browse-header">
               <h3>{{ selectedTable }}</h3>
@@ -5830,18 +5939,15 @@ FILE: src\views\DatabaseExplorer.vue
                 </select>
               </div>
             </div>
-
             <div v-if="loadingData" class="loading">Caricamento dati…</div>
-
             <template v-else-if="tableData">
               <div class="table-info">
                 {{ tableData.rows.length }} di {{ formatCount(tableData.total) }} righe
                 — pagina {{ currentPage }} / {{ totalPages }}
               </div>
               <div class="browse-actions">
-                <button class="btn-open-dialog" @click="browseDialogVisible = true">
-                  🔍 Visualizza nella finestra
-                </button>
+                <button class="btn-open-dialog" @click="browseDialogVisible = true">🔍 Visualizza nella finestra</button>
+                <button class="btn-export" @click="exportBrowseCsv">📥 CSV</button>
                 <div class="pagination-inline">
                   <button class="btn-page" :disabled="currentOffset === 0" @click="changePage(-1)">← Prec.</button>
                   <button class="btn-page" :disabled="currentOffset + pageSize >= tableData.total" @click="changePage(1)">Succ. →</button>
@@ -5854,53 +5960,29 @@ FILE: src\views\DatabaseExplorer.vue
 
         <!-- ── TAB: Schema ────────────────────────────────────── -->
         <div v-if="activeTab === 'schema'" class="tab-content card">
-          <div v-if="!selectedTable" class="empty-state">
-            ← Seleziona una tabella dalla sidebar
-          </div>
-
+          <div v-if="!selectedTable" class="empty-state">← Seleziona una tabella dalla sidebar</div>
           <template v-else>
             <div v-if="loadingSchema" class="loading">Caricamento schema…</div>
             <template v-else-if="tableSchema">
               <h3>Schema: {{ tableSchema.table }}</h3>
-
               <table class="schema-table">
                 <thead>
-                  <tr>
-                    <th>Colonna</th>
-                    <th>Tipo</th>
-                    <th>Nullable</th>
-                    <th>Default</th>
-                    <th>PK</th>
-                  </tr>
+                  <tr><th>Colonna</th><th>Tipo</th><th>Nullable</th><th>Default</th><th>PK</th></tr>
                 </thead>
                 <tbody>
-                  <tr
-                    v-for="col in tableSchema.columns"
-                    :key="col.name"
-                    :class="{ 'pk-row': col.primary_key }"
-                  >
-                    <td>
-                      <span v-if="col.primary_key">🔑 </span>
-                      {{ col.name }}
-                    </td>
+                  <tr v-for="col in tableSchema.columns" :key="col.name" :class="{ 'pk-row': col.primary_key }">
+                    <td><span v-if="col.primary_key">🔑 </span>{{ col.name }}</td>
                     <td><code>{{ col.type }}</code></td>
-                    <td>
-                      <span :class="col.nullable ? 'yes' : 'no'">
-                        {{ col.nullable ? 'Sì' : 'No' }}
-                      </span>
-                    </td>
+                    <td><span :class="col.nullable ? 'yes' : 'no'">{{ col.nullable ? 'Sì' : 'No' }}</span></td>
                     <td><code v-if="col.default">{{ col.default }}</code><span v-else>—</span></td>
                     <td>{{ col.primary_key ? '✓' : '' }}</td>
                   </tr>
                 </tbody>
               </table>
-
               <div v-if="tableSchema.indexes.length" class="indexes">
                 <h4>Indici</h4>
                 <table class="schema-table">
-                  <thead>
-                    <tr><th>Nome</th><th>Colonne</th><th>Unique</th></tr>
-                  </thead>
+                  <thead><tr><th>Nome</th><th>Colonne</th><th>Unique</th></tr></thead>
                   <tbody>
                     <tr v-for="idx in tableSchema.indexes" :key="idx.name">
                       <td>{{ idx.name }}</td>
@@ -5923,14 +6005,7 @@ FILE: src\views\DatabaseExplorer.vue
 
           <div class="query-quick">
             <span class="ql-label">Query rapide:</span>
-            <button
-              v-for="q in quickQueries"
-              :key="q.label"
-              class="ql-btn"
-              @click="applySqlTemplate(q.sql)"
-            >
-              {{ q.label }}
-            </button>
+            <button v-for="q in quickQueries" :key="q.label" class="ql-btn" @click="applySqlTemplate(q.sql)">{{ q.label }}</button>
           </div>
 
           <textarea
@@ -5951,30 +6026,27 @@ FILE: src\views\DatabaseExplorer.vue
                 <option :value="500">500</option>
               </select>
             </div>
-            <button
-              class="btn-run"
-              :disabled="!customSql.trim() || queryRunning"
-              @click="runQuery"
-            >
-              <span v-if="queryRunning">⏳ Esecuzione…</span>
-              <span v-else>▶ Esegui Query</span>
-            </button>
+            <div style="display:flex;gap:.5rem">
+              <!-- Pulsante Interrompi visibile durante esecuzione -->
+              <button v-if="queryRunning" class="btn-stop" @click="cancelQuery">⏹ Interrompi</button>
+              <button class="btn-run" :disabled="!customSql.trim() || queryRunning" @click="runQuery">
+                <span v-if="queryRunning">⏳ Esecuzione…</span>
+                <span v-else>▶ Esegui Query</span>
+              </button>
+            </div>
           </div>
 
-          <div v-if="queryError" class="query-error">
-            ❌ {{ queryError }}
-          </div>
+          <div v-if="queryError" class="query-error">❌ {{ queryError }}</div>
 
           <template v-if="queryResult">
             <div class="table-info">
-              {{ queryResult.showing }} righe restituite
-              ({{ queryResult.total }} totali)
+              {{ queryResult.rows?.length ?? 0 }} righe restituite
+              <template v-if="queryResult.total != null"> ({{ queryResult.total }} totali)</template>
             </div>
             <div class="browse-actions">
-              <button class="btn-open-dialog" @click="queryDialogVisible = true">
-                🔍 Visualizza nella finestra
-              </button>
-              <button class="btn-export" @click="exportCsv">📥 Esporta CSV</button>
+              <button class="btn-open-dialog" @click="queryDialogVisible = true">🔍 Visualizza nella finestra</button>
+              <button class="btn-export" @click="exportQueryCsv">📥 CSV</button>
+              <button class="btn-export" @click="exportQueryExcel">📊 Excel</button>
             </div>
             <p class="dialog-hint-inline">💡 Per una visione completa clicca "Visualizza nella finestra".</p>
           </template>
@@ -6014,9 +6086,7 @@ FILE: src\views\DatabaseExplorer.vue
       <div v-else-if="tableData" class="db-modal-body">
         <table class="data-table">
           <thead>
-            <tr>
-              <th v-for="col in tableData.columns" :key="col" :title="col">{{ col }}</th>
-            </tr>
+            <tr><th v-for="col in tableData.columns" :key="col" :title="col">{{ col }}</th></tr>
           </thead>
           <tbody>
             <tr v-for="(row, i) in tableData.rows" :key="i">
@@ -6040,20 +6110,20 @@ FILE: src\views\DatabaseExplorer.vue
           <span>💬</span>
           <h3>Risultati Query</h3>
           <span class="db-modal-meta">
-            {{ queryResult?.showing }} righe · {{ queryResult?.total }} totali
+            {{ queryResult?.rows?.length }} righe
+            <template v-if="queryResult?.total != null"> · {{ queryResult.total }} totali</template>
           </span>
         </div>
         <div class="db-modal-actions">
-          <button class="btn-export" @click="exportCsv">📥 CSV</button>
+          <button class="btn-export" @click="exportQueryCsv">📥 CSV</button>
+          <button class="btn-export" @click="exportQueryExcel">📊 Excel</button>
           <button class="db-modal-close" @click="queryDialogVisible = false">✕</button>
         </div>
       </div>
-      <div v-if="queryResult" class="db-modal-body">
+      <div v-if="queryResult && queryResult.columns && queryResult.columns.length" class="db-modal-body">
         <table class="data-table">
           <thead>
-            <tr>
-              <th v-for="col in queryResult.columns" :key="col">{{ col }}</th>
-            </tr>
+            <tr><th v-for="col in queryResult.columns" :key="col">{{ col }}</th></tr>
           </thead>
           <tbody>
             <tr v-for="(row, i) in queryResult.rows" :key="i">
@@ -6066,55 +6136,52 @@ FILE: src\views\DatabaseExplorer.vue
           </tbody>
         </table>
       </div>
+      <div v-else class="db-modal-loading">Nessuna riga da mostrare.</div>
     </div>
   </div>
 
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-//import api from '@/services/api'
+import { ref, computed, onMounted, watch } from 'vue'
 import api from '@/api/client'
 
 // ── Stato ─────────────────────────────────────────────────────────
-const tables       = ref([])
+const tables        = ref([])
 const loadingTables = ref(false)
 const selectedTable = ref(null)
 const activeTab     = ref('browse')
 
-// Browse
-const tableData    = ref(null)
-const loadingData  = ref(false)
-const pageSize     = ref(50)
+const tableData     = ref(null)
+const loadingData   = ref(false)
+const pageSize      = ref(50)
 const currentOffset = ref(0)
-const currentPage  = computed(() => Math.floor(currentOffset.value / pageSize.value) + 1)
-const totalPages   = computed(() =>
+const currentPage   = computed(() => Math.floor(currentOffset.value / pageSize.value) + 1)
+const totalPages    = computed(() =>
   tableData.value ? Math.ceil(tableData.value.total / pageSize.value) : 1
 )
 
-// Schema
-const tableSchema  = ref(null)
+const tableSchema   = ref(null)
 const loadingSchema = ref(false)
 
-// Query
-const customSql    = ref('')
-const queryLimit   = ref(100)
-const queryRunning = ref(false)
-const queryResult  = ref(null)
-const queryError   = ref(null)
+const customSql     = ref('')
+const queryLimit    = ref(100)
+const queryRunning  = ref(false)
+const queryResult   = ref(null)
+const queryError    = ref(null)
+let   queryAbortCtrl = null
 
-// Dialogs risultati
 const browseDialogVisible = ref(false)
 const queryDialogVisible  = ref(false)
 
-// ── Quick queries ─────────────────────────────────────────────────
+// ── Quick queries aggiornate per pipeline oggettivo ───────────────
 const quickQueries = [
-  { label: 'Top scorer xG', sql: "SELECT name, position, club, xg_per90, xa_per90 FROM scouting_players WHERE xg_per90 IS NOT NULL ORDER BY xg_per90 DESC LIMIT 20" },
-  { label: 'Difensori Serie A', sql: "SELECT name, age, club, defending, physical FROM scouting_players WHERE position IN ('CB','LB','RB') AND nationality LIKE '%Italian%' LIMIT 50" },
-  { label: 'Conteggio per posizione', sql: "SELECT position, COUNT(*) AS totale FROM scouting_players GROUP BY position ORDER BY totale DESC" },
-  { label: 'Distribuzione nazionalità', sql: "SELECT nationality, COUNT(*) AS n FROM scouting_players GROUP BY nationality ORDER BY n DESC LIMIT 20" },
-  { label: 'Giocatori senza xG', sql: "SELECT COUNT(*) AS senza_xg, COUNT(xg_per90) AS con_xg FROM scouting_players" },
-  { label: 'Ultime squadre', sql: "SELECT DISTINCT club FROM scouting_players WHERE club IS NOT NULL ORDER BY club" },
+  { label: 'Top xG/90',         sql: "SELECT name, position, club, xg_per90, xa_per90, npxg_per90, finishing_score, finishing_pct FROM scouting_players WHERE xg_per90 IS NOT NULL ORDER BY xg_per90 DESC LIMIT 20" },
+  { label: 'Score per ruolo',   sql: "SELECT position, COUNT(*) as n, ROUND(AVG(finishing_score)::numeric,1) avg_fin, ROUND(AVG(creativity_score)::numeric,1) avg_cre, ROUND(AVG(pressing_score)::numeric,1) avg_prs FROM scouting_players WHERE finishing_score IS NOT NULL GROUP BY position ORDER BY n DESC" },
+  { label: 'Top percentili',    sql: "SELECT name, position, club, finishing_pct, creativity_pct, pressing_pct, defending_pct FROM scouting_players WHERE finishing_pct > 85 ORDER BY finishing_pct DESC LIMIT 30" },
+  { label: 'Per posizione',     sql: "SELECT position, COUNT(*) AS totale FROM scouting_players GROUP BY position ORDER BY totale DESC" },
+  { label: 'Copertura dati',    sql: "SELECT COUNT(*) totale, COUNT(minutes_season) con_minuti, COUNT(xg_per90) con_xg, COUNT(finishing_score) con_score, COUNT(finishing_pct) con_pct FROM scouting_players" },
+  { label: 'Underperforming',   sql: "SELECT name, position, club, goals_season, ROUND((xg_per90 * minutes_season / 90.0)::numeric,2) xg_est, goals_season - ROUND((xg_per90 * minutes_season / 90.0)::numeric,2) delta FROM scouting_players WHERE xg_per90 IS NOT NULL AND goals_season IS NOT NULL AND minutes_season > 300 ORDER BY delta ASC LIMIT 20" },
 ]
 
 function applySqlTemplate(sql) {
@@ -6122,7 +6189,7 @@ function applySqlTemplate(sql) {
   activeTab.value = 'query'
 }
 
-// ── Carica lista tabelle ──────────────────────────────────────────
+// ── Tabelle ────────────────────────────────────────────────────────
 async function loadTables() {
   loadingTables.value = true
   try {
@@ -6133,7 +6200,6 @@ async function loadTables() {
   }
 }
 
-// ── Seleziona tabella ─────────────────────────────────────────────
 function selectTable(name) {
   selectedTable.value = name
   tableData.value = null
@@ -6141,14 +6207,6 @@ function selectTable(name) {
   currentOffset.value = 0
   if (activeTab.value === 'browse') loadData()
   else if (activeTab.value === 'schema') loadSchema()
-}
-
-// ── Cambio tab → carica i dati necessari ─────────────────────────
-function onTabChange(tab) {
-  activeTab.value = tab
-  if (!selectedTable.value) return
-  if (tab === 'browse' && !tableData.value) loadData()
-  if (tab === 'schema' && !tableSchema.value) loadSchema()
 }
 
 // ── Sfoglia dati ─────────────────────────────────────────────────
@@ -6163,7 +6221,7 @@ async function loadData() {
       ...data,
       columns: data.rows.length ? Object.keys(data.rows[0]) : [],
     }
-    browseDialogVisible.value = true   // apre dialog (se già aperta, rimane aperta)
+    browseDialogVisible.value = true
   } finally {
     loadingData.value = false
   }
@@ -6174,7 +6232,6 @@ function changePage(direction) {
   loadData()
 }
 
-/** Ricarica i dati dall'inizio (utile dopo DELETE/UPDATE esterni al DB Explorer) */
 function reloadData() {
   currentOffset.value = 0
   tableData.value = null
@@ -6196,44 +6253,102 @@ async function loadSchema() {
 // ── SQL Query ─────────────────────────────────────────────────────
 async function runQuery() {
   queryRunning.value = true
-  queryError.value = null
-  queryResult.value = null
+  queryError.value   = null
+  queryResult.value  = null
+  queryAbortCtrl     = new AbortController()
   try {
     const { data } = await api.post('/db/query', {
-      sql: customSql.value,
+      sql:   customSql.value,
       limit: queryLimit.value,
-    })
+    }, { signal: queryAbortCtrl.signal })
+
+    // Normalizza: aggiunge columns se mancante
+    if (data.rows && data.rows.length && !data.columns) {
+      data.columns = Object.keys(data.rows[0])
+    } else if (!data.columns) {
+      data.columns = []
+    }
+
     queryResult.value = data
     queryDialogVisible.value = true
   } catch (e) {
-    queryError.value = e.response?.data?.detail || e.message
+    if (e.name === 'CanceledError' || e.name === 'AbortError' || e.code === 'ERR_CANCELED') {
+      queryError.value = 'Query interrotta.'
+    } else {
+      queryError.value = e.response?.data?.detail || e.message
+    }
   } finally {
     queryRunning.value = false
+    queryAbortCtrl = null
   }
 }
 
-// ── Esporta CSV ───────────────────────────────────────────────────
-function exportCsv() {
-  if (!queryResult.value) return
-  const cols = queryResult.value.columns
-  const rows = queryResult.value.rows
-  const lines = [
-    cols.join(','),
-    ...rows.map(r => cols.map(c => JSON.stringify(r[c] ?? '')).join(','))
-  ]
-  const blob = new Blob([lines.join('\n')], { type: 'text/csv' })
+function cancelQuery() {
+  if (queryAbortCtrl) queryAbortCtrl.abort()
+  queryRunning.value = false
+}
+
+// ── Export CSV ────────────────────────────────────────────────────
+function _toCsv(columns, rows) {
+  const esc = v => {
+    if (v == null) return ''
+    const s = String(v)
+    return s.includes(',') || s.includes('"') || s.includes('\n')
+      ? `"${s.replace(/"/g, '""')}"` : s
+  }
+  return [
+    columns.map(esc).join(','),
+    ...rows.map(r => columns.map(c => esc(r[c])).join(',')),
+  ].join('\n')
+}
+
+function _download(content, filename, type = 'text/csv;charset=utf-8;') {
+  const blob = new Blob(['\uFEFF' + content], { type })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = 'query_result.csv'
+  a.download = filename
   a.click()
+  URL.revokeObjectURL(a.href)
+}
+
+function exportQueryCsv() {
+  if (!queryResult.value?.columns?.length) return
+  _download(_toCsv(queryResult.value.columns, queryResult.value.rows), 'query_result.csv')
+}
+
+function exportBrowseCsv() {
+  if (!tableData.value?.columns?.length) return
+  _download(_toCsv(tableData.value.columns, tableData.value.rows), `${selectedTable.value}.csv`)
+}
+
+// ── Export Excel (SheetJS via import dinamico) ────────────────────
+async function _exportXlsx(columns, rows, filename) {
+  try {
+    // Import dinamico da CDN — compatibile con script setup
+    const XLSX = await import('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.mjs')
+    const ws = XLSX.utils.json_to_sheet(rows.map(r => {
+      const obj = {}
+      columns.forEach(c => { obj[c] = r[c] ?? null })
+      return obj
+    }))
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Dati')
+    XLSX.writeFile(wb, filename)
+  } catch {
+    // Fallback CSV se l'import CDN fallisce (es. offline)
+    _download(_toCsv(columns, rows), filename.replace('.xlsx', '.csv'))
+  }
+}
+
+function exportQueryExcel() {
+  if (!queryResult.value?.columns?.length) return
+  _exportXlsx(queryResult.value.columns, queryResult.value.rows, 'query_result.xlsx')
 }
 
 // ── Formatters ────────────────────────────────────────────────────
 function formatCell(val) {
   if (val === null || val === undefined) return 'NULL'
-  if (typeof val === 'number') {
-    return Number.isInteger(val) ? val : val.toFixed(3)
-  }
+  if (typeof val === 'number') return Number.isInteger(val) ? val : val.toFixed(3)
   if (typeof val === 'string' && val.length > 60) return val.slice(0, 60) + '…'
   return val
 }
@@ -6243,16 +6358,13 @@ function formatCount(n) {
   return n.toLocaleString('it-IT')
 }
 
-// ── Montaggio ─────────────────────────────────────────────────────
-onMounted(loadTables)
-
-// Reagisce ai cambi tab con caricamento lazy
-import { watch } from 'vue'
+// ── Watchers + mount ──────────────────────────────────────────────
 watch(activeTab, (tab) => {
   if (!selectedTable.value) return
   if (tab === 'browse' && !tableData.value) loadData()
   if (tab === 'schema' && !tableSchema.value) loadSchema()
 })
+
 watch(selectedTable, () => {
   tableData.value = null
   tableSchema.value = null
@@ -6260,6 +6372,8 @@ watch(selectedTable, () => {
   if (activeTab.value === 'browse') loadData()
   if (activeTab.value === 'schema') loadSchema()
 })
+
+onMounted(loadTables)
 </script>
 
 <style scoped>
@@ -6267,20 +6381,8 @@ watch(selectedTable, () => {
   padding: 1.5rem 2rem;
   max-width: 1400px;
   margin: 0 auto;
-  /*
-   * FIX OVERFLOW VERTICALE
-   * --
-   * Invece di calc(100vh - 4rem) che dipende dall'altezza esatta
-   * della navbar, usiamo height: 100% e lasciamo che sia il
-   * contenitore genitore (router-view / layout wrapper) a
-   * definire l'altezza disponibile.
-   *
-   * Se il genitore non ha altezza fissa, lo forziamo qui con
-   * max-height + 100dvh (che su mobile esclude le barre browser).
-   * Cambia il valore 64px con l'altezza reale della tua navbar.
-   */
   height: 100%;
-  max-height: calc(100dvh - 64px);   /* 64px = altezza navbar; modifica se diversa */
+  max-height: calc(100dvh - 64px);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -6298,428 +6400,110 @@ watch(selectedTable, () => {
   padding: 1rem 1.25rem;
 }
 
-/* Layout */
 .explorer-layout {
   display: grid;
   grid-template-columns: 220px 1fr;
   gap: 1rem;
   flex: 1;
   overflow: hidden;
-  min-height: 0; /* fix: i children flex non si restringono senza questo */
-}
-
-/* Sidebar */
-.sidebar {
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
   min-height: 0;
-  /* FIX: height: 100% assicura che la sidebar non sfori il grid row */
-  height: 100%;
 }
 
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
+.sidebar { overflow-y: auto; display: flex; flex-direction: column; min-height: 0; height: 100%; }
+.sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
 .sidebar-header h3 { margin: 0; font-size: 0.95rem; }
-.btn-refresh {
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  cursor: pointer;
-  color: var(--text-muted, #888);
-}
+.btn-refresh { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted, #888); }
 .spin { display: inline-block; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .table-list { list-style: none; margin: 0; padding: 0; }
-.table-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.4rem 0.6rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: background 0.15s;
-}
+.table-item { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s; }
 .table-item:hover { background: var(--bg, #f3f4f6); }
-.table-item.active {
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-weight: 600;
-}
-.row-count {
-  font-size: 0.7rem;
-  color: var(--text-muted, #aaa);
-  background: var(--bg, #f3f4f6);
-  padding: 0.1rem 0.4rem;
-  border-radius: 10px;
-}
+.table-item.active { background: #eff6ff; color: #1d4ed8; font-weight: 600; }
+.row-count { font-size: 0.7rem; color: var(--text-muted, #aaa); background: var(--bg, #f3f4f6); padding: 0.1rem 0.4rem; border-radius: 10px; }
 
-/* Main */
-.main-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  overflow: hidden;
-  min-height: 0;
-  /* FIX: garantisce che il main non cresca oltre lo spazio disponibile */
-  height: 100%;
-}
+.main-content { display: flex; flex-direction: column; gap: 1rem; overflow: hidden; min-height: 0; height: 100%; }
 
-/* Tabs */
-.tab-bar {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  flex-shrink: 0;
-}
-.tab-btn {
-  padding: 0.35rem 1rem;
-  border: 1px solid var(--border, #e5e7eb);
-  background: var(--bg, #f9fafb);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: background 0.15s;
-}
+.tab-bar { display: flex; gap: 0.5rem; padding: 0.5rem 0.75rem; flex-shrink: 0; }
+.tab-btn { padding: 0.35rem 1rem; border: 1px solid var(--border, #e5e7eb); background: var(--bg, #f9fafb); border-radius: 6px; cursor: pointer; font-size: 0.875rem; transition: background 0.15s; }
 .tab-btn:hover { background: #eff6ff; }
-.tab-btn.active {
-  background: var(--primary, #3b82f6);
-  color: #fff;
-  border-color: var(--primary, #3b82f6);
-}
+.tab-btn.active { background: var(--primary, #3b82f6); color: #fff; border-color: var(--primary, #3b82f6); }
 
-/* Tab content */
-.tab-content {
-  flex: 1;
-  /*
-   * FIX OVERFLOW: overflow:auto sul contenitore esterno non basta
-   * se i figli non hanno altezza limitata. Usiamo overflow:hidden
-   * sul wrapper e lasciamo che solo .table-scroll scorra.
-   */
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  min-height: 0;
-}
-
-.empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--text-muted, #aaa);
-  font-size: 0.95rem;
-}
-
+.tab-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.75rem; min-height: 0; }
+.empty-state { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted, #aaa); font-size: 0.95rem; }
 .loading { color: var(--text-muted, #888); font-size: 0.9rem; }
 
-/* Browse */
-.browse-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.browse-header { display: flex; justify-content: space-between; align-items: center; }
 .browse-header h3 { margin: 0; }
 .browse-controls { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
 .browse-controls select { padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--border, #e5e7eb); }
 
-.table-info {
-  font-size: 0.8rem;
-  color: var(--text-muted, #888);
-}
+.table-info { font-size: 0.8rem; color: var(--text-muted, #888); }
+.table-scroll { overflow: auto; flex: 1; min-height: 0; }
 
-.table-scroll {
-  overflow: auto;
-  flex: 1;         /* FIX: cresce per riempire lo spazio residuo in .tab-content */
-  min-height: 0;   /* FIX: senza questo flex:1 non funziona in un flex column */
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.8rem;
-}
-.data-table th {
-  position: sticky;
-  top: 0;
-  background: var(--surface, #fff);
-  padding: 0.5rem 0.6rem;
-  text-align: left;
-  border-bottom: 2px solid var(--border, #e5e7eb);
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--text-muted, #666);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-}
-.data-table td {
-  padding: 0.35rem 0.6rem;
-  border-bottom: 1px solid var(--border, #f3f4f6);
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.data-table th { position: sticky; top: 0; background: var(--surface, #fff); padding: 0.5rem 0.6rem; text-align: left; border-bottom: 2px solid var(--border, #e5e7eb); font-weight: 600; white-space: nowrap; color: var(--text-muted, #666); font-size: 0.75rem; text-transform: uppercase; }
+.data-table td { padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--border, #f3f4f6); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .data-table tr:hover td { background: #f9fafb; }
 .null-val { color: #ccc; font-style: italic; }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  padding-top: 0.5rem;
-}
-.btn-page {
-  padding: 0.35rem 0.9rem;
-  border: 1px solid var(--border, #e5e7eb);
-  background: var(--bg, #f9fafb);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-.btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
-.page-info { font-size: 0.85rem; color: var(--text-muted, #888); }
-
-/* Schema */
-.schema-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-  margin-bottom: 1rem;
-}
-.schema-table th {
-  text-align: left;
-  padding: 0.45rem 0.6rem;
-  border-bottom: 2px solid var(--border, #e5e7eb);
-  font-weight: 600;
-  color: var(--text-muted, #666);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-}
+.schema-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 1rem; }
+.schema-table th { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 2px solid var(--border, #e5e7eb); font-weight: 600; color: var(--text-muted, #666); font-size: 0.75rem; text-transform: uppercase; }
 .schema-table td { padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--border, #f3f4f6); }
 .pk-row td { background: #fffbeb; }
 .yes { color: #10b981; } .no { color: #6b7280; }
 .indexes h4 { margin: 0.75rem 0 0.5rem; font-size: 0.9rem; }
 
-/* Query */
-.query-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.query-header { display: flex; justify-content: space-between; align-items: center; }
 .query-header h3 { margin: 0; }
-.query-notice {
-  font-size: 0.75rem;
-  background: #fef3c7;
-  color: #92400e;
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-}
+.query-notice { font-size: 0.75rem; background: #fef3c7; color: #92400e; padding: 0.2rem 0.6rem; border-radius: 4px; }
 
-.query-quick {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  align-items: center;
-}
+.query-quick { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
 .ql-label { font-size: 0.75rem; color: var(--text-muted, #888); font-weight: 600; }
-.ql-btn {
-  padding: 0.2rem 0.6rem;
-  border: 1px solid var(--border, #e5e7eb);
-  background: var(--bg, #f9fafb);
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.75rem;
-  transition: background 0.15s;
-}
+.ql-btn { padding: 0.2rem 0.6rem; border: 1px solid var(--border, #e5e7eb); background: var(--bg, #f9fafb); border-radius: 20px; cursor: pointer; font-size: 0.75rem; transition: background 0.15s; }
 .ql-btn:hover { background: #eff6ff; border-color: #93c5fd; }
 
-.sql-input {
-  width: 100%;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 8px;
-  font-family: 'Fira Code', 'Consolas', monospace;
-  font-size: 0.85rem;
-  line-height: 1.5;
-  resize: vertical;
-  background: #1e1e2e;
-  color: #cdd6f4;
-  box-sizing: border-box;
-}
+.sql-input { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.85rem; line-height: 1.5; resize: vertical; background: #1e1e2e; color: #cdd6f4; box-sizing: border-box; flex-shrink: 0; }
 
-.query-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.85rem;
-}
+.query-controls { display: flex; justify-content: space-between; align-items: center; gap: 1rem; font-size: 0.85rem; flex-shrink: 0; }
 .query-controls select { padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid var(--border, #e5e7eb); }
 
-.btn-run {
-  padding: 0.5rem 1.5rem;
-  background: var(--primary, #3b82f6);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-}
+.btn-run { padding: 0.5rem 1.5rem; background: var(--primary, #3b82f6); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
 .btn-run:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.query-error {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 0.6rem 0.9rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-family: monospace;
-}
+.btn-stop { padding: 0.5rem 1rem; background: #ef4444; color: #fff; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
+.btn-stop:hover { background: #dc2626; }
 
-.export-bar { display: flex; justify-content: flex-end; }
-.btn-export {
-  padding: 0.35rem 0.9rem;
-  border: 1px solid var(--border, #e5e7eb);
-  background: var(--bg, #f9fafb);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
+.query-error { background: #fee2e2; color: #991b1b; padding: 0.6rem 0.9rem; border-radius: 6px; font-size: 0.85rem; font-family: monospace; flex-shrink: 0; }
 
-/* ── Browse/Query action bar ───────────────────────────────── */
-.browse-actions {
-  display: flex;
-  gap: 0.6rem;
-  align-items: center;
-  margin: 0.25rem 0;
-}
-.btn-open-dialog {
-  padding: 0.4rem 1rem;
-  background: var(--primary, #3b82f6);
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
+.browse-actions { display: flex; gap: 0.6rem; align-items: center; margin: 0.25rem 0; flex-shrink: 0; }
+.pagination-inline { display: flex; gap: 0.4rem; }
+
+.btn-open-dialog { padding: 0.4rem 1rem; background: var(--primary, #3b82f6); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
 .btn-open-dialog:hover { background: #1d4ed8; }
+.btn-export { padding: 0.35rem 0.9rem; border: 1px solid var(--border, #e5e7eb); background: var(--bg, #f9fafb); border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+.btn-export:hover { background: #f0fdf4; border-color: #86efac; }
 
-.dialog-hint-inline {
-  font-size: 0.75rem;
-  color: var(--text-muted, #9ca3af);
-  margin: 0;
-}
+.dialog-hint-inline { font-size: 0.75rem; color: var(--text-muted, #9ca3af); margin: 0; flex-shrink: 0; }
 
-/* ── Dialog fullscreen per risultati DB ────────────────────── */
-.db-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1100;
-  padding: 1rem;
-}
+.btn-page { padding: 0.35rem 0.9rem; border: 1px solid var(--border, #e5e7eb); background: var(--bg, #f9fafb); border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+.btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.db-modal {
-  background: var(--surface, #fff);
-  border-radius: 14px;
-  width: min(1200px, 96vw);
-  height: min(90vh, 860px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-}
-
-.db-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.85rem 1.25rem;
-  border-bottom: 1px solid var(--border, #e5e7eb);
-  flex-shrink: 0;
-  gap: 1rem;
-}
-
-.db-modal-title {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
+.db-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 1100; padding: 1rem; }
+.db-modal { background: var(--surface, #fff); border-radius: 14px; width: min(1200px, 96vw); height: min(90vh, 860px); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.db-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--border, #e5e7eb); flex-shrink: 0; gap: 1rem; }
+.db-modal-title { display: flex; align-items: center; gap: 0.6rem; }
 .db-modal-title h3 { margin: 0; font-size: 1rem; }
-.db-modal-meta {
-  font-size: 0.78rem;
-  color: var(--text-muted, #9ca3af);
-  background: var(--bg, #f3f4f6);
-  padding: 0.15rem 0.6rem;
-  border-radius: 20px;
-}
-
-.db-modal-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.db-modal-select {
-  padding: 0.3rem 0.5rem;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 6px;
-  font-size: 0.82rem;
-}
-
-.db-modal-close {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: var(--text-muted, #6b7280);
-  line-height: 1;
-  padding: 0.2rem;
-}
+.db-modal-meta { font-size: 0.78rem; color: var(--text-muted, #9ca3af); background: var(--bg, #f3f4f6); padding: 0.15rem 0.6rem; border-radius: 20px; }
+.db-modal-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.db-modal-select { padding: 0.3rem 0.5rem; border: 1px solid var(--border, #e5e7eb); border-radius: 6px; font-size: 0.82rem; }
+.db-modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted, #6b7280); line-height: 1; padding: 0.2rem; }
 .db-modal-close:hover { color: #111; }
-
-.btn-reload {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.3rem 0.75rem;
-  border: 1px solid var(--border, #e5e7eb);
-  background: var(--bg, #f9fafb);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--primary, #3b82f6);
-}
+.btn-reload { display: flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.75rem; border: 1px solid var(--border, #e5e7eb); background: var(--bg, #f9fafb); border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--primary, #3b82f6); }
 .btn-reload:hover:not(:disabled) { background: #eff6ff; border-color: #93c5fd; }
 .btn-reload:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.db-modal-loading {
-  padding: 2rem;
-  text-align: center;
-  color: var(--text-muted, #888);
-}
-
-.db-modal-body {
-  flex: 1;
-  overflow: auto;
-  padding: 0;
-}
+.db-modal-loading { padding: 2rem; text-align: center; color: var(--text-muted, #888); }
+.db-modal-body { flex: 1; overflow: auto; padding: 0; }
 </style>
 
 
@@ -6728,31 +6512,21 @@ FILE: src\views\GlobalScoutingView.vue
 ============================================================
 <template>
   <div>
-    <!-- ── Header ─────────────────────────────────────────────── -->
     <h1 class="page-title">🔥 Scouting Globale</h1>
     <p style="color: var(--color-muted); margin-bottom: 1.5rem; font-size: .9rem;">
       Esplora liberamente il database, scopri talenti nascosti e confronta giocatori.
     </p>
 
-    <!-- ── Tab bar ────────────────────────────────────────────── -->
+    <!-- Tab bar -->
     <div class="tab-bar">
-      <button
-        v-for="tab in TABS"
-        :key="tab.id"
-        class="tab-btn"
-        :class="{ active: activeTab === tab.id }"
-        @click="switchTab(tab.id)"
-      >
+      <button v-for="tab in TABS" :key="tab.id" class="tab-btn" :class="{ active: activeTab === tab.id }" @click="switchTab(tab.id)">
         {{ tab.label }}
       </button>
     </div>
 
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- TAB: RICERCA ────────────────────────────────────────── -->
-    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- TAB: RICERCA -->
     <div v-if="activeTab === 'search'" class="card" style="margin-top:1.5rem">
       <h2 class="section-title">🔍 Ricerca avanzata</h2>
-
       <div class="filters-grid">
         <div class="filter-group">
           <label>Testo libero</label>
@@ -6760,7 +6534,9 @@ FILE: src\views\GlobalScoutingView.vue
         </div>
         <div class="filter-group">
           <label>Ruolo</label>
-          <input v-model="searchFilters.position" placeholder="Es: ST, CM, CB, GK" />
+          <select v-model="searchFilters.position">
+            <option v-for="opt in posOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
         </div>
         <div class="filter-group">
           <label>Nazionalità</label>
@@ -6800,11 +6576,16 @@ FILE: src\views\GlobalScoutingView.vue
             <option value="name">Nome</option>
             <option value="xg_per90">xG/90</option>
             <option value="xa_per90">xA/90</option>
+            <option value="npxg_per90">npxG/90</option>
             <option value="age">Età</option>
-            <option value="pace">Velocità</option>
-            <option value="shooting">Tiro</option>
-            <option value="passing">Passaggi</option>
-            <option value="dribbling">Dribbling</option>
+            <option value="finishing_score">Finishing score</option>
+            <option value="creativity_score">Creativity score</option>
+            <option value="pressing_score">Pressing score</option>
+            <option value="carrying_score">Carrying score</option>
+            <option value="finishing_pct">Finishing %ile</option>
+            <option value="creativity_pct">Creativity %ile</option>
+            <option value="minutes_season">Minuti</option>
+            <option value="goals_season">Goal</option>
           </select>
         </div>
         <div class="filter-group">
@@ -6824,7 +6605,6 @@ FILE: src\views\GlobalScoutingView.vue
           </select>
         </div>
       </div>
-
       <div style="margin-top:1rem; display:flex; gap:.75rem; flex-wrap:wrap;">
         <button class="btn btn-primary" @click="runSearch" :disabled="loading">
           {{ loading ? '⏳ Ricerca…' : '🔍 Cerca' }}
@@ -6833,16 +6613,15 @@ FILE: src\views\GlobalScoutingView.vue
       </div>
     </div>
 
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- TAB: RANKING ────────────────────────────────────────── -->
-    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- TAB: RANKING -->
     <div v-if="activeTab === 'ranking'" class="card" style="margin-top:1.5rem">
       <h2 class="section-title">🏆 Classifiche</h2>
-
       <div class="ranking-controls">
-        <div class="filter-group" style="max-width:180px">
+        <div class="filter-group" style="max-width:220px">
           <label>Filtra ruolo</label>
-          <input v-model="rankFilters.position" placeholder="ST, CM, CB…" />
+          <select v-model="rankFilters.position">
+            <option v-for="opt in posOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
         </div>
         <div class="filter-group" style="max-width:160px">
           <label>Minuti min</label>
@@ -6857,30 +6636,23 @@ FILE: src\views\GlobalScoutingView.vue
           </select>
         </div>
       </div>
-
       <div class="ranking-buttons">
-        <button class="btn btn-primary"  @click="runTopXG"         :disabled="loading">🎯 Top xG/90</button>
-        <button class="btn btn-success"  @click="runOverperforming" :disabled="loading">📈 Overperforming</button>
-        <button class="btn btn-danger"   @click="runUnderperforming":disabled="loading">📉 Underperforming</button>
+        <button class="btn btn-primary"  @click="runTopXG"          :disabled="loading">🎯 Top xG/90</button>
+        <button class="btn btn-success"  @click="runOverperforming"  :disabled="loading">📈 Overperforming</button>
+        <button class="btn btn-danger"   @click="runUnderperforming" :disabled="loading">📉 Underperforming</button>
       </div>
-
       <p v-if="rankingMode" class="rank-mode-label">
         Modalità: <strong>{{ rankingModeLabel }}</strong>
-        <span v-if="rankingMode === 'over' || rankingMode === 'under'">
-          — delta = goal segnati − xG stimati
-        </span>
+        <span v-if="rankingMode === 'over' || rankingMode === 'under'">— delta = goal segnati − xG stimati</span>
       </p>
     </div>
 
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- TAB: CONFRONTO ──────────────────────────────────────── -->
-    <!-- ════════════════════════════════════════════════════════ -->
+    <!-- TAB: CONFRONTO -->
     <div v-if="activeTab === 'compare'" class="card" style="margin-top:1.5rem">
       <h2 class="section-title">⚔️ Confronto giocatori</h2>
       <p style="color:var(--color-muted); font-size:.88rem; margin-bottom:1rem;">
         Inserisci il nome (o parte del nome) di due giocatori per confrontarli.
       </p>
-
       <div style="display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
         <div class="filter-group" style="flex:1; min-width:180px">
           <label>Giocatore 1</label>
@@ -6896,48 +6668,32 @@ FILE: src\views\GlobalScoutingView.vue
       </div>
     </div>
 
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- AREA RISULTATI ──────────────────────────────────────── -->
-    <!-- ════════════════════════════════════════════════════════ -->
-
     <!-- Spinner -->
     <div v-if="loading" class="spinner" style="margin-top:2rem"></div>
 
     <!-- Errore -->
     <div v-if="error" class="error-msg" style="margin-top:1rem">⚠️ {{ error }}</div>
 
-    <!-- Risultato COMPARE ──────────────────────────────────── -->
+    <!-- Risultato COMPARE -->
     <div v-if="compareResult && !loading && activeTab === 'compare'" class="card" style="margin-top:1.5rem">
       <h3 class="section-title">Risultato confronto</h3>
       <div class="compare-grid">
-        <!-- Intestazione -->
         <div class="compare-header">Metrica</div>
         <div class="compare-header player-col">{{ compareResult.player1.name }}</div>
         <div class="compare-header player-col">{{ compareResult.player2.name }}</div>
-
-        <!-- Riga info -->
         <template v-for="row in compareRows" :key="row.key">
           <div class="compare-metric">{{ row.label }}</div>
-          <div class="compare-val" :class="cellClass(row.key, 'p1')">
-            {{ fmtVal(compareResult.player1[row.key]) }}
-          </div>
-          <div class="compare-val" :class="cellClass(row.key, 'p2')">
-            {{ fmtVal(compareResult.player2[row.key]) }}
-          </div>
+          <div class="compare-val" :class="cellClass(row.key, 'p1')">{{ fmtVal(compareResult.player1[row.key]) }}</div>
+          <div class="compare-val" :class="cellClass(row.key, 'p2')">{{ fmtVal(compareResult.player2[row.key]) }}</div>
         </template>
       </div>
     </div>
 
-    <!-- Tabella risultati (search + ranking) ───────────────── -->
-    <div
-      v-if="players.length && !loading && activeTab !== 'compare'"
-      class="card"
-      style="margin-top:1.5rem; overflow-x:auto"
-    >
+    <!-- Tabella risultati (search + ranking) -->
+    <div v-if="players.length && !loading && activeTab !== 'compare'" class="card" style="margin-top:1.5rem; overflow-x:auto">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
         <h3 class="section-title" style="margin-bottom:0">{{ players.length }} risultati</h3>
       </div>
-
       <table class="data-table">
         <thead>
           <tr>
@@ -6957,7 +6713,12 @@ FILE: src\views\GlobalScoutingView.vue
         <tbody>
           <tr v-for="p in players" :key="p.id ?? p.name">
             <td class="name-cell">{{ p.name }}</td>
-            <td><span class="badge badge-blue">{{ p.position ?? '—' }}</span></td>
+            <td>
+              <div class="pos-cell">
+                <span class="badge badge-blue pos-code">{{ p.position ?? '—' }}</span>
+                <span class="pos-desc">{{ posLabel(p.position) }}</span>
+              </div>
+            </td>
             <td>{{ p.club ?? '—' }}</td>
             <td>{{ p.nationality ?? '—' }}</td>
             <td>{{ p.age ?? '—' }}</td>
@@ -6970,18 +6731,14 @@ FILE: src\views\GlobalScoutingView.vue
                 {{ p.delta != null ? (p.delta > 0 ? '+' : '') + p.delta : '—' }}
               </td>
             </template>
-            <td class="stat-cell">{{ p.minutes ?? '—' }}</td>
+            <td class="stat-cell">{{ p.minutes ?? p.minutes_season ?? '—' }}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <!-- Placeholder vuoto -->
-    <div
-      v-if="!players.length && !compareResult && !loading && !error"
-      class="card empty-state"
-      style="margin-top:1.5rem; text-align:center; color:var(--color-muted); padding:3rem;"
-    >
+    <div v-if="!players.length && !compareResult && !loading && !error" class="card empty-state" style="margin-top:1.5rem; text-align:center; color:var(--color-muted); padding:3rem;">
       <div style="font-size:3rem; margin-bottom:.5rem">🔭</div>
       <p>Usa i filtri in alto per esplorare il database dei giocatori.</p>
     </div>
@@ -6991,8 +6748,8 @@ FILE: src\views\GlobalScoutingView.vue
 <script setup>
 import { ref, computed } from 'vue'
 import { globalScoutingApi } from '@/api/client'
+import { posLabel, posOptions } from '@/utils/positions.js'
 
-// ── Tab ──────────────────────────────────────────────────────────
 const TABS = [
   { id: 'search',  label: '🔍 Ricerca' },
   { id: 'ranking', label: '🏆 Ranking' },
@@ -7002,76 +6759,73 @@ const activeTab = ref('search')
 
 function switchTab(id) {
   activeTab.value = id
-  error.value     = null
-  // Non svuota i risultati per permettere confronto tra tab
+  error.value = null
 }
 
-// ── State ────────────────────────────────────────────────────────
 const players       = ref([])
 const compareResult = ref(null)
 const loading       = ref(false)
 const error         = ref(null)
-const rankingMode   = ref('')   // '' | 'topxg' | 'over' | 'under'
+const rankingMode   = ref('')
 
-// ── Filtri ricerca ────────────────────────────────────────────────
 const searchFilters = ref({
-  q:             '',
-  position:      '',
-  nationality:   '',
-  club:          '',
-  min_age:       null,
-  max_age:       null,
-  min_xg:        null,
-  min_xa:        null,
-  preferred_foot:'',
-  sort_by:       'name',
-  sort_dir:      'asc',
-  limit:         50,
+  q: '', position: '', nationality: '', club: '',
+  min_age: null, max_age: null, min_xg: null, min_xa: null,
+  preferred_foot: '', sort_by: 'name', sort_dir: 'asc', limit: 50,
 })
 
-// ── Filtri ranking ────────────────────────────────────────────────
-const rankFilters = ref({
-  position:    '',
-  min_minutes: 300,
-  limit:       20,
-})
-
-// ── Filtri confronto ──────────────────────────────────────────────
+const rankFilters = ref({ position: '', min_minutes: 300, limit: 20 })
 const compareName1 = ref('')
 const compareName2 = ref('')
 
-// ── Computed ──────────────────────────────────────────────────────
-const showDeltaCol = computed(
-  () => rankingMode.value === 'over' || rankingMode.value === 'under'
-)
-
+const showDeltaCol = computed(() => rankingMode.value === 'over' || rankingMode.value === 'under')
 const rankingModeLabel = computed(() => ({
-  topxg: 'Top xG/90',
-  over:  'Overperforming',
-  under: 'Underperforming',
+  topxg: 'Top xG/90', over: 'Overperforming', under: 'Underperforming',
 }[rankingMode.value] ?? ''))
 
-// ── Righe per la tabella compare ──────────────────────────────────
+// Compare rows — usa solo colonne realmente nel modello aggiornato
 const compareRows = [
-  { key: 'position',             label: 'Ruolo' },
-  { key: 'club',                 label: 'Club' },
-  { key: 'nationality',          label: 'Nazionalità' },
-  { key: 'age',                  label: 'Età' },
-  { key: 'pace',                 label: 'Velocità' },
-  { key: 'shooting',             label: 'Tiro' },
-  { key: 'passing',              label: 'Passaggi' },
-  { key: 'dribbling',            label: 'Dribbling' },
-  { key: 'defending',            label: 'Difesa' },
-  { key: 'physical',             label: 'Fisico' },
-  { key: 'xg_per90',             label: 'xG/90' },
-  { key: 'xa_per90',             label: 'xA/90' },
-  { key: 'heading_score',        label: 'Testa' },
-  { key: 'build_up_score',       label: 'Build-up' },
-  { key: 'defensive_score',      label: 'Score difensivo' },
+  { key: 'position',            label: 'Ruolo' },
+  { key: 'club',                label: 'Club' },
+  { key: 'nationality',         label: 'Nazionalità' },
+  { key: 'age',                 label: 'Età' },
+  // xG / xA
+  { key: 'xg_per90',            label: 'xG/90' },
+  { key: 'xa_per90',            label: 'xA/90' },
+  { key: 'npxg_per90',          label: 'npxG/90' },
+  { key: 'xgchain_per90',       label: 'xGChain/90' },
+  { key: 'xgbuildup_per90',     label: 'xGBuildup/90' },
+  // Score oggettivi (Fase 3)
+  { key: 'finishing_score',     label: 'Finishing score' },
+  { key: 'creativity_score',    label: 'Creativity score' },
+  { key: 'pressing_score',      label: 'Pressing score' },
+  { key: 'carrying_score',      label: 'Carrying score' },
+  { key: 'defending_obj_score', label: 'Defending score' },
+  { key: 'buildup_obj_score',   label: 'Build-up score' },
+  // Percentili (Fase 4)
+  { key: 'finishing_pct',       label: 'Finishing %ile' },
+  { key: 'creativity_pct',      label: 'Creativity %ile' },
+  { key: 'pressing_pct',        label: 'Pressing %ile' },
+  { key: 'carrying_pct',        label: 'Carrying %ile' },
+  { key: 'defending_pct',       label: 'Defending %ile' },
+  { key: 'buildup_pct',         label: 'Build-up %ile' },
+  // Duelli
   { key: 'aerial_duels_won_pct', label: 'Duelli aerei %' },
+  { key: 'duels_won_pct',        label: 'Duelli vinti %' },
+  // Progressione
+  { key: 'progressive_passes',  label: 'Passaggi progressivi' },
+  { key: 'progressive_carries', label: 'Conduzioni progressive' },
 ]
 
-// ── Helpers UI ────────────────────────────────────────────────────
+const NUMERIC_KEYS = new Set([
+  'xg_per90','xa_per90','npxg_per90','xgchain_per90','xgbuildup_per90',
+  'finishing_score','creativity_score','pressing_score','carrying_score',
+  'defending_obj_score','buildup_obj_score',
+  'finishing_pct','creativity_pct','pressing_pct','carrying_pct','defending_pct','buildup_pct',
+  'aerial_duels_won_pct','duels_won_pct',
+  'progressive_passes','progressive_carries',
+])
+
 function fmtStat(v) {
   if (v == null) return '—'
   return typeof v === 'number' ? v.toFixed(2) : v
@@ -7088,15 +6842,8 @@ function deltaClass(delta) {
   return delta > 0 ? 'delta-positive' : delta < 0 ? 'delta-negative' : ''
 }
 
-// Colora la cella del confronto: verde = valore più alto
 function cellClass(key, side) {
-  if (!compareResult.value) return ''
-  const numericKeys = [
-    'pace','shooting','passing','dribbling','defending','physical',
-    'xg_per90','xa_per90','heading_score','build_up_score',
-    'defensive_score','aerial_duels_won_pct','progressive_passes',
-  ]
-  if (!numericKeys.includes(key)) return ''
+  if (!compareResult.value || !NUMERIC_KEYS.has(key)) return ''
   const v1 = compareResult.value.player1[key]
   const v2 = compareResult.value.player2[key]
   if (v1 == null || v2 == null) return ''
@@ -7105,26 +6852,16 @@ function cellClass(key, side) {
   return ''
 }
 
-// ── Azioni API ────────────────────────────────────────────────────
 async function runSearch() {
-  loading.value  = true
-  error.value    = null
-  compareResult.value = null
-  rankingMode.value   = ''
+  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = ''
   try {
-    // Pulisce i parametri vuoti/null prima di inviare
     const params = Object.fromEntries(
-      Object.entries(searchFilters.value).filter(
-        ([, v]) => v !== null && v !== '' && v !== undefined
-      )
+      Object.entries(searchFilters.value).filter(([, v]) => v !== null && v !== '' && v !== undefined)
     )
     const { data } = await globalScoutingApi.search(params)
     players.value = data
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { error.value = e.message }
+  finally { loading.value = false }
 }
 
 function resetSearch() {
@@ -7133,96 +6870,66 @@ function resetSearch() {
     min_age: null, max_age: null, min_xg: null, min_xa: null,
     preferred_foot: '', sort_by: 'name', sort_dir: 'asc', limit: 50,
   }
-  players.value = []
-  error.value   = null
+  players.value = []; error.value = null
 }
 
 async function runTopXG() {
-  loading.value = true
-  error.value   = null
-  compareResult.value = null
-  rankingMode.value   = 'topxg'
+  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = 'topxg'
   try {
     const { data } = await globalScoutingApi.topXg({
-      limit:       rankFilters.value.limit,
+      limit: rankFilters.value.limit,
       min_minutes: rankFilters.value.min_minutes,
-      position:    rankFilters.value.position || undefined,
+      position: rankFilters.value.position || undefined,
     })
     players.value = data
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { error.value = e.message }
+  finally { loading.value = false }
 }
 
 async function runOverperforming() {
-  loading.value = true
-  error.value   = null
-  compareResult.value = null
-  rankingMode.value   = 'over'
+  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = 'over'
   try {
     const { data } = await globalScoutingApi.overperforming({
-      limit:       rankFilters.value.limit,
+      limit: rankFilters.value.limit,
       min_minutes: rankFilters.value.min_minutes,
-      position:    rankFilters.value.position || undefined,
+      position: rankFilters.value.position || undefined,
     })
     players.value = data
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { error.value = e.message }
+  finally { loading.value = false }
 }
 
 async function runUnderperforming() {
-  loading.value = true
-  error.value   = null
-  compareResult.value = null
-  rankingMode.value   = 'under'
+  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = 'under'
   try {
     const { data } = await globalScoutingApi.underperforming({
-      limit:       rankFilters.value.limit,
+      limit: rankFilters.value.limit,
       min_minutes: rankFilters.value.min_minutes,
-      position:    rankFilters.value.position || undefined,
+      position: rankFilters.value.position || undefined,
     })
     players.value = data
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { error.value = e.message }
+  finally { loading.value = false }
 }
 
 async function runCompare() {
   if (!compareName1.value || !compareName2.value) return
-  loading.value  = true
-  error.value    = null
-  players.value  = []
-  compareResult.value = null
+  loading.value = true; error.value = null; players.value = []; compareResult.value = null
   try {
-    const { data } = await globalScoutingApi.compare(
-      compareName1.value,
-      compareName2.value
-    )
+    const { data } = await globalScoutingApi.compare(compareName1.value, compareName2.value)
     compareResult.value = data
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { error.value = e.message }
+  finally { loading.value = false }
 }
 </script>
 
 <style scoped>
-/* ── Tab bar ─────────────────────────────────────────────────── */
 .tab-bar {
   display: flex;
   gap: .5rem;
   border-bottom: 1px solid var(--color-border);
   padding-bottom: 0;
 }
-
 .tab-btn {
   padding: .55rem 1.3rem;
   border: none;
@@ -7236,67 +6943,24 @@ async function runCompare() {
   border-radius: var(--radius) var(--radius) 0 0;
 }
 .tab-btn:hover { color: var(--color-text); }
-.tab-btn.active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
-}
+.tab-btn.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
 
-/* ── Sezioni ─────────────────────────────────────────────────── */
-.section-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: var(--color-text);
-}
+.section-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-text); }
 
-/* ── Filtri ──────────────────────────────────────────────────── */
 .filters-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: .75rem;
 }
+.filter-group { display: flex; flex-direction: column; gap: .3rem; }
+.filter-group label { font-size: .78rem; font-weight: 600; color: var(--color-muted); text-transform: uppercase; letter-spacing: .04em; }
 
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: .3rem;
-}
-.filter-group label {
-  font-size: .78rem;
-  font-weight: 600;
-  color: var(--color-muted);
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
+.ranking-controls { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.ranking-buttons { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: .75rem; }
+.rank-mode-label { margin-top: .75rem; font-size: .85rem; color: var(--color-muted); }
 
-/* ── Ranking ─────────────────────────────────────────────────── */
-.ranking-controls {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.ranking-buttons {
-  display: flex;
-  gap: .75rem;
-  flex-wrap: wrap;
-  margin-top: .75rem;
-}
-
-.rank-mode-label {
-  margin-top: .75rem;
-  font-size: .85rem;
-  color: var(--color-muted);
-}
-
-/* ── Tabella ─────────────────────────────────────────────────── */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: .875rem;
-}
-
+/* Tabella risultati */
+.data-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
 .data-table th {
   text-align: left;
   padding: .6rem .9rem;
@@ -7309,30 +6973,26 @@ async function runCompare() {
   border-bottom: 1px solid var(--color-border);
   white-space: nowrap;
 }
-
 .data-table td {
   padding: .6rem .9rem;
   border-bottom: 1px solid rgba(255,255,255,.04);
   vertical-align: middle;
+  color: var(--color-text);
 }
-
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: rgba(255,255,255,.02); }
+.data-table tr:hover td { background: rgba(255,255,255,.03); }
 
-.name-cell { font-weight: 600; }
-.stat-cell { font-family: 'Fira Code', monospace; font-size: .82rem; }
+.name-cell { font-weight: 600; color: var(--color-text) !important; }
+.stat-cell { font-family: 'Fira Code', monospace; font-size: .82rem; color: var(--color-text) !important; font-weight: 600; }
+.delta-positive { color: var(--color-success) !important; font-weight: 700; }
+.delta-negative { color: var(--color-danger) !important; font-weight: 700; }
 
-.delta-positive { color: var(--color-success); font-weight: 700; }
-.delta-negative { color: var(--color-danger);  font-weight: 700; }
+.pos-cell { display: flex; align-items: center; gap: .5rem; }
+.pos-code { font-size: .7rem; flex-shrink: 0; }
+.pos-desc { font-size: .78rem; color: var(--color-muted); }
 
-/* ── Compare table ───────────────────────────────────────────── */
-.compare-grid {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr;
-  gap: 0;
-  font-size: .88rem;
-}
-
+/* Compare table */
+.compare-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 0; font-size: .88rem; }
 .compare-header {
   padding: .65rem 1rem;
   font-size: .75rem;
@@ -7343,14 +7003,7 @@ async function runCompare() {
   background: rgba(255,255,255,.04);
   border-bottom: 1px solid var(--color-border);
 }
-
-.compare-metric {
-  padding: .55rem 1rem;
-  color: var(--color-muted);
-  font-size: .82rem;
-  border-bottom: 1px solid rgba(255,255,255,.04);
-}
-
+.compare-metric { padding: .55rem 1rem; color: var(--color-muted); font-size: .82rem; border-bottom: 1px solid rgba(255,255,255,.04); }
 .compare-val {
   padding: .55rem 1rem;
   font-family: 'Fira Code', monospace;
@@ -7358,12 +7011,13 @@ async function runCompare() {
   border-bottom: 1px solid rgba(255,255,255,.04);
   border-left: 1px solid rgba(255,255,255,.04);
   text-align: center;
+  color: var(--color-text);
 }
-
 .player-col { text-align: center; font-weight: 700; color: var(--color-text); }
+.cell-win  { color: var(--color-success) !important; font-weight: 700; }
+.cell-lose { color: var(--color-danger) !important; }
 
-.cell-win  { color: var(--color-success); font-weight: 700; }
-.cell-lose { color: var(--color-danger); }
+.empty-state { color: var(--color-muted); }
 </style>
 
 
@@ -7416,10 +7070,9 @@ FILE: src\views\ScoutingSearch.vue
           <div>
             <label class="form-label">Posizione</label>
             <select v-model="filters.position">
-              <option value="">Tutte</option>
-              <option>GK</option><option>CB</option><option>LB</option><option>RB</option>
-              <option>DM</option><option>CM</option><option>AM</option>
-              <option>LW</option><option>RW</option><option>ST</option>
+              <option v-for="opt in posOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
             </select>
           </div>
           <div>
@@ -7471,6 +7124,7 @@ import { useRoute } from 'vue-router'
 import { useScoutingStore } from '@/stores/scoutingStore'
 import { useTeamStore }     from '@/stores/teamStore'
 import PlayerCard from '@/components/PlayerCard.vue'
+import { posOptions } from '@/utils/positions.js'
 
 const scoutingStore = useScoutingStore()
 const teamStore     = useTeamStore()
@@ -7641,11 +7295,11 @@ FILE: src\views\TeamRoster.vue
           </div>
           <div>
             <label class="form-label">Posizione</label>
+            <!-- Select con codice + descrizione -->
             <select v-model="form.position">
-              <option value="">—</option>
-              <option>GK</option><option>CB</option><option>LB</option><option>RB</option>
-              <option>DM</option><option>CM</option><option>AM</option>
-              <option>LW</option><option>RW</option><option>ST</option>
+              <option v-for="opt in posOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
             </select>
           </div>
           <div>
@@ -7675,7 +7329,7 @@ FILE: src\views\TeamRoster.vue
           <thead>
             <tr style="border-bottom:1px solid var(--color-border)">
               <th class="th">Giocatore</th>
-              <th class="th">Posizione</th>
+              <th class="th">Ruolo</th>
               <th class="th">Età</th>
               <th class="th">Piede</th>
               <th class="th">Rating</th>
@@ -7684,10 +7338,17 @@ FILE: src\views\TeamRoster.vue
           </thead>
           <tbody>
             <tr v-for="p in players" :key="p.id" style="border-bottom:1px solid var(--color-border)">
-              <td class="td" style="font-weight:600">{{ p.name }}</td>
-              <td class="td"><span class="badge badge-blue">{{ p.position || '—' }}</span></td>
+              <td class="td name-cell">{{ p.name }}</td>
+              <td class="td">
+                <div class="pos-cell">
+                  <!-- Badge con codice tecnico -->
+                  <span class="badge badge-blue pos-code">{{ p.position || '—' }}</span>
+                  <!-- Descrizione ruolo per esteso -->
+                  <span class="pos-desc">{{ posLabel(p.position) }}</span>
+                </div>
+              </td>
               <td class="td">{{ p.age || '—' }}</td>
-              <td class="td">{{ p.preferred_foot || '—' }}</td>
+              <td class="td">{{ footLabel(p.preferred_foot) }}</td>
               <td class="td">
                 <span v-if="p.rating" :style="`color:${ratingColor(p.rating)}`">
                   {{ p.rating.toFixed(1) }}
@@ -7695,8 +7356,11 @@ FILE: src\views\TeamRoster.vue
                 <span v-else>—</span>
               </td>
               <td class="td">
-                <button class="btn btn-danger" style="padding:.3rem .7rem; font-size:.8rem"
-                  @click="removePlayer(p)">✕</button>
+                <button
+                  class="btn btn-danger"
+                  style="padding:.3rem .7rem; font-size:.8rem"
+                  @click="removePlayer(p)"
+                >✕</button>
               </td>
             </tr>
           </tbody>
@@ -7710,6 +7374,7 @@ FILE: src\views\TeamRoster.vue
 import { ref, onMounted } from 'vue'
 import { useTeamStore } from '@/stores/teamStore'
 import { rosterApi }    from '@/api/client'
+import { posLabel, posOptions } from '@/utils/positions.js'
 
 const teamStore = useTeamStore()
 const players   = ref([])
@@ -7735,6 +7400,11 @@ async function removePlayer(p) {
   players.value = players.value.filter(x => x.id !== p.id)
 }
 
+function footLabel(foot) {
+  const map = { Right: 'Destro', Left: 'Mancino' }
+  // Usiamo le parentesi per dire a JS di valutare prima il ??
+  return (map[foot] ?? foot) || '—'
+}
 function ratingColor(r) {
   if (r >= 80) return 'var(--color-success)'
   if (r >= 65) return 'var(--color-warning)'
@@ -7743,9 +7413,39 @@ function ratingColor(r) {
 </script>
 
 <style scoped>
-.form-label { display:block; font-size:.8rem; color:var(--color-muted); margin-bottom:.3rem; }
-.th { text-align:left; padding:.6rem 1rem; font-size:.8rem; color:var(--color-muted); text-transform:uppercase; letter-spacing:.05em; }
-.td { padding:.75rem 1rem; font-size:.9rem; }
+.form-label {
+  display: block;
+  font-size: .8rem;
+  color: var(--color-muted);
+  margin-bottom: .3rem;
+}
+.th {
+  text-align: left;
+  padding: .6rem 1rem;
+  font-size: .8rem;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.td { padding: .75rem 1rem; font-size: .9rem; }
+.name-cell { font-weight: 600; }
+
+/* Ruolo: badge codice + testo descrizione affiancati */
+.pos-cell {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.pos-code {
+  font-size: .72rem;
+  flex-shrink: 0;
+  font-family: 'Fira Code', monospace;
+  letter-spacing: .03em;
+}
+.pos-desc {
+  font-size: .82rem;
+  color: var(--color-muted);
+}
 </style>
 
 
