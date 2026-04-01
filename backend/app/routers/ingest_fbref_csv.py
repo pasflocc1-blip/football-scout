@@ -90,6 +90,8 @@ async def import_fbref_csv_upload(
     if league_key not in FBREF_LEAGUES:
         raise HTTPException(400, f"Lega non supportata: {league_key}")
 
+    print(f"  INFO: csv-upload filename: {file.filename}")
+
     content = await file.read()
     csv_text = content.decode("utf-8", errors="replace")
 

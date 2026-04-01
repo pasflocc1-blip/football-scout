@@ -1,28 +1,32 @@
 """
-sources/fbref_source.py  — v3.0
+sources/fbref_source.py  — v4.0
 ---------------------------------
+NOVITÀ v4.0:
+  - FIX colonna progressive_passes (PrgP): ora richiede esplicitamente la tabella
+    "Passing" di FBref (che contiene PrgP), non solo la tabella Standard Stats.
+  - La tabella Standard Stats NON contiene PrgP. La colonna si trova in:
+      → fbref.com → lega → "Passing" stats (table id="stats_passing")
+  - Aggiunta funzione import_from_multi_csv() per importare più tabelle insieme.
+  - Aggiornata logica _process_fbref_df() con mappatura colonne ampliata.
+
 STRATEGIA ANTI-403 (Docker/VPS):
-
-FBref usa Cloudflare e blocca sistematicamente le richieste da IP
-datacenter/Docker. Ci sono tre approcci, in ordine di affidabilità:
-
-  APPROCCIO A — CSV Upload (CONSIGLIATO, 100% affidabile)
+  APPROCCIO A — CSV Upload MULTI-TABELLA (CONSIGLIATO, 100% affidabile)
     1. Vai su fbref.com con il browser
-    2. Apri la pagina statistiche della lega
-    3. Clicca "Share & Export" → "Get table as CSV"
-    4. Incolla il CSV nell'endpoint POST /ingest/fbref/csv
-    → Nessun problema di rete, funziona sempre
+    2. Standard Stats: Share & Export → Get table as CSV  (gls, ast, xg, min, mp)
+    3. Passing Stats:  Share & Export → Get table as CSV  (PrgP ← colonna mancante!)
+    4. Incolla ENTRAMBI nell'endpoint POST /ingest/fbref/csv
+    → La tabella Passing è fondamentale per avere progressive_passes (PrgP)
 
-  APPROCCIO B — Scraping con Playwright (affidabile, richiede installazione)
-    Usa un browser headless reale che bypassa Cloudflare.
-    Installa: pip install playwright && playwright install chromium
+  APPROCCIO B — Playwright (affidabile, richiede installazione)
+    Ora scarica ENTRAMBE le tabelle (Standard + Passing) in un'unica sessione.
 
-  APPROCCIO C — cloudscraper + retry (parzialmente affidabile)
-    Funziona talvolta da reti residenziali, quasi mai da Docker/VPS.
+  APPROCCIO C — cloudscraper/requests (parzialmente affidabile)
+    Spesso fallisce con 403 da Docker/VPS.
 """
 
 import time
 import io
+import re
 from datetime import datetime
 from io import StringIO
 
@@ -72,88 +76,153 @@ FBREF_LEAGUES = {
     "primeira_liga":    {"id": 32, "slug": "Primeira-Liga"},
 }
 
+# Tabelle FBref che ci interessano e i loro ID HTML
+FBREF_TABLES = {
+    "standard": "stats_standard",
+    "passing":  "stats_passing",   # ← contiene PrgP!
+    "shooting": "stats_shooting",
+    "misc":     "stats_misc",
+    "keeper":   "stats_keeper",
+    "playing_time": "stats_playing_time",
+}
+
 
 # ═══════════════════════════════════════════════════════════════════
-# APPROCCIO A — Import da CSV (100% affidabile, consigliato)
+# APPROCCIO A — Import da CSV (100% affidabile, MULTI-TABELLA)
 # ═══════════════════════════════════════════════════════════════════
 
-def import_from_csv_text(db: Session, csv_text: str, league_key: str = "serie_a", progress_cb=None) -> dict:
+def import_from_csv_text(
+    db: Session,
+    csv_text: str,
+    league_key: str = "serie_a",
+    progress_cb=None
+) -> dict:
     """
-    Importa le statistiche FBref da testo CSV copiato direttamente dalla pagina FBref.
+    Importa le statistiche FBref da testo CSV (singola tabella Standard Stats).
 
-    Come ottenere il CSV:
-      1. Vai su https://fbref.com/en/comps/11/stats/Serie-A-Stats
-      2. Clicca "Share & Export" (sotto la tabella) → "Get table as CSV"
-      3. Copia tutto il testo
-      4. Incollalo in DataIngestion.vue → sezione FBref CSV
+    PER AVERE PrgP (Progressive Passes) devi usare import_from_multi_csv()
+    con sia la tabella Standard sia la tabella Passing.
 
-    Il CSV di FBref ha alcune righe di commento (iniziano con #) da ignorare.
+    Come ottenere il CSV Passing:
+      1. https://fbref.com/en/comps/11/passing/Serie-A-Stats
+      2. Clicca "Share & Export" → "Get table as CSV"
+      3. Incolla in DataIngestion.vue → sezione FBref CSV
     """
     if not _DEPS_OK:
         raise ImportError("pandas non installato — aggiungi 'pandas>=2.0' a requirements.txt")
 
-    import pandas as pd
-    import re
-
-    # --- PULIZIA DEL CSV (Fondamentale per il tuo file) ---
-    # 1. Rimuoviamo le virgolette esterne che incapsulano le righe
-    lines = csv_text.strip().split('\n')
-    clean_lines = []
-    for line in lines:
-        l = line.strip()
-        if l.startswith('"') and l.endswith('"'):
-            l = l[1:-1]  # Rimuove il primo e l'ultimo carattere
-        clean_lines.append(l)
-
-    # Rimuove righe commento FBref (iniziano con #)
-    lines = [l for l in csv_text.splitlines() if not l.startswith("#") and l.strip()]
-    if not lines:
-        raise ValueError("CSV vuoto o non valido")
-
-    clean_csv = "\n".join(lines)
-
-    # 3. FIX CRUCIALE: Rimuoviamo le virgole usate come separatori delle migliaia (es. "1,500" -> "1500")
-    # Questo evita l'errore "Expected 25 fields, saw 26"
-    csv_text = re.sub(r'(\d),(\d{3})', r'\1\2', csv_text)
-
-    try:
-        df = pd.read_csv(StringIO(clean_csv))
-    except Exception as e:
-        raise ValueError(f"Errore nel parsing del CSV: {e}")
-
-    # Rimuoviamo righe di intestazione ripetute (comuni in FBref)
-    if 'Player' in df.columns:
-        df = df[df['Player'] != 'Player']
-    else:
-        raise ValueError(f"Colonna 'Player' non trovata. Colonne attuali: {list(df.columns)}")
-
+    df = _parse_fbref_csv(csv_text)
     print(f"  -> FBref CSV: {len(df)} righe, colonne: {list(df.columns[:10])}")
+    return _process_fbref_df(db, df, league_key, source="csv", progress_cb=progress_cb)
 
-    return _process_fbref_df(db, df, league_key, source="csv", progress_cb=None)
+
+def import_from_multi_csv(
+    db: Session,
+    csv_standard: str,
+    csv_passing: str,
+    league_key: str = "serie_a",
+    csv_shooting: str = None,
+    csv_misc: str = None,
+    progress_cb=None,
+) -> dict:
+    """
+    ✅ METODO CONSIGLIATO — Importa da più tabelle CSV di FBref.
+
+    Unisce Standard Stats + Passing Stats per avere la colonna PrgP
+    (progressive_passes) che mancava nella versione precedente.
+
+    Come usarlo:
+      1. Standard Stats: https://fbref.com/en/comps/11/stats/Serie-A-Stats
+         → Share & Export → Get table as CSV
+      2. Passing Stats:  https://fbref.com/en/comps/11/passing/Serie-A-Stats
+         → Share & Export → Get table as CSV
+      3. Passa entrambi a questo endpoint.
+
+    Args:
+        csv_standard: testo CSV dalla tabella Standard Stats
+        csv_passing:  testo CSV dalla tabella Passing Stats (contiene PrgP!)
+        csv_shooting: (opzionale) testo CSV dalla tabella Shooting Stats
+        csv_misc:     (opzionale) testo CSV dalla tabella Misc Stats
+    """
+    if not _DEPS_OK:
+        raise ImportError("pandas non installato")
+
+    df_std  = _parse_fbref_csv(csv_standard)
+    df_pass = _parse_fbref_csv(csv_passing)
+
+    # Colonne chiave di join
+    join_keys = ["Player", "Squad"]
+    # Verifica che le colonne di join esistano
+    for key in join_keys:
+        if key not in df_std.columns:
+            raise ValueError(f"Colonna '{key}' non trovata nella tabella Standard. Colonne: {list(df_std.columns[:10])}")
+        if key not in df_pass.columns:
+            raise ValueError(f"Colonna '{key}' non trovata nella tabella Passing. Colonne: {list(df_pass.columns[:10])}")
+
+    # Estrai solo PrgP dalla tabella Passing (+ chiavi di join)
+    prgp_col = _find_col_in_df(df_pass, ["PrgP", "Prog", "Progression_PrgP"])
+    prgc_col = _find_col_in_df(df_pass, ["PrgC", "Progression_PrgC"])
+
+    pass_cols = join_keys.copy()
+    if prgp_col:
+        pass_cols.append(prgp_col)
+    if prgc_col:
+        pass_cols.append(prgc_col)
+
+    df_pass_slim = df_pass[pass_cols].copy()
+    # Rinomina per chiarezza prima del merge
+    rename_map = {}
+    if prgp_col and prgp_col != "PrgP":
+        rename_map[prgp_col] = "PrgP"
+    if prgc_col and prgc_col != "PrgC":
+        rename_map[prgc_col] = "PrgC"
+    if rename_map:
+        df_pass_slim.rename(columns=rename_map, inplace=True)
+
+    # Merge su Player + Squad (left join per mantenere tutti i giocatori da Standard)
+    df_merged = df_std.merge(df_pass_slim, on=join_keys, how="left", suffixes=("", "_passing"))
+
+    print(f"  -> FBref multi-CSV: {len(df_merged)} giocatori dopo merge")
+    print(f"  -> PrgP trovati: {df_merged['PrgP'].notna().sum() if 'PrgP' in df_merged.columns else 0}")
+
+    # Opzionale: merge con Shooting
+    if csv_shooting:
+        df_sh = _parse_fbref_csv(csv_shooting)
+        sh_cols = [c for c in join_keys if c in df_sh.columns]
+        extra_sh = [c for c in ["Sh", "SoT", "Dist", "G/Sh", "G/SoT"] if c in df_sh.columns]
+        if sh_cols and extra_sh:
+            df_sh_slim = df_sh[sh_cols + extra_sh].copy()
+            df_merged = df_merged.merge(df_sh_slim, on=sh_cols, how="left", suffixes=("", "_shooting"))
+
+    # Opzionale: merge con Misc
+    if csv_misc:
+        df_misc = _parse_fbref_csv(csv_misc)
+        misc_cols = [c for c in join_keys if c in df_misc.columns]
+        extra_misc = [c for c in ["Int", "TklW", "Fls", "Fld", "Crs", "Off"] if c in df_misc.columns]
+        if misc_cols and extra_misc:
+            df_misc_slim = df_misc[misc_cols + extra_misc].copy()
+            df_merged = df_merged.merge(df_misc_slim, on=misc_cols, how="left", suffixes=("", "_misc"))
+
+    return _process_fbref_df(db, df_merged, league_key, source="multi_csv", progress_cb=progress_cb)
 
 
 def import_from_csv_file(db: Session, filepath: str, league_key: str = "serie_a") -> dict:
-    """
-    Importa da file CSV salvato localmente.
-    Utile se si monta il file nel container via volume Docker.
-    """
+    """Importa da file CSV salvato localmente."""
     if not _DEPS_OK:
         raise ImportError("pandas non installato")
 
     import pandas as pd
 
-    # Gestisce sia CSV standard che CSV con commenti FBref
     with open(filepath, encoding="utf-8", errors="replace") as f:
         lines = [l for l in f if not l.startswith("#")]
 
     df = pd.read_csv(StringIO("".join(lines)))
     print(f"  -> FBref file CSV: {len(df)} righe da '{filepath}'")
-
     return _process_fbref_df(db, df, league_key, source="csv_file")
 
 
 # ═══════════════════════════════════════════════════════════════════
-# APPROCCIO B — Playwright (browser headless reale)
+# APPROCCIO B — Playwright (browser headless reale, v4.0 multi-tabella)
 # ═══════════════════════════════════════════════════════════════════
 
 def scrape_with_playwright(
@@ -164,22 +233,17 @@ def scrape_with_playwright(
     progress_cb=None,
 ) -> dict:
     """
-    Usa Playwright (browser Chromium headless) per scaricare FBref.
-    Bypassa Cloudflare perché usa un browser reale.
+    Usa Playwright per scaricare ENTRAMBE le tabelle Standard e Passing.
+    Ora restituisce anche progressive_passes (PrgP).
 
-    Installazione nel container (aggiungi a Dockerfile o esegui nel backend):
-        pip install playwright
-        playwright install chromium --with-deps
+    Installazione:
+        pip install playwright && playwright install chromium --with-deps
     """
     if not _PLAYWRIGHT:
         raise ImportError(
             "Playwright non installato.\n"
-            "Nel container backend esegui:\n"
-            "  pip install playwright\n"
-            "  playwright install chromium --with-deps\n"
-            "Oppure aggiungi queste righe al Dockerfile del backend."
+            "Esegui: pip install playwright && playwright install chromium --with-deps"
         )
-
     if not _DEPS_OK:
         raise ImportError("pandas e beautifulsoup4 non installati")
 
@@ -187,66 +251,96 @@ def scrape_with_playwright(
     if not league:
         raise ValueError(f"Lega non supportata: {league_key}")
 
-    url = (
+    # URL tabella Standard Stats
+    url_standard = (
         f"https://fbref.com/en/comps/{league['id']}"
         f"/{season}/stats/{season}-{league['slug']}-Stats"
     )
-    print(f"  -> FBref Playwright: {url}")
+    # URL tabella Passing Stats (contiene PrgP)
+    url_passing = (
+        f"https://fbref.com/en/comps/{league['id']}"
+        f"/{season}/passing/{season}-{league['slug']}-Stats"
+    )
+
+    dfs = {}
 
     with sync_playwright() as pw:
         browser = pw.chromium.launch(
             headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
-            ]
+            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
         )
         context = browser.new_context(
             viewport={"width": 1920, "height": 1080},
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0.0.0 Safari/537.36"
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
             ),
             locale="it-IT",
         )
         page = context.new_page()
-
-        # Blocca risorse inutili per velocizzare
         page.route("**/*.{png,jpg,jpeg,gif,svg,woff,woff2}", lambda r: r.abort())
 
-        page.goto(url, wait_until="networkidle", timeout=60000)
-        time.sleep(3)  # attende rendering JS
-
-        html = page.content()
-        browser.close()
-
-    import pandas as pd
-    from bs4 import BeautifulSoup, Comment
-
-    soup = BeautifulSoup(html, "lxml")
-    table = soup.find("table", id="stats_standard")
-    if table is None:
-        for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):
-            csoup = BeautifulSoup(comment, "lxml")
-            table = csoup.find("table", id="stats_standard")
-            if table:
+        for table_key, url, table_id in [
+            ("standard", url_standard, "stats_standard"),
+            ("passing",  url_passing,  "stats_passing"),
+        ]:
+            if stop_event and stop_event.is_set():
                 break
 
-    if table is None:
-        raise RuntimeError(f"Tabella stats_standard non trovata su {url}")
+            print(f"  -> FBref Playwright [{table_key}]: {url}")
+            page.goto(url, wait_until="networkidle", timeout=60000)
+            time.sleep(3)
 
-    df = pd.read_html(StringIO(str(table)), header=[0, 1])[0]
-    df = _flatten_multiindex(df)
+            html = page.content()
+            soup = BeautifulSoup(html, "lxml")
+            table = soup.find("table", id=table_id)
+            if table is None:
+                for comment in soup.find_all(string=lambda t: isinstance(t, Comment)):
+                    csoup = BeautifulSoup(comment, "lxml")
+                    table = csoup.find("table", id=table_id)
+                    if table:
+                        break
 
-    print(f"  -> FBref Playwright: {len(df)} giocatori")
-    return _process_fbref_df(db, df, league_key, source="playwright", season=season)
+            if table is None:
+                print(f"  -> ATTENZIONE: tabella {table_id} non trovata su {url}")
+                continue
+
+            df = pd.read_html(StringIO(str(table)), header=[0, 1])[0]
+            df = _flatten_multiindex(df)
+            dfs[table_key] = df
+            print(f"  -> {table_key}: {len(df)} righe, colonne: {list(df.columns[:8])}")
+
+            time.sleep(2)  # pausa cortesia tra le richieste
+
+        browser.close()
+
+    if "standard" not in dfs:
+        raise RuntimeError("Tabella Standard Stats non trovata — impossibile procedere")
+
+    df_final = dfs["standard"]
+
+    # Merge con Passing per avere PrgP
+    if "passing" in dfs:
+        df_pass = dfs["passing"]
+        prgp_col = _find_col_in_df(df_pass, ["PrgP", "Prog_PrgP", "Progression_PrgP"])
+        prgc_col = _find_col_in_df(df_pass, ["PrgC", "Prog_PrgC", "Progression_PrgC"])
+        join_keys = [c for c in ["Player", "Squad"] if c in df_pass.columns and c in df_final.columns]
+
+        if join_keys:
+            pass_cols = join_keys.copy()
+            if prgp_col:
+                pass_cols.append(prgp_col)
+            if prgc_col:
+                pass_cols.append(prgc_col)
+            df_pass_slim = df_pass[pass_cols].copy()
+            df_final = df_final.merge(df_pass_slim, on=join_keys, how="left", suffixes=("", "_passing"))
+            print(f"  -> Merge Standard+Passing OK — PrgP: {df_final[prgp_col].notna().sum() if prgp_col else 0}")
+
+    return _process_fbref_df(db, df_final, league_key, source="playwright", season=season)
 
 
 # ═══════════════════════════════════════════════════════════════════
-# APPROCCIO C — cloudscraper/requests (fallback, spesso 403 da Docker)
+# APPROCCIO C — cloudscraper/requests (fallback)
 # ═══════════════════════════════════════════════════════════════════
 
 async def fetch_from_fbref(
@@ -257,29 +351,16 @@ async def fetch_from_fbref(
     progress_cb=None,
     stop_event=None,
 ) -> dict:
-    """
-    Entry point async — compatibile con ingest.py.
-    Tenta prima con Playwright (se disponibile), poi cloudscraper.
-    """
-    # Prova Playwright prima — molto più affidabile da Docker
+    """Entry point async — compatibile con ingest.py."""
     if _PLAYWRIGHT:
         print("  -> FBref: uso Playwright (browser headless)")
         return scrape_with_playwright(
-            db=db,
-            league_key=league_key,
-            season=season,
-            stop_event=stop_event,
-            progress_cb=progress_cb,
+            db=db, league_key=league_key, season=season,
+            stop_event=stop_event, progress_cb=progress_cb,
         )
-
-    # Fallback: cloudscraper/requests
     return scrape_standard_stats(
-        db=db,
-        league_key=league_key,
-        season=season,
-        delay_seconds=delay_seconds,
-        stop_event=stop_event,
-        progress_cb=progress_cb,
+        db=db, league_key=league_key, season=season,
+        delay_seconds=delay_seconds, stop_event=stop_event, progress_cb=progress_cb,
     )
 
 
@@ -291,19 +372,9 @@ def scrape_standard_stats(
     stop_event=None,
     progress_cb=None,
 ) -> dict:
-    """
-    Scraping via cloudscraper/requests.
-    NOTA: spesso fallisce con 403 da Docker/VPS. Usa import_from_csv_text() invece.
-    """
+    """Scraping via cloudscraper/requests. NOTA: spesso 403 da Docker."""
     if not _DEPS_OK:
-        raise ImportError(
-            "Dipendenze FBref non installate.\n"
-            "Aggiungi a requirements.txt:\n"
-            "  cloudscraper>=1.2.71\n"
-            "  beautifulsoup4>=4.12\n"
-            "  pandas>=2.0\n"
-            "  lxml>=4.9"
-        )
+        raise ImportError("Dipendenze FBref non installate.")
 
     league = FBREF_LEAGUES.get(league_key)
     if not league:
@@ -317,14 +388,12 @@ def scrape_standard_stats(
     method = "cloudscraper" if _CLOUDSCRAPER else "requests"
     print(f"  -> FBref [{method}]: {url}")
     print(f"  -> ATTENZIONE: da Docker questo metodo spesso fallisce con 403.")
-    print(f"     Usa invece: POST /ingest/fbref/csv con il CSV copiato da fbref.com")
 
     if stop_event and stop_event.is_set():
         return _empty_result(league_key, season, url)
 
     time.sleep(delay_seconds)
 
-    # Tenta con più User-Agent diversi
     user_agents = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -348,17 +417,14 @@ def scrape_standard_stats(
     else:
         raise RuntimeError(
             f"Tutti i tentativi falliti (403 Forbidden).\n\n"
-            f"SOLUZIONE CONSIGLIATA — Importa da CSV:\n"
-            f"  1. Apri nel browser: {url}\n"
-            f"  2. Scorri fino alla tabella Standard Stats\n"
-            f"  3. Clicca 'Share & Export' → 'Get table as CSV'\n"
-            f"  4. Copia il testo\n"
-            f"  5. In Football Scout → Gestione Dati → FBref CSV → incolla e clicca Importa\n\n"
+            f"SOLUZIONE CONSIGLIATA:\n"
+            f"  1. Standard: {url}\n"
+            f"     Share & Export → Get table as CSV\n"
+            f"  2. Passing: {url.replace('/stats/', '/passing/')}\n"
+            f"     Share & Export → Get table as CSV\n"
+            f"  3. Usa import_from_multi_csv() con entrambi i CSV\n\n"
             f"Errore originale: {last_error}"
         )
-
-    from bs4 import BeautifulSoup, Comment
-    import pandas as pd
 
     soup = BeautifulSoup(resp.text, "lxml")
     table = soup.find("table", id="stats_standard")
@@ -393,21 +459,26 @@ def _process_fbref_df(
 ) -> dict:
     """
     Elabora un DataFrame FBref (da qualsiasi fonte) e aggiorna il DB.
-    Gestisce sia il formato MultiIndex (scraping) che il formato flat (CSV export).
+    v4.0: mappatura colonne ampliata per supportare tabella Passing (PrgP).
     """
     import pandas as pd
 
-    # Pulizia righe header duplicate (FBref le inserisce ogni N righe)
-    player_col = _find_col(df, ["Player", "player", "Giocatore"])
+    player_col = _find_col_in_df(df, ["Player", "player", "Giocatore"])
     if player_col:
         df = df[df[player_col].astype(str).str.strip().str.lower() != "player"].copy()
         df = df[df[player_col].notna()].copy()
         df = df[df[player_col].astype(str).str.strip() != ""].copy()
 
-    squad_col = _find_col(df, ["Squad", "squad", "Squadra", "Tm"])
+    squad_col = _find_col_in_df(df, ["Squad", "squad", "Squadra", "Tm"])
 
     print(f"  -> FBref ({source}): elaborazione {len(df)} giocatori")
-    print(f"  -> Colonne disponibili: {list(df.columns[:15])}")
+    print(f"  -> Colonne disponibili: {list(df.columns[:20])}")
+
+    # Log colonne di progressione trovate (debug)
+    prgp_found = _find_col_in_df(df, ["PrgP", "Progression_PrgP", "Prog_PrgP"])
+    prgc_found = _find_col_in_df(df, ["PrgC", "Progression_PrgC", "Prog_PrgC"])
+    prgr_found = _find_col_in_df(df, ["PrgR", "Progression_PrgR"])
+    print(f"  -> Colonne progressione: PrgP={prgp_found}, PrgC={prgc_found}, PrgR={prgr_found}")
 
     enriched  = 0
     not_found = 0
@@ -424,10 +495,8 @@ def _process_fbref_df(
             if club.lower() in ("nan", ""):
                 club = ""
 
-        # Minuti — FBref può esprimere in minuti (Min) o 90s (90s)
         mins_raw = _first_float(row, [
-            "Playing Time_Min", "Min", "Playing Time_Mn",
-            "MP", "Playing Time_MP",
+            "Playing Time_Min", "Min", "Playing Time_Mn", "MP", "Playing Time_MP",
         ])
         mins_90s = _first_float(row, ["90s", "Playing Time_90s"])
 
@@ -440,45 +509,53 @@ def _process_fbref_df(
 
         per90 = 90.0 / safe_min
 
-        # xG, xA, npxG — possono essere assoluti o già per-90 nel CSV
         xg_abs   = _first_float(row, ["Expected_xG", "xG", "xG_Expected"])
         xa_abs   = _first_float(row, ["Expected_xAG", "xAG", "Expected_xA", "xA", "xAG_Expected"])
         npxg_abs = _first_float(row, ["Expected_npxG", "npxG", "npxG_Expected"])
 
-        # Statistiche assolute
         goals_abs    = _first_int(row, ["Performance_Gls", "Gls", "Goals", "G"])
         assists_abs  = _first_int(row, ["Performance_Ast", "Ast", "Assists", "A"])
         shots_abs    = _first_int(row, ["Performance_Sh", "Sh", "Shots"])
         games_abs    = _first_int(row, ["Playing Time_MP", "MP", "Matches", "G_1"])
-        prog_p_abs   = _first_int(row, ["Progression_PrgP", "PrgP", "Prog_PrgP"])
-        prog_c_abs   = _first_int(row, ["Progression_PrgC", "PrgC", "Prog_PrgC"])
-        prog_r_abs   = _first_int(row, ["Progression_PrgR", "PrgR"])
+        # ✅ v4.0: mappatura PrgP ampliata per tabella Passing
+        prog_p_abs   = _first_int(row, [
+            "PrgP",                   # Colonna diretta tabella Passing
+            "Progression_PrgP",       # MultiIndex flattened scraping
+            "Prog_PrgP",              # Variante
+            "Progressive Passes",     # Nome esteso
+        ])
+        prog_c_abs   = _first_int(row, [
+            "PrgC",
+            "Progression_PrgC",
+            "Prog_PrgC",
+            "Progressive Carries",
+        ])
+        prog_r_abs   = _first_int(row, [
+            "PrgR",
+            "Progression_PrgR",
+            "Progressive Passes Rec",
+        ])
         key_pass_abs = _first_int(row, ["KP", "Key Passes", "Passing_KP"])
         age_raw      = _first_int(row, ["Age", "age"])
 
-        # Posizione — normalizzata verso i codici standard
         pos_raw = str(row.get("Pos", row.get("pos", row.get("Position", "")))).strip()
         position = _normalize_position(pos_raw) if pos_raw and pos_raw.lower() not in ("nan", "") else None
 
-        # Conversione a per-90
         xg_per90   = round(xg_abs   * per90, 4) if xg_abs   is not None else None
         xa_per90   = round(xa_abs   * per90, 4) if xa_abs   is not None else None
         npxg_per90 = round(npxg_abs * per90, 4) if npxg_abs is not None else None
 
-        # Se non ci sono dati xG e nemmeno progressioni, salta
         if xg_per90 is None and xa_per90 is None and prog_p_abs is None and goals_abs is None:
             continue
 
         player_obj = find_player_in_db(db, name, club)
         if player_obj is None:
-            # Prova a trovarlo senza il club (in caso di trasferimento)
             player_obj = find_player_in_db(db, name, "")
 
         if player_obj is None:
             not_found += 1
             continue
 
-        # Aggiorna solo i campi con valori validi
         if xg_per90   is not None: player_obj.xg_per90   = xg_per90
         if xa_per90   is not None: player_obj.xa_per90   = xa_per90
         if npxg_per90 is not None and hasattr(player_obj, "npxg_per90"):
@@ -501,7 +578,6 @@ def _process_fbref_df(
             player_obj.shots_season = shots_abs
         if games_abs  is not None and hasattr(player_obj, "games_season"):
             player_obj.games_season = games_abs
-        # Aggiorna posizione solo se il player non l'ha già in formato standard
         if position and hasattr(player_obj, "position"):
             if not player_obj.position or len(player_obj.position) > 3:
                 player_obj.position = position
@@ -534,8 +610,38 @@ def _process_fbref_df(
 # HELPERS
 # ═══════════════════════════════════════════════════════════════════
 
+def _parse_fbref_csv(csv_text: str) -> "pd.DataFrame":
+    """
+    Pulisce e parsifica un CSV di FBref.
+    Gestisce: righe commento (#), header ripetuti, virgole migliaia.
+    """
+    import pandas as pd
+
+    # Rimuovi righe commento FBref
+    lines = [l for l in csv_text.splitlines() if not l.startswith("#") and l.strip()]
+    if not lines:
+        raise ValueError("CSV vuoto o non valido")
+
+    # Fix virgole come separatori delle migliaia (es. "1,500" → "1500")
+    clean = re.sub(r'(\d),(\d{3})', r'\1\2', "\n".join(lines))
+
+    try:
+        df = pd.read_csv(StringIO(clean))
+    except Exception as e:
+        raise ValueError(f"Errore nel parsing del CSV: {e}")
+
+    # Rimuovi righe header ripetute (FBref le inserisce ogni N righe)
+    if "Player" in df.columns:
+        df = df[df["Player"].astype(str).str.strip() != "Player"].copy()
+    elif "player" in df.columns:
+        df = df[df["player"].astype(str).str.strip() != "player"].copy()
+
+    df = df.reset_index(drop=True)
+    return df
+
+
 def _flatten_multiindex(df) -> "pd.DataFrame":
-    """Appiattisce il MultiIndex delle colonne di FBref in nomi flat."""
+    """Appiattisce il MultiIndex delle colonne FBref in nomi flat."""
     flat_cols = []
     seen = {}
     for col in df.columns:
@@ -558,7 +664,6 @@ def _normalize_position(raw: str) -> str | None:
     """Normalizza le posizioni FBref verso i codici standard."""
     if not raw:
         return None
-    # FBref usa formati tipo "MF,FW" o "DF" — prende il primo
     first = raw.split(",")[0].strip().upper()
     MAP = {
         "GK": "GK", "DF": "CB", "MF": "CM", "FW": "ST",
@@ -573,8 +678,7 @@ def _normalize_position(raw: str) -> str | None:
 def _get_session(user_agent: str = None):
     ua = user_agent or (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     )
     headers = {
         "User-Agent": ua,
@@ -602,7 +706,7 @@ def _get_session(user_agent: str = None):
     return s
 
 
-def _find_col(df, candidates):
+def _find_col_in_df(df, candidates):
     for c in candidates:
         if c in df.columns:
             return c

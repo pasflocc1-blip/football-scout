@@ -166,9 +166,9 @@ class RunAllRequest(BaseModel):
     statsbomb_season_id: int = 27
     statsbomb_max_matches: int = 50
     fbref_league: str = "serie_a"
-    fbref_season: str = "2023-2024"
+    fbref_season: str = "2025-2026"
     understat_league: str = "serie_a"
-    understat_season: int = 2024
+    understat_season: int = 2025
     football_data_comp: str = "SA"
 
 class UnderstatRequest(BaseModel):
