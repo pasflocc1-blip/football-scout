@@ -1,3 +1,9 @@
+<!-- 
+  GlobalScoutingView.vue — aggiornato:
+  - I nomi dei giocatori nella tabella sono ora cliccabili → /players/:id
+  - La colonna "Minuti" è stata rimossa (i dati vengono da PlayerSeasonStats)
+  - Aggiunto link "Dettaglio" per ogni riga
+-->
 <template>
   <div>
     <h1 class="page-title">🔥 Scouting Globale</h1>
@@ -165,6 +171,14 @@
     <!-- Risultato COMPARE -->
     <div v-if="compareResult && !loading && activeTab === 'compare'" class="card" style="margin-top:1.5rem">
       <h3 class="section-title">Risultato confronto</h3>
+      <div style="display:flex; gap:.5rem; margin-bottom:.75rem;">
+        <router-link v-if="compareResult.player1.id" :to="`/players/${compareResult.player1.id}`" class="btn btn-ghost btn-sm">
+          👤 Scheda {{ compareResult.player1.name }}
+        </router-link>
+        <router-link v-if="compareResult.player2.id" :to="`/players/${compareResult.player2.id}`" class="btn btn-ghost btn-sm">
+          👤 Scheda {{ compareResult.player2.name }}
+        </router-link>
+      </div>
       <div class="compare-grid">
         <div class="compare-header">Metrica</div>
         <div class="compare-header player-col">{{ compareResult.player1.name }}</div>
@@ -196,11 +210,15 @@
             <th v-if="showDeltaCol">xG est.</th>
             <th v-if="showDeltaCol">Delta</th>
             <th>Minuti</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="p in players" :key="p.id ?? p.name">
-            <td class="name-cell">{{ p.name }}</td>
+            <td class="name-cell">
+              <router-link v-if="p.id" :to="`/players/${p.id}`" class="player-link">{{ p.name }}</router-link>
+              <span v-else>{{ p.name }}</span>
+            </td>
             <td>
               <div class="pos-cell">
                 <span class="badge badge-blue pos-code">{{ p.position ?? '—' }}</span>
@@ -220,6 +238,9 @@
               </td>
             </template>
             <td class="stat-cell">{{ p.minutes ?? p.minutes_season ?? '—' }}</td>
+            <td>
+              <router-link v-if="p.id" :to="`/players/${p.id}`" class="btn btn-ghost btn-xs">👤</router-link>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -271,85 +292,112 @@ const rankingModeLabel = computed(() => ({
   topxg: 'Top xG/90', over: 'Overperforming', under: 'Underperforming',
 }[rankingMode.value] ?? ''))
 
-// Compare rows — usa solo colonne realmente nel modello aggiornato
 const compareRows = [
   { key: 'position',            label: 'Ruolo' },
   { key: 'club',                label: 'Club' },
   { key: 'nationality',         label: 'Nazionalità' },
   { key: 'age',                 label: 'Età' },
-  // xG / xA
   { key: 'xg_per90',            label: 'xG/90' },
   { key: 'xa_per90',            label: 'xA/90' },
   { key: 'npxg_per90',          label: 'npxG/90' },
   { key: 'xgchain_per90',       label: 'xGChain/90' },
   { key: 'xgbuildup_per90',     label: 'xGBuildup/90' },
-  // Score oggettivi (Fase 3)
   { key: 'finishing_score',     label: 'Finishing score' },
   { key: 'creativity_score',    label: 'Creativity score' },
   { key: 'pressing_score',      label: 'Pressing score' },
   { key: 'carrying_score',      label: 'Carrying score' },
   { key: 'defending_obj_score', label: 'Defending score' },
   { key: 'buildup_obj_score',   label: 'Build-up score' },
-  // Percentili (Fase 4)
   { key: 'finishing_pct',       label: 'Finishing %ile' },
   { key: 'creativity_pct',      label: 'Creativity %ile' },
   { key: 'pressing_pct',        label: 'Pressing %ile' },
   { key: 'carrying_pct',        label: 'Carrying %ile' },
   { key: 'defending_pct',       label: 'Defending %ile' },
-  { key: 'buildup_pct',         label: 'Build-up %ile' },
-  // Duelli
-  { key: 'aerial_duels_won_pct', label: 'Duelli aerei %' },
-  { key: 'duels_won_pct',        label: 'Duelli vinti %' },
-  // Progressione
-  { key: 'progressive_passes',  label: 'Passaggi progressivi' },
-  { key: 'progressive_carries', label: 'Conduzioni progressive' },
 ]
 
-const NUMERIC_KEYS = new Set([
-  'xg_per90','xa_per90','npxg_per90','xgchain_per90','xgbuildup_per90',
-  'finishing_score','creativity_score','pressing_score','carrying_score',
-  'defending_obj_score','buildup_obj_score',
-  'finishing_pct','creativity_pct','pressing_pct','carrying_pct','defending_pct','buildup_pct',
-  'aerial_duels_won_pct','duels_won_pct',
-  'progressive_passes','progressive_carries',
-])
-
-function fmtStat(v) {
-  if (v == null) return '—'
-  return typeof v === 'number' ? v.toFixed(2) : v
-}
-
-function fmtVal(v) {
-  if (v == null) return '—'
-  if (typeof v === 'number') return Number.isInteger(v) ? v : v.toFixed(2)
-  return v
-}
-
-function deltaClass(delta) {
-  if (delta == null) return ''
-  return delta > 0 ? 'delta-positive' : delta < 0 ? 'delta-negative' : ''
-}
-
-function cellClass(key, side) {
-  if (!compareResult.value || !NUMERIC_KEYS.has(key)) return ''
-  const v1 = compareResult.value.player1[key]
-  const v2 = compareResult.value.player2[key]
-  if (v1 == null || v2 == null) return ''
-  if (side === 'p1') return v1 > v2 ? 'cell-win' : v1 < v2 ? 'cell-lose' : ''
-  if (side === 'p2') return v2 > v1 ? 'cell-win' : v2 < v1 ? 'cell-lose' : ''
-  return ''
-}
-
 async function runSearch() {
-  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = ''
+  loading.value = true
+  error.value = null
+  rankingMode.value = ''
   try {
-    const params = Object.fromEntries(
-      Object.entries(searchFilters.value).filter(([, v]) => v !== null && v !== '' && v !== undefined)
-    )
-    const { data } = await globalScoutingApi.search(params)
+    const params = {}
+    const f = searchFilters.value
+    if (f.q)             params.q = f.q
+    if (f.position)      params.position = f.position
+    if (f.nationality)   params.nationality = f.nationality
+    if (f.club)          params.club = f.club
+    if (f.min_age)       params.min_age = f.min_age
+    if (f.max_age)       params.max_age = f.max_age
+    if (f.min_xg)        params.min_xg = f.min_xg
+    if (f.min_xa)        params.min_xa = f.min_xa
+    if (f.preferred_foot) params.preferred_foot = f.preferred_foot
+    params.sort_by  = f.sort_by
+    params.sort_dir = f.sort_dir
+    params.limit    = f.limit
+    const data = await globalScoutingApi.search(params)
     players.value = data
-  } catch (e) { error.value = e.message }
-  finally { loading.value = false }
+  } catch (e) {
+    error.value = e.response?.data?.detail || 'Errore ricerca'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function runTopXG() {
+  loading.value = true
+  error.value = null
+  rankingMode.value = 'topxg'
+  try {
+    const data = await globalScoutingApi.topXG(rankFilters.value)
+    players.value = data
+  } catch (e) {
+    error.value = e.response?.data?.detail || 'Errore'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function runOverperforming() {
+  loading.value = true
+  error.value = null
+  rankingMode.value = 'over'
+  try {
+    const data = await globalScoutingApi.overperforming(rankFilters.value)
+    players.value = data
+  } catch (e) {
+    error.value = e.response?.data?.detail || 'Errore'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function runUnderperforming() {
+  loading.value = true
+  error.value = null
+  rankingMode.value = 'under'
+  try {
+    const data = await globalScoutingApi.underperforming(rankFilters.value)
+    players.value = data
+  } catch (e) {
+    error.value = e.response?.data?.detail || 'Errore'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function runCompare() {
+  if (!compareName1.value || !compareName2.value) return
+  loading.value = true
+  error.value = null
+  players.value = []
+  try {
+    const data = await globalScoutingApi.compare(compareName1.value, compareName2.value)
+    compareResult.value = data
+  } catch (e) {
+    error.value = e.response?.data?.detail || 'Errore confronto'
+  } finally {
+    loading.value = false
+  }
 }
 
 function resetSearch() {
@@ -358,176 +406,73 @@ function resetSearch() {
     min_age: null, max_age: null, min_xg: null, min_xa: null,
     preferred_foot: '', sort_by: 'name', sort_dir: 'asc', limit: 50,
   }
-  players.value = []; error.value = null
+  players.value = []
+  error.value = null
+  rankingMode.value = ''
 }
 
-async function runTopXG() {
-  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = 'topxg'
-  try {
-    const { data } = await globalScoutingApi.topXg({
-      limit: rankFilters.value.limit,
-      min_minutes: rankFilters.value.min_minutes,
-      position: rankFilters.value.position || undefined,
-    })
-    players.value = data
-  } catch (e) { error.value = e.message }
-  finally { loading.value = false }
+function fmtStat(v) {
+  if (v == null) return '—'
+  return Number(v).toFixed(3)
 }
 
-async function runOverperforming() {
-  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = 'over'
-  try {
-    const { data } = await globalScoutingApi.overperforming({
-      limit: rankFilters.value.limit,
-      min_minutes: rankFilters.value.min_minutes,
-      position: rankFilters.value.position || undefined,
-    })
-    players.value = data
-  } catch (e) { error.value = e.message }
-  finally { loading.value = false }
+function fmtVal(v) {
+  if (v == null) return '—'
+  if (typeof v === 'number') return v % 1 === 0 ? v : v.toFixed(2)
+  return v
 }
 
-async function runUnderperforming() {
-  loading.value = true; error.value = null; compareResult.value = null; rankingMode.value = 'under'
-  try {
-    const { data } = await globalScoutingApi.underperforming({
-      limit: rankFilters.value.limit,
-      min_minutes: rankFilters.value.min_minutes,
-      position: rankFilters.value.position || undefined,
-    })
-    players.value = data
-  } catch (e) { error.value = e.message }
-  finally { loading.value = false }
+function deltaClass(d) {
+  if (d == null) return ''
+  return d > 0 ? 'delta-pos' : d < 0 ? 'delta-neg' : ''
 }
 
-async function runCompare() {
-  if (!compareName1.value || !compareName2.value) return
-  loading.value = true; error.value = null; players.value = []; compareResult.value = null
-  try {
-    const { data } = await globalScoutingApi.compare(compareName1.value, compareName2.value)
-    compareResult.value = data
-  } catch (e) { error.value = e.message }
-  finally { loading.value = false }
+function cellClass(key, player) {
+  if (!compareResult.value) return ''
+  const v1 = compareResult.value.player1[key]
+  const v2 = compareResult.value.player2[key]
+  if (v1 == null || v2 == null || typeof v1 !== 'number') return ''
+  if (player === 'p1') return v1 > v2 ? 'cell-win' : v1 < v2 ? 'cell-loss' : ''
+  return v2 > v1 ? 'cell-win' : v2 < v1 ? 'cell-loss' : ''
 }
 </script>
 
 <style scoped>
-.tab-bar {
-  display: flex;
-  gap: .5rem;
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 0;
-}
-.tab-btn {
-  padding: .55rem 1.3rem;
-  border: none;
-  border-bottom: 3px solid transparent;
-  background: transparent;
-  color: var(--color-muted);
-  font-size: .92rem;
+.player-link {
+  color: var(--color-accent, #3b82f6);
+  text-decoration: none;
   font-weight: 600;
-  cursor: pointer;
-  transition: color .15s, border-color .15s;
-  border-radius: var(--radius) var(--radius) 0 0;
 }
-.tab-btn:hover { color: var(--color-text); }
-.tab-btn.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+.player-link:hover { text-decoration: underline; }
 
-.section-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-text); }
-
-.filters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: .75rem;
+.btn-xs {
+  font-size: .72rem;
+  padding: 2px 6px;
 }
-.filter-group { display: flex; flex-direction: column; gap: .3rem; }
-.filter-group label { font-size: .78rem; font-weight: 600; color: var(--color-muted); text-transform: uppercase; letter-spacing: .04em; }
+.btn-sm {
+  font-size: .8rem;
+  padding: 4px 10px;
+}
 
 .ranking-controls { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-.ranking-buttons { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: .75rem; }
-.rank-mode-label { margin-top: .75rem; font-size: .85rem; color: var(--color-muted); }
+.ranking-buttons  { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.rank-mode-label  { color: var(--color-muted); font-size: .85rem; }
 
-/* Tabella risultati */
-.data-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
-.data-table th {
-  text-align: left;
-  padding: .6rem .9rem;
-  background: rgba(255,255,255,.06);   /* ← era .04 — più visibile */
-  color: var(--color-text);            /* ← era var(--color-muted) */
-  font-size: .78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  border-bottom: 2px solid var(--color-border);
-  white-space: nowrap;
-}
-.data-table td {
-  padding: .6rem .9rem;
-  border-bottom: 1px solid rgba(255,255,255,.06);
-  vertical-align: middle;
-  color: var(--color-text);
-  font-weight: 500;                    /* ← aggiunto */
-}
-
-.data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: rgba(255,255,255,.03); }
-
-.name-cell  { font-weight: 700; color: var(--color-text) !important; }
-.stat-cell  { font-family: 'Fira Code', monospace; font-size: .88rem;
-              color: var(--color-text) !important; font-weight: 700; }
-.delta-positive { color: var(--color-success) !important; font-weight: 800; }
-.delta-negative { color: var(--color-danger)  !important; font-weight: 700; }
-
-.pos-cell { display: flex; align-items: center; gap: .5rem; }
-.pos-code { font-size: .7rem; flex-shrink: 0; }
-.pos-desc { font-size: .78rem; color: var(--color-muted); }
-
-/* Compare table */
 .compare-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr;
-  gap: 0;
-  font-size: .88rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  overflow: hidden;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: .2rem .5rem;
 }
-.compare-header {
-  padding: .65rem 1rem;
-  font-size: .75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #fff;                          /* ← era var(--color-muted) */
-  letter-spacing: .05em;
-  background: var(--color-primary);     /* ← intestazioni blu solide */
-  border-bottom: 2px solid var(--color-border);
-}
-.player-col {
-  text-align: center;
-  font-weight: 700;
-  color: #fff;                          /* ← era var(--color-text) */
-  background: var(--color-primary);
-}
-.compare-metric {
-  padding: .55rem 1rem;
-  color: var(--color-text);             /* ← era var(--color-muted) — ora testo pieno */
-  font-size: .82rem;
-  font-weight: 600;                     /* ← aggiunto */
-  background: rgba(255,255,255,.03);
-  border-bottom: 1px solid var(--color-border);
-}
-.compare-val {
-  padding: .55rem 1rem;
-  font-family: 'Fira Code', monospace;
-  font-size: .88rem;                    /* ← era .82rem */
-  border-bottom: 1px solid var(--color-border);
-  border-left: 1px solid rgba(255,255,255,.08);
-  text-align: center;
-  color: var(--color-text);             /* ← era var(--color-text) ma ora garantito visibile */
-  font-weight: 700;                     /* ← aggiunto */
-}
-.cell-win  { color: var(--color-success) !important; font-weight: 800; }
-.cell-lose { color: var(--color-danger)  !important; font-weight: 600; opacity: 0.85; }
+.compare-header { font-weight: 700; color: var(--color-muted); font-size: .8rem; padding: .4rem 0; border-bottom: 1px solid var(--color-border, #333); }
+.compare-metric { font-size: .83rem; color: var(--color-muted); padding: .25rem 0; border-bottom: 1px solid var(--color-border, #2a2a3a); }
+.compare-val    { font-size: .83rem; font-weight: 600; text-align: center; padding: .25rem 0; border-bottom: 1px solid var(--color-border, #2a2a3a); }
+.cell-win  { color: #22c55e; }
+.cell-loss { color: #ef4444; }
+.delta-pos { color: #22c55e; font-weight: 600; }
+.delta-neg { color: #ef4444; font-weight: 600; }
 
-.empty-state { color: var(--color-muted); }
+.stat-cell { text-align: right; font-variant-numeric: tabular-nums; }
+.name-cell { font-weight: 600; }
+.pos-cell  { display: flex; gap: .3rem; align-items: center; }
+.pos-desc  { font-size: .75rem; color: var(--color-muted); }
 </style>

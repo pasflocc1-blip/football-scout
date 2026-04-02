@@ -1,5 +1,5 @@
 PROGETTO: D:\Progetti\football-scout\frontend
-TOTALE FILE: 23
+TOTALE FILE: 24
 ============================================================
 
 ============================================================
@@ -18,7 +18,8 @@ FILE: package-lock.json
         "axios": "^1.7.0",
         "pinia": "^2.1.7",
         "vue": "^3.4.0",
-        "vue-router": "^4.3.0"
+        "vue-router": "^4.3.0",
+        "xlsx": "^0.18.5"
       },
       "devDependencies": {
         "@vitejs/plugin-vue": "^5.0.0",
@@ -758,9 +759,6 @@ FILE: package-lock.json
         "arm"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -775,9 +773,6 @@ FILE: package-lock.json
         "arm"
       ],
       "dev": true,
-      "libc": [
-        "musl"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -792,9 +787,6 @@ FILE: package-lock.json
         "arm64"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -809,9 +801,6 @@ FILE: package-lock.json
         "arm64"
       ],
       "dev": true,
-      "libc": [
-        "musl"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -826,9 +815,6 @@ FILE: package-lock.json
         "loong64"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -843,9 +829,6 @@ FILE: package-lock.json
         "loong64"
       ],
       "dev": true,
-      "libc": [
-        "musl"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -860,9 +843,6 @@ FILE: package-lock.json
         "ppc64"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -877,9 +857,6 @@ FILE: package-lock.json
         "ppc64"
       ],
       "dev": true,
-      "libc": [
-        "musl"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -894,9 +871,6 @@ FILE: package-lock.json
         "riscv64"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -911,9 +885,6 @@ FILE: package-lock.json
         "riscv64"
       ],
       "dev": true,
-      "libc": [
-        "musl"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -928,9 +899,6 @@ FILE: package-lock.json
         "s390x"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -945,9 +913,6 @@ FILE: package-lock.json
         "x64"
       ],
       "dev": true,
-      "libc": [
-        "glibc"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -962,9 +927,6 @@ FILE: package-lock.json
         "x64"
       ],
       "dev": true,
-      "libc": [
-        "musl"
-      ],
       "license": "MIT",
       "optional": true,
       "os": [
@@ -1212,6 +1174,15 @@ FILE: package-lock.json
         "acorn": "^6.0.0 || ^7.0.0 || ^8.0.0"
       }
     },
+    "node_modules/adler-32": {
+      "version": "1.3.1",
+      "resolved": "https://registry.npmjs.org/adler-32/-/adler-32-1.3.1.tgz",
+      "integrity": "sha512-ynZ4w/nUUv5rrsR8UUGoe1VC9hZj6V5hU9Qw1HlMDJGEJw5S7TfTErWTjMys6M7vr0YWcPqs3qAr4ss0nDfP+A==",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=0.8"
+      }
+    },
     "node_modules/ajv": {
       "version": "6.14.0",
       "resolved": "https://registry.npmjs.org/ajv/-/ajv-6.14.0.tgz",
@@ -1317,6 +1288,19 @@ FILE: package-lock.json
         "node": ">=6"
       }
     },
+    "node_modules/cfb": {
+      "version": "1.2.2",
+      "resolved": "https://registry.npmjs.org/cfb/-/cfb-1.2.2.tgz",
+      "integrity": "sha512-KfdUZsSOw19/ObEWasvBP/Ac4reZvAGauZhs6S/gqNhXhI7cKwvlH7ulj+dOEYnca4bm4SGo8C1bTAQvnTjgQA==",
+      "license": "Apache-2.0",
+      "dependencies": {
+        "adler-32": "~1.3.0",
+        "crc-32": "~1.2.0"
+      },
+      "engines": {
+        "node": ">=0.8"
+      }
+    },
     "node_modules/chalk": {
       "version": "4.1.2",
       "resolved": "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz",
@@ -1332,6 +1316,15 @@ FILE: package-lock.json
       },
       "funding": {
         "url": "https://github.com/chalk/chalk?sponsor=1"
+      }
+    },
+    "node_modules/codepage": {
+      "version": "1.15.0",
+      "resolved": "https://registry.npmjs.org/codepage/-/codepage-1.15.0.tgz",
+      "integrity": "sha512-3g6NUTPd/YtuuGrhMnOMRjFc+LJw/bnMp3+0r/Wcz3IXUuCosKRJvMphm5+Q+bvTVGcJJuRvVLuYba+WojaFaA==",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=0.8"
       }
     },
     "node_modules/color-convert": {
@@ -1372,6 +1365,18 @@ FILE: package-lock.json
       "integrity": "sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==",
       "dev": true,
       "license": "MIT"
+    },
+    "node_modules/crc-32": {
+      "version": "1.2.2",
+      "resolved": "https://registry.npmjs.org/crc-32/-/crc-32-1.2.2.tgz",
+      "integrity": "sha512-ROmzCKrTnOwybPcJApAA6WBWij23HVfGVNKqqrZpuyZOHqK2CwHSvpGuyt/UNNvaIjEd8X5IFGp4Mh+Ie1IHJQ==",
+      "license": "Apache-2.0",
+      "bin": {
+        "crc32": "bin/crc32.njs"
+      },
+      "engines": {
+        "node": ">=0.8"
+      }
     },
     "node_modules/cross-spawn": {
       "version": "7.0.6",
@@ -1869,6 +1874,15 @@ FILE: package-lock.json
       },
       "engines": {
         "node": ">= 6"
+      }
+    },
+    "node_modules/frac": {
+      "version": "1.1.2",
+      "resolved": "https://registry.npmjs.org/frac/-/frac-1.1.2.tgz",
+      "integrity": "sha512-w/XBfkibaTl3YDqASwfDUqkna4Z2p9cFSr1aHDt0WoMTECnRfBOv2WArlZILlqgWlmdIlALXGpM2AOhEk5W3IA==",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=0.8"
       }
     },
     "node_modules/fsevents": {
@@ -2550,6 +2564,18 @@ FILE: package-lock.json
         "node": ">=0.10.0"
       }
     },
+    "node_modules/ssf": {
+      "version": "0.11.2",
+      "resolved": "https://registry.npmjs.org/ssf/-/ssf-0.11.2.tgz",
+      "integrity": "sha512-+idbmIXoYET47hH+d7dfm2epdOMUDjqcB4648sTZ+t2JwoyBFL/insLfB/racrDmsKB3diwsDA696pZMieAC5g==",
+      "license": "Apache-2.0",
+      "dependencies": {
+        "frac": "~1.1.2"
+      },
+      "engines": {
+        "node": ">=0.8"
+      }
+    },
     "node_modules/strip-json-comments": {
       "version": "3.1.1",
       "resolved": "https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-3.1.1.tgz",
@@ -2830,6 +2856,24 @@ FILE: package-lock.json
         "node": ">= 8"
       }
     },
+    "node_modules/wmf": {
+      "version": "1.0.2",
+      "resolved": "https://registry.npmjs.org/wmf/-/wmf-1.0.2.tgz",
+      "integrity": "sha512-/p9K7bEh0Dj6WbXg4JG0xvLQmIadrner1bi45VMJTfnbVHsc7yIajZyoSoK60/dtVBs12Fm6WkUI5/3WAVsNMw==",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=0.8"
+      }
+    },
+    "node_modules/word": {
+      "version": "0.3.0",
+      "resolved": "https://registry.npmjs.org/word/-/word-0.3.0.tgz",
+      "integrity": "sha512-OELeY0Q61OXpdUfTp+oweA/vtLVg5VDOXh+3he3PNzLGG/y0oylSOC1xRVj0+l4vQ3tj/bB1HVHv1ocXkQceFA==",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=0.8"
+      }
+    },
     "node_modules/word-wrap": {
       "version": "1.2.5",
       "resolved": "https://registry.npmjs.org/word-wrap/-/word-wrap-1.2.5.tgz",
@@ -2838,6 +2882,27 @@ FILE: package-lock.json
       "license": "MIT",
       "engines": {
         "node": ">=0.10.0"
+      }
+    },
+    "node_modules/xlsx": {
+      "version": "0.18.5",
+      "resolved": "https://registry.npmjs.org/xlsx/-/xlsx-0.18.5.tgz",
+      "integrity": "sha512-dmg3LCjBPHZnQp5/F/+nnTa+miPJxUXB6vtk42YjBBKayDNagxGEeIdWApkYPOf3Z3pm3k62Knjzp7lMeTEtFQ==",
+      "license": "Apache-2.0",
+      "dependencies": {
+        "adler-32": "~1.3.0",
+        "cfb": "~1.2.1",
+        "codepage": "~1.15.0",
+        "crc-32": "~1.2.1",
+        "ssf": "~0.11.2",
+        "wmf": "~1.0.1",
+        "word": "~0.3.0"
+      },
+      "bin": {
+        "xlsx": "bin/xlsx.njs"
+      },
+      "engines": {
+        "node": ">=0.8"
       }
     },
     "node_modules/xml-name-validator": {
@@ -2884,7 +2949,8 @@ FILE: package.json
     "vue": "^3.4.0",
     "vue-router": "^4.3.0",
     "pinia": "^2.1.7",
-    "axios": "^1.7.0"
+    "axios": "^1.7.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
@@ -3205,6 +3271,274 @@ export default api
 
 
 ============================================================
+FILE: src\components\FBrefCsvImport.vue
+============================================================
+<!--
+FBrefCsvImport.vue
+==================
+Componente da aggiungere in DataIngestion.vue per importare FBref da CSV.
+Risolve il problema del 403 da Docker senza richiedere scraping.
+
+ISTRUZIONI DI INTEGRAZIONE:
+  1. Copia questo file in frontend/src/components/FBrefCsvImport.vue
+  2. In DataIngestion.vue aggiunge nell'import:
+       import FBrefCsvImport from '@/components/FBrefCsvImport.vue'
+  3. In DataIngestion.vue aggiunge nel template, vicino alla sezione FBref:
+       <FBrefCsvImport />
+
+COME USARLO (utente finale):
+  1. Apri nel browser: https://fbref.com/en/comps/11/stats/Serie-A-Stats
+     (o la lega che ti interessa)
+  2. Scorri fino alla tabella "Standard Stats"
+  3. Sopra la tabella trovi il link "Share & Export" → "Get table as CSV"
+  4. Si apre una popup con il testo CSV — seleziona tutto (Ctrl+A) e copia (Ctrl+C)
+  5. Torna su Football Scout → Gestione Dati → sezione "FBref CSV"
+  6. Incolla nel campo di testo e clicca "Importa CSV"
+-->
+
+<template>
+  <div class="fbref-csv-card card">
+    <div class="fbref-header">
+      <div class="fbref-title">
+        <span class="fbref-icon">🌐</span>
+        <div>
+          <h3>FBref — Importazione CSV</h3>
+          <p class="fbref-subtitle">Bypass del 403 · Dati direttamente dal browser</p>
+        </div>
+      </div>
+      <span class="badge badge-free">Gratis</span>
+    </div>
+
+    <!-- Istruzioni -->
+    <div class="instructions-box">
+      <p class="instr-title">📋 Come fare:</p>
+      <ol class="instr-list">
+        <li>
+          Apri
+          <a :href="fbrefUrl" target="_blank" rel="noopener">{{ fbrefUrl }}</a>
+          nel browser
+        </li>
+        <li>Scorri fino alla tabella <strong>Standard Stats</strong></li>
+        <li>Clicca <strong>"Share &amp; Export"</strong> → <strong>"Get table as CSV"</strong></li>
+        <li>Seleziona tutto il testo (Ctrl+A) e copialo (Ctrl+C)</li>
+        <li>Incolla qui sotto e clicca <strong>Importa CSV</strong></li>
+      </ol>
+    </div>
+
+    <!-- Selezione lega -->
+    <div class="field-group">
+      <label class="field-label">Lega</label>
+      <select v-model="selectedLeague" @change="updateUrl">
+        <option value="serie_a">🇮🇹 Serie A</option>
+        <option value="premier_league">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</option>
+        <option value="la_liga">🇪🇸 La Liga</option>
+        <option value="bundesliga">🇩🇪 Bundesliga</option>
+        <option value="ligue_1">🇫🇷 Ligue 1</option>
+        <option value="champions_league">🏆 Champions League</option>
+        <option value="eredivisie">🇳🇱 Eredivisie</option>
+        <option value="primeira_liga">🇵🇹 Primeira Liga</option>
+      </select>
+    </div>
+
+    <!-- Area testo CSV -->
+    <div class="field-group">
+      <label class="field-label">
+        Incolla qui il CSV copiato da FBref
+        <span class="char-count" v-if="csvText">{{ csvText.length.toLocaleString() }} caratteri</span>
+      </label>
+      <textarea
+        v-model="csvText"
+        class="csv-textarea"
+        placeholder="Incolla qui il CSV di FBref (Ctrl+V)&#10;Esempio prima riga:&#10;Player,Nation,Pos,Squad,Age,Born,MP,Starts,Min,90s,Gls,Ast..."
+        rows="8"
+        spellcheck="false"
+      />
+    </div>
+
+    <!-- Validazione rapida -->
+    <div v-if="csvText && csvPreview" class="csv-preview">
+      <span class="preview-ok">✅ CSV rilevato:</span>
+      <span class="preview-info">{{ csvPreview }}</span>
+    </div>
+    <div v-else-if="csvText && !csvPreview" class="csv-preview csv-preview-warn">
+      ⚠️ Il testo non sembra un CSV FBref valido. Assicurati di aver copiato dalla voce "Get table as CSV".
+    </div>
+
+    <!-- Azioni -->
+    <div class="action-bar">
+      <button
+        class="btn btn-primary btn-import"
+        :disabled="!canImport || importing"
+        @click="doImport"
+      >
+        <span v-if="importing">⏳ Importazione in corso…</span>
+        <span v-else>⬆️ Importa CSV</span>
+      </button>
+      <button class="btn btn-ghost" @click="csvText = ''" :disabled="!csvText || importing">
+        🗑️ Svuota
+      </button>
+    </div>
+
+    <!-- Risultato -->
+    <div v-if="result" class="result-box" :class="result.error ? 'result-error' : 'result-ok'">
+      <template v-if="result.error">
+        ❌ Errore: {{ result.error }}
+      </template>
+      <template v-else>
+        ✅ Importazione completata:
+        <strong>{{ result.players_enriched_in_db }}</strong> giocatori arricchiti
+        su {{ result.players_found_on_site }} trovati nel CSV
+        <span v-if="result.players_not_matched" class="not-matched">
+          · {{ result.players_not_matched }} non abbinati al DB
+        </span>
+      </template>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import api from '@/api/client'
+
+const LEAGUE_URLS = {
+  serie_a:          'https://fbref.com/en/comps/11/stats/Serie-A-Stats',
+  premier_league:   'https://fbref.com/en/comps/9/stats/Premier-League-Stats',
+  la_liga:          'https://fbref.com/en/comps/12/stats/La-Liga-Stats',
+  bundesliga:       'https://fbref.com/en/comps/20/stats/Bundesliga-Stats',
+  ligue_1:          'https://fbref.com/en/comps/13/stats/Ligue-1-Stats',
+  champions_league: 'https://fbref.com/en/comps/8/stats/Champions-League-Stats',
+  eredivisie:       'https://fbref.com/en/comps/23/stats/Eredivisie-Stats',
+  primeira_liga:    'https://fbref.com/en/comps/32/stats/Primeira-Liga-Stats',
+}
+
+const selectedLeague = ref('serie_a')
+const fbrefUrl       = computed(() => LEAGUE_URLS[selectedLeague.value])
+const csvText        = ref('')
+const importing      = ref(false)
+const result         = ref(null)
+
+// Valida che il CSV sembri quello di FBref
+const csvPreview = computed(() => {
+  if (!csvText.value || csvText.value.length < 20) return null
+  const lines = csvText.value
+    .split('\n')
+    .filter(l => !l.startsWith('#') && l.trim())
+  if (lines.length < 2) return null
+  const header = lines[0].toLowerCase()
+  if (!header.includes('player') && !header.includes('squad') && !header.includes('gls')) return null
+  const dataRows = lines.length - 1
+  return `${dataRows} righe · colonne: ${lines[0].split(',').length}`
+})
+
+const canImport = computed(() => csvPreview.value !== null && csvText.value.length > 50)
+
+function updateUrl() {
+  result.value = null
+}
+
+async function doImport() {
+  if (!canImport.value) return
+  importing.value = true
+  result.value = null
+
+  try {
+    const { data } = await api.post('/ingest/fbref/csv', {
+    csv_text:   csvText.value,
+    league_key: selectedLeague.value,
+    }, { 
+        timeout: 300000 // 5 minuti in millisecondi
+    });
+    result.value = data
+    if (data.players_enriched_in_db > 0) {
+      csvText.value = '' // svuota dopo successo
+    }
+  } catch (e) {
+    result.value = { error: e.response?.data?.detail || e.message }
+  } finally {
+    importing.value = false
+  }
+}
+</script>
+
+<style scoped>
+.fbref-csv-card {
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.fbref-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+.fbref-title { display: flex; gap: 0.75rem; align-items: flex-start; }
+.fbref-icon { font-size: 1.4rem; flex-shrink: 0; padding-top: 2px; }
+.fbref-title h3 { margin: 0 0 0.15rem; font-size: 1rem; font-weight: 700; }
+.fbref-subtitle { margin: 0; font-size: 0.8rem; color: var(--color-muted, #6b7280); }
+
+.badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
+.badge-free { background: #d1fae5; color: #065f46; }
+
+.instructions-box {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+.instr-title { margin: 0 0 0.4rem; font-size: 0.85rem; font-weight: 700; color: var(--color-primary, #3b82f6); }
+.instr-list { margin: 0; padding-left: 1.25rem; font-size: 0.83rem; line-height: 1.7; }
+.instr-list a { color: var(--color-primary, #3b82f6); }
+
+.field-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.85rem; }
+.field-label { font-size: 0.8rem; font-weight: 600; color: var(--color-muted, #4b5563); display: flex; justify-content: space-between; align-items: center; }
+.char-count { font-size: 0.72rem; color: var(--color-muted, #9ca3af); font-weight: 400; }
+
+.csv-textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  resize: vertical;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  box-sizing: border-box;
+  min-height: 140px;
+}
+.csv-textarea:focus { outline: none; border-color: var(--color-primary, #3b82f6); box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+
+.csv-preview {
+  font-size: 0.8rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+.preview-ok { color: #10b981; font-weight: 600; }
+.preview-info { color: var(--color-muted, #6b7280); margin-left: 0.4rem; }
+.csv-preview-warn { background: #fef3c7; color: #92400e; }
+
+.action-bar { display: flex; gap: 0.75rem; align-items: center; }
+.btn { padding: 0.55rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer; transition: background 0.15s, opacity 0.15s; }
+.btn-primary { background: var(--color-primary, #3b82f6); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #1d4ed8; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ghost { background: transparent; border: 1px solid var(--color-border, #e5e7eb); color: var(--color-text, #374151); }
+.btn-ghost:hover:not(:disabled) { background: rgba(0,0,0,0.05); }
+.btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-import { min-width: 180px; }
+
+.result-box { margin-top: 1rem; padding: 0.65rem 0.9rem; border-radius: 8px; font-size: 0.85rem; }
+.result-ok { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16,185,129,0.3); color: #065f46; }
+.result-error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239,68,68,0.3); color: #991b1b; }
+.not-matched { opacity: 0.7; }
+</style>
+
+
+============================================================
 FILE: src\components\InfoRow.vue
 ============================================================
 <template>
@@ -3338,8 +3672,19 @@ const hasScores = computed(() =>
 
 .stats-grid  { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; margin-bottom: .75rem; }
 .scores-row  { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .5rem; }
-.xg-row      { display: flex; gap: 1rem; font-size: .8rem; color: var(--color-muted); }
-.xg-row strong { color: var(--color-text); }
+/* ─── PlayerCard: xG/xA row leggibile ─── */
+.xg-row {
+  display: flex;
+  gap: 1rem;
+  font-size: .82rem;             /* ← era .8rem */
+  color: var(--color-text);      /* ← era var(--color-muted) */
+  font-weight: 600;              /* ← aggiunto */
+  margin-top: .5rem;
+}
+.xg-row strong {
+  color: var(--color-text);
+  font-weight: 800;
+}
 </style>
 
 
@@ -3373,11 +3718,11 @@ const color = computed(() => {
 .score-pill {
   display: inline-flex;
   align-items: center;
-  gap: .35rem;
-  padding: .2rem .6rem;
-  border-radius: 20px;
-  border: 1px solid;
-  font-size: .75rem;
+  gap: .3rem;
+  padding: .2rem .55rem;
+  border-radius: 999px;
+  border: 2px solid;
+  font-size: .78rem;
   background: rgba(255,255,255,.04);
 }
 .score-pill strong { font-size: .85rem; }
@@ -3441,11 +3786,16 @@ const color     = computed(() => {
   font-size: .75rem;
   cursor: help;   /* cursore a punto interrogativo → indica tooltip disponibile */
 }
+.stat-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
 .stat-label {
-  width: 26px;
-  text-align: right;
-  color: var(--color-muted);
-  font-weight: 600;
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--color-text);     /* ← era var(--color-muted) */
+  width: 2.2rem;
   flex-shrink: 0;
 }
 .bar-track {
@@ -3477,6 +3827,14 @@ const color     = computed(() => {
   text-align: right;
   color: var(--color-text);
   font-weight: 700;
+}
+.stat-value {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--color-text);     /* ← era var(--color-muted) con opacity .6 */
+  /* opacity: 0.6  ← RIMUOVERE questa riga */
+  min-width: 2rem;
+  text-align: right;
 }
 .stat-val.nd {
   font-size: .68rem;
@@ -3835,45 +4193,61 @@ export const useTeamStore = defineStore('team', () => {
 FILE: src\utils\positions.js
 ============================================================
 /**
- * positions.js — dizionario centralizzato ruoli calcio
- * Importato da PlayerCard, TeamRoster, GlobalScoutingView, ScoutingSearch
+ * src/utils/positions.js
+ * Dizionario centralizzato ruoli calcio — italiano.
+ * Importato da PlayerCard, TeamRoster, GlobalScoutingView, ScoutingSearch.
  *
- * posLabel(code)   → etichetta leggibile (es. "ST" → "Centravanti")
- * posOptions       → array per i <select> con label + value
+ * Gestisce ENTRAMBI i formati:
+ *   - Codici FIFA: "ST", "CM", "CB", "GK", ...
+ *   - Categorie API-Football: "Attacker", "Midfielder", "Defender", "Goalkeeper"
  */
 
 export const POSITION_LABELS = {
-  // Portieri
-  GK:  'Portiere',
-  // Difensori
-  CB:  'Difensore Centrale',
-  LB:  'Terzino Sinistro',
-  RB:  'Terzino Destro',
-  LWB: 'Quinto Sinistro',
-  RWB: 'Quinto Destro',
-  SW:  'Libero',
-  // Centrocampisti
-  DM:  'Mediano Difensivo',
-  CDM: 'Mediano Difensivo',
-  CM:  'Centrocampista',
-  AM:  'Trequartista',
-  CAM: 'Trequartista',
-  LM:  'Mezzala Sinistra',
-  RM:  'Mezzala Destra',
-  // Attaccanti
-  LW:  'Ala Sinistra',
-  RW:  'Ala Destra',
-  SS:  'Seconda Punta',
-  CF:  'Prima Punta',
-  ST:  'Centravanti',
-  // Generici (dataset Kaggle/API)
-  MF:  'Centrocampista',
-  FW:  'Attaccante',
-  DF:  'Difensore',
+  // ── Portieri ──────────────────────────────────────────────────
+  GK:         'Portiere',
+  Goalkeeper: 'Portiere',
+
+  // ── Difensori ─────────────────────────────────────────────────
+  CB:       'Difensore Centrale',
+  'Centre-Back': 'Difensore centrale',
+  LB:       'Terzino Sinistro',
+  'Left-Back': 'Terzino Sinistro',
+  RB:       'Terzino Destro',
+  LWB:      'Quinto Sinistro',
+  RWB:      'Quinto Destro',
+  SW:       'Libero',
+  DF:       'Difensore',
+  Defender: 'Difensore',
+  Defence: 'Difensore',
+  'Right-Back': 'Terzino destro',
+
+  // ── Centrocampisti ────────────────────────────────────────────
+  DM:         'Mediano Difensivo',
+  CDM:        'Mediano Difensivo',
+  CM:         'Centrocampista',
+  'Central Midfield': 'Centrocampista',
+  AM:         'Trequartista',
+  CAM:        'Trequartista',
+  LM:         'Mezzala Sinistra',
+  RM:         'Mezzala Destra',
+  MF:         'Centrocampista',
+  Midfielder: 'Centrocampista',
+
+  // ── Attaccanti ────────────────────────────────────────────────
+  LW:       'Ala Sinistra',
+  'Left Winger': 'Ala sinistra',
+  RW:       'Ala Destra',
+  SS:       'Seconda Punta',
+  CF:       'Prima Punta',
+  ST:       'Centravanti',
+  'Centre-Forward': 'Centravanti',
+  FW:       'Attaccante',
+  Attacker: 'Attaccante',
+
 }
 
 /**
- * Restituisce l'etichetta leggibile per un codice posizione.
+ * Restituisce l'etichetta italiana per un codice posizione.
  * Se il codice non è in mappa, ritorna il codice stesso.
  */
 export function posLabel(code) {
@@ -3882,27 +4256,36 @@ export function posLabel(code) {
 }
 
 /**
- * Array di opzioni per <select> — include il codice nel label
- * per mantenere la familiarità con la nomenclatura tecnica.
+ * Array di opzioni per <select> con codice + descrizione italiana.
+ * Include sia i codici FIFA che le categorie API-Football.
  */
 export const posOptions = [
-  { value: '',    label: 'Tutti i ruoli' },
-  { value: 'GK',  label: 'GK — Portiere' },
-  { value: 'CB',  label: 'CB — Difensore Centrale' },
-  { value: 'LB',  label: 'LB — Terzino Sinistro' },
-  { value: 'RB',  label: 'RB — Terzino Destro' },
-  { value: 'LWB', label: 'LWB — Quinto Sinistro' },
-  { value: 'RWB', label: 'RWB — Quinto Destro' },
-  { value: 'DM',  label: 'DM — Mediano Difensivo' },
-  { value: 'CM',  label: 'CM — Centrocampista' },
-  { value: 'AM',  label: 'AM — Trequartista' },
-  { value: 'LM',  label: 'LM — Mezzala Sinistra' },
-  { value: 'RM',  label: 'RM — Mezzala Destra' },
-  { value: 'LW',  label: 'LW — Ala Sinistra' },
-  { value: 'RW',  label: 'RW — Ala Destra' },
-  { value: 'CF',  label: 'CF — Prima Punta' },
-  { value: 'ST',  label: 'ST — Centravanti' },
-  { value: 'SS',  label: 'SS — Seconda Punta' },
+  { value: '',         label: 'Tutti i ruoli' },
+  // Portiere
+  { value: 'GK',       label: 'GK — Portiere' },
+  // Difensori
+  { value: 'CB',       label: 'CB — Difensore Centrale' },
+  { value: 'LB',       label: 'LB — Terzino Sinistro' },
+  { value: 'RB',       label: 'RB — Terzino Destro' },
+  { value: 'LWB',      label: 'LWB — Quinto Sinistro' },
+  { value: 'RWB',      label: 'RWB — Quinto Destro' },
+  // Centrocampisti
+  { value: 'DM',       label: 'DM — Mediano Difensivo' },
+  { value: 'CM',       label: 'CM — Centrocampista' },
+  { value: 'AM',       label: 'AM — Trequartista' },
+  { value: 'LM',       label: 'LM — Mezzala Sinistra' },
+  { value: 'RM',       label: 'RM — Mezzala Destra' },
+  // Attaccanti
+  { value: 'LW',       label: 'LW — Ala Sinistra' },
+  { value: 'RW',       label: 'RW — Ala Destra' },
+  { value: 'CF',       label: 'CF — Prima Punta' },
+  { value: 'ST',       label: 'ST — Centravanti' },
+  { value: 'SS',       label: 'SS — Seconda Punta' },
+  // Categorie API-Football (per giocatori importati da API-Football)
+  { value: 'Attacker',    label: 'Attaccante (API-Football)' },
+  { value: 'Midfielder',  label: 'Centrocampista (API-Football)' },
+  { value: 'Defender',    label: 'Difensore (API-Football)' },
+  { value: 'Goalkeeper',  label: 'Portiere (API-Football)' },
 ]
 
 
@@ -4351,6 +4734,7 @@ FILE: src\views\DataIngestion.vue
           Alternativa gratuita a StatsBomb. Standard Stats con xG, xAG, minuti.
           Attenzione: rate limit FBref — non abusare.
         </p>
+        <FBrefCsvImport />
         <div class="source-params">
           <span>🏆 {{ config.fbref_league }}</span>
           <span>📅 {{ config.fbref_season }}</span>
@@ -4732,7 +5116,7 @@ FILE: src\views\DataIngestion.vue
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-//import api from '@/services/api'
+import FBrefCsvImport from '@/components/FBrefCsvImport.vue'
 import api from '@/api/client'
 const activeTab = ref('results')
 // ── StatsBomb: competizioni rapide pre-caricate ─────────────────
@@ -5918,16 +6302,22 @@ FILE: src\views\DatabaseExplorer.vue
 
         <!-- Tab selector -->
         <div class="tab-bar card">
-          <button class="tab-btn" :class="{ active: activeTab === 'browse' }" @click="activeTab = 'browse'">📋 Sfoglia dati</button>
-          <button class="tab-btn" :class="{ active: activeTab === 'schema' }" @click="activeTab = 'schema'">🏗 Schema</button>
-          <button class="tab-btn" :class="{ active: activeTab === 'query' }"  @click="activeTab = 'query'">💬 SQL Query</button>
+          <button class="tab-btn" :class="{ active: activeTab === 'browse' }" @click="activeTab = 'browse'">
+            📋 Sfoglia dati
+          </button>
+          <button class="tab-btn" :class="{ active: activeTab === 'schema' }" @click="activeTab = 'schema'">
+            🏗 Schema
+          </button>
+          <button class="tab-btn" :class="{ active: activeTab === 'query' }" @click="activeTab = 'query'">
+            💬 SQL Query
+          </button>
         </div>
 
         <!-- ── TAB: Sfoglia ───────────────────────────────────── -->
         <div v-if="activeTab === 'browse'" class="tab-content card">
           <div v-if="!selectedTable" class="empty-state">← Seleziona una tabella dalla sidebar</div>
           <template v-else>
-            <div class="browse-header">
+            <div class="browse-header" style="flex-shrink:0">
               <h3>{{ selectedTable }}</h3>
               <div class="browse-controls">
                 <label>Righe per pagina:</label>
@@ -5939,84 +6329,102 @@ FILE: src\views\DatabaseExplorer.vue
                 </select>
               </div>
             </div>
+
             <div v-if="loadingData" class="loading">Caricamento dati…</div>
             <template v-else-if="tableData">
-              <div class="table-info">
+              <div class="table-info" style="flex-shrink:0">
                 {{ tableData.rows.length }} di {{ formatCount(tableData.total) }} righe
                 — pagina {{ currentPage }} / {{ totalPages }}
               </div>
-              <div class="browse-actions">
+              <div class="browse-actions" style="flex-shrink:0">
                 <button class="btn-open-dialog" @click="browseDialogVisible = true">🔍 Visualizza nella finestra</button>
+                <button class="btn-export" @click="exportBrowseExcel">📊 Excel</button>
                 <button class="btn-export" @click="exportBrowseCsv">📥 CSV</button>
                 <div class="pagination-inline">
                   <button class="btn-page" :disabled="currentOffset === 0" @click="changePage(-1)">← Prec.</button>
                   <button class="btn-page" :disabled="currentOffset + pageSize >= tableData.total" @click="changePage(1)">Succ. →</button>
                 </div>
               </div>
-              <p class="dialog-hint-inline">💡 Per vedere tutti i dati clicca "Visualizza nella finestra".</p>
+              <p class="dialog-hint-inline" style="flex-shrink:0">💡 Per vedere tutti i dati clicca "Visualizza nella finestra".</p>
             </template>
           </template>
         </div>
 
         <!-- ── TAB: Schema ────────────────────────────────────── -->
-        <div v-if="activeTab === 'schema'" class="tab-content card">
+        <!-- FIX #6: overflow-y: auto sul tab-content dello schema -->
+        <div v-if="activeTab === 'schema'" class="tab-content tab-content-scroll card">
           <div v-if="!selectedTable" class="empty-state">← Seleziona una tabella dalla sidebar</div>
           <template v-else>
             <div v-if="loadingSchema" class="loading">Caricamento schema…</div>
             <template v-else-if="tableSchema">
-              <h3>Schema: {{ tableSchema.table }}</h3>
-              <table class="schema-table">
-                <thead>
-                  <tr><th>Colonna</th><th>Tipo</th><th>Nullable</th><th>Default</th><th>PK</th></tr>
-                </thead>
-                <tbody>
-                  <tr v-for="col in tableSchema.columns" :key="col.name" :class="{ 'pk-row': col.primary_key }">
-                    <td><span v-if="col.primary_key">🔑 </span>{{ col.name }}</td>
-                    <td><code>{{ col.type }}</code></td>
-                    <td><span :class="col.nullable ? 'yes' : 'no'">{{ col.nullable ? 'Sì' : 'No' }}</span></td>
-                    <td><code v-if="col.default">{{ col.default }}</code><span v-else>—</span></td>
-                    <td>{{ col.primary_key ? '✓' : '' }}</td>
-                  </tr>
-                </tbody>
-              </table>
-              <div v-if="tableSchema.indexes.length" class="indexes">
-                <h4>Indici</h4>
+              <h3 style="flex-shrink:0; margin-bottom:0.75rem">Schema: {{ tableSchema.table }} ({{ tableSchema.columns.length }} colonne)</h3>
+
+              <!-- FIX: tabella schema dentro un div scrollabile -->
+              <div class="schema-scroll">
                 <table class="schema-table">
-                  <thead><tr><th>Nome</th><th>Colonne</th><th>Unique</th></tr></thead>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Colonna</th>
+                      <th>Tipo</th>
+                      <th>Nullable</th>
+                      <th>Default</th>
+                      <th>PK</th>
+                    </tr>
+                  </thead>
                   <tbody>
-                    <tr v-for="idx in tableSchema.indexes" :key="idx.name">
-                      <td>{{ idx.name }}</td>
-                      <td>{{ idx.columns.join(', ') }}</td>
-                      <td>{{ idx.unique ? '✓' : '' }}</td>
+                    <tr v-for="(col, idx) in tableSchema.columns" :key="col.name" :class="{ 'pk-row': col.primary_key }">
+                      <td class="col-idx">{{ idx + 1 }}</td>
+                      <td><span v-if="col.primary_key">🔑 </span>{{ col.name }}</td>
+                      <td><code>{{ col.type }}</code></td>
+                      <td><span :class="col.nullable ? 'yes' : 'no'">{{ col.nullable ? 'Sì' : 'No' }}</span></td>
+                      <td><code v-if="col.default">{{ col.default }}</code><span v-else>—</span></td>
+                      <td>{{ col.primary_key ? '✓' : '' }}</td>
                     </tr>
                   </tbody>
                 </table>
+
+                <div v-if="tableSchema.indexes.length" class="indexes">
+                  <h4>Indici ({{ tableSchema.indexes.length }})</h4>
+                  <table class="schema-table">
+                    <thead><tr><th>Nome</th><th>Colonne</th><th>Unique</th></tr></thead>
+                    <tbody>
+                      <tr v-for="idx in tableSchema.indexes" :key="idx.name">
+                        <td>{{ idx.name }}</td>
+                        <td>{{ idx.columns.join(', ') }}</td>
+                        <td>{{ idx.unique ? '✓' : '' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </template>
           </template>
         </div>
 
         <!-- ── TAB: SQL Query ─────────────────────────────────── -->
-        <div v-if="activeTab === 'query'" class="tab-content card">
-          <div class="query-header">
+        <!-- FIX #3/#5: il tab-content non si rimpicciolisce dopo l'esecuzione -->
+        <div v-if="activeTab === 'query'" class="tab-content tab-content-query card">
+          <div class="query-header" style="flex-shrink:0">
             <h3>SQL Query</h3>
             <span class="query-notice">Qualsiasi istruzione SQL è permessa</span>
           </div>
 
-          <div class="query-quick">
+          <div class="query-quick" style="flex-shrink:0">
             <span class="ql-label">Query rapide:</span>
             <button v-for="q in quickQueries" :key="q.label" class="ql-btn" @click="applySqlTemplate(q.sql)">{{ q.label }}</button>
           </div>
 
+          <!-- FIX: flex-shrink:0 impedisce il rimpicciolimento del textarea dopo l'esecuzione -->
           <textarea
             v-model="customSql"
             class="sql-input"
             placeholder="SELECT * FROM scouting_players WHERE position = 'ST' LIMIT 20"
-            rows="6"
+            rows="8"
             spellcheck="false"
           ></textarea>
 
-          <div class="query-controls">
+          <div class="query-controls" style="flex-shrink:0">
             <div>
               <label>Max righe: </label>
               <select v-model.number="queryLimit">
@@ -6026,29 +6434,28 @@ FILE: src\views\DatabaseExplorer.vue
                 <option :value="500">500</option>
               </select>
             </div>
-            <div style="display:flex;gap:.5rem">
-              <!-- Pulsante Interrompi visibile durante esecuzione -->
-              <button v-if="queryRunning" class="btn-stop" @click="cancelQuery">⏹ Interrompi</button>
-              <button class="btn-run" :disabled="!customSql.trim() || queryRunning" @click="runQuery">
-                <span v-if="queryRunning">⏳ Esecuzione…</span>
-                <span v-else>▶ Esegui Query</span>
-              </button>
-            </div>
+            <button class="btn-run" :disabled="!customSql.trim() || queryRunning" @click="runQuery">
+              <span v-if="queryRunning">⏳ Esecuzione…</span>
+              <span v-else>▶ Esegui Query</span>
+            </button>
           </div>
 
-          <div v-if="queryError" class="query-error">❌ {{ queryError }}</div>
+          <div v-if="queryError" class="query-error" style="flex-shrink:0">❌ {{ queryError }}</div>
 
           <template v-if="queryResult">
-            <div class="table-info">
+            <div class="table-info" style="flex-shrink:0">
               {{ queryResult.rows?.length ?? 0 }} righe restituite
               <template v-if="queryResult.total != null"> ({{ queryResult.total }} totali)</template>
+              <span v-if="queryResult.message" style="margin-left:0.5rem; color:var(--color-success, #10b981)">
+                ✅ {{ queryResult.message }}
+              </span>
             </div>
-            <div class="browse-actions">
+            <div class="browse-actions" style="flex-shrink:0">
               <button class="btn-open-dialog" @click="queryDialogVisible = true">🔍 Visualizza nella finestra</button>
-              <button class="btn-export" @click="exportQueryCsv">📥 CSV</button>
-              <button class="btn-export" @click="exportQueryExcel">📊 Excel</button>
+              <button class="btn-export" @click="exportExcel">📊 Excel</button>
+              <button class="btn-export" @click="exportCsv">📥 CSV</button>
             </div>
-            <p class="dialog-hint-inline">💡 Per una visione completa clicca "Visualizza nella finestra".</p>
+            <p class="dialog-hint-inline" style="flex-shrink:0">💡 Per una visione completa clicca "Visualizza nella finestra".</p>
           </template>
         </div>
 
@@ -6079,6 +6486,8 @@ FILE: src\views\DatabaseExplorer.vue
           <button class="btn-reload" :disabled="loadingData" @click="reloadData" title="Ricarica dati dal DB">
             <span :class="{ spin: loadingData }">↻</span> Ricarica
           </button>
+          <button class="btn-export" @click="exportBrowseExcel" title="Esporta Excel">📊 Excel</button>
+          <button class="btn-export" @click="exportBrowseCsv" title="Esporta CSV">📥 CSV</button>
           <button class="db-modal-close" @click="browseDialogVisible = false">✕</button>
         </div>
       </div>
@@ -6115,8 +6524,8 @@ FILE: src\views\DatabaseExplorer.vue
           </span>
         </div>
         <div class="db-modal-actions">
-          <button class="btn-export" @click="exportQueryCsv">📥 CSV</button>
-          <button class="btn-export" @click="exportQueryExcel">📊 Excel</button>
+          <button class="btn-export" @click="exportExcel">📊 Excel</button>
+          <button class="btn-export" @click="exportCsv">📥 CSV</button>
           <button class="db-modal-close" @click="queryDialogVisible = false">✕</button>
         </div>
       </div>
@@ -6136,7 +6545,9 @@ FILE: src\views\DatabaseExplorer.vue
           </tbody>
         </table>
       </div>
-      <div v-else class="db-modal-loading">Nessuna riga da mostrare.</div>
+      <div v-else class="db-modal-loading">
+        {{ queryResult?.message || 'Nessuna riga da mostrare.' }}
+      </div>
     </div>
   </div>
 
@@ -6169,19 +6580,18 @@ const queryLimit    = ref(100)
 const queryRunning  = ref(false)
 const queryResult   = ref(null)
 const queryError    = ref(null)
-let   queryAbortCtrl = null
 
 const browseDialogVisible = ref(false)
 const queryDialogVisible  = ref(false)
 
-// ── Quick queries aggiornate per pipeline oggettivo ───────────────
+// ── Quick queries aggiornate ─────────────────────────────────────
 const quickQueries = [
   { label: 'Top xG/90',         sql: "SELECT name, position, club, xg_per90, xa_per90, npxg_per90, finishing_score, finishing_pct FROM scouting_players WHERE xg_per90 IS NOT NULL ORDER BY xg_per90 DESC LIMIT 20" },
   { label: 'Score per ruolo',   sql: "SELECT position, COUNT(*) as n, ROUND(AVG(finishing_score)::numeric,1) avg_fin, ROUND(AVG(creativity_score)::numeric,1) avg_cre, ROUND(AVG(pressing_score)::numeric,1) avg_prs FROM scouting_players WHERE finishing_score IS NOT NULL GROUP BY position ORDER BY n DESC" },
-  { label: 'Top percentili',    sql: "SELECT name, position, club, finishing_pct, creativity_pct, pressing_pct, defending_pct FROM scouting_players WHERE finishing_pct > 85 ORDER BY finishing_pct DESC LIMIT 30" },
-  { label: 'Per posizione',     sql: "SELECT position, COUNT(*) AS totale FROM scouting_players GROUP BY position ORDER BY totale DESC" },
-  { label: 'Copertura dati',    sql: "SELECT COUNT(*) totale, COUNT(minutes_season) con_minuti, COUNT(xg_per90) con_xg, COUNT(finishing_score) con_score, COUNT(finishing_pct) con_pct FROM scouting_players" },
-  { label: 'Underperforming',   sql: "SELECT name, position, club, goals_season, ROUND((xg_per90 * minutes_season / 90.0)::numeric,2) xg_est, goals_season - ROUND((xg_per90 * minutes_season / 90.0)::numeric,2) delta FROM scouting_players WHERE xg_per90 IS NOT NULL AND goals_season IS NOT NULL AND minutes_season > 300 ORDER BY delta ASC LIMIT 20" },
+  { label: 'Colonne NULL',      sql: "SELECT COUNT(*) totale, COUNT(minutes_season) con_minuti, COUNT(xg_per90) con_xg, COUNT(pressures_season) con_pressures, COUNT(tackles_season) con_tackles, COUNT(progressive_carries) con_prog_carries FROM scouting_players" },
+  { label: 'Posizioni raw',     sql: "SELECT position, COUNT(*) AS n FROM scouting_players GROUP BY position ORDER BY n DESC" },
+  { label: 'Top percentili',    sql: "SELECT name, position, club, finishing_pct, creativity_pct, pressing_pct, defending_pct FROM scouting_players WHERE finishing_pct > 70 ORDER BY finishing_pct DESC LIMIT 30" },
+  { label: 'Sorgenti attive',   sql: "SELECT COUNT(*) totale, COUNT(last_updated_fbref) fbref, COUNT(last_updated_api_football) api_football, COUNT(last_updated_understat) understat, COUNT(last_updated_statsbomb) statsbomb FROM scouting_players" },
 ]
 
 function applySqlTemplate(sql) {
@@ -6255,12 +6665,11 @@ async function runQuery() {
   queryRunning.value = true
   queryError.value   = null
   queryResult.value  = null
-  queryAbortCtrl     = new AbortController()
   try {
     const { data } = await api.post('/db/query', {
       sql:   customSql.value,
       limit: queryLimit.value,
-    }, { signal: queryAbortCtrl.signal })
+    })
 
     // Normalizza: aggiunge columns se mancante
     if (data.rows && data.rows.length && !data.columns) {
@@ -6270,25 +6679,17 @@ async function runQuery() {
     }
 
     queryResult.value = data
-    queryDialogVisible.value = true
-  } catch (e) {
-    if (e.name === 'CanceledError' || e.name === 'AbortError' || e.code === 'ERR_CANCELED') {
-      queryError.value = 'Query interrotta.'
-    } else {
-      queryError.value = e.response?.data?.detail || e.message
+    if (data.rows && data.rows.length > 0) {
+      queryDialogVisible.value = true
     }
+  } catch (e) {
+    queryError.value = e.response?.data?.detail || e.message
   } finally {
     queryRunning.value = false
-    queryAbortCtrl = null
   }
 }
 
-function cancelQuery() {
-  if (queryAbortCtrl) queryAbortCtrl.abort()
-  queryRunning.value = false
-}
-
-// ── Export CSV ────────────────────────────────────────────────────
+// ── Export ────────────────────────────────────────────────────────
 function _toCsv(columns, rows) {
   const esc = v => {
     if (v == null) return ''
@@ -6298,7 +6699,7 @@ function _toCsv(columns, rows) {
   }
   return [
     columns.map(esc).join(','),
-    ...rows.map(r => columns.map(c => esc(r[c])).join(',')),
+    ...rows.map(r => columns.map(c => esc(r[c])).join(','))
   ].join('\n')
 }
 
@@ -6311,7 +6712,7 @@ function _download(content, filename, type = 'text/csv;charset=utf-8;') {
   URL.revokeObjectURL(a.href)
 }
 
-function exportQueryCsv() {
+function exportCsv() {
   if (!queryResult.value?.columns?.length) return
   _download(_toCsv(queryResult.value.columns, queryResult.value.rows), 'query_result.csv')
 }
@@ -6321,10 +6722,8 @@ function exportBrowseCsv() {
   _download(_toCsv(tableData.value.columns, tableData.value.rows), `${selectedTable.value}.csv`)
 }
 
-// ── Export Excel (SheetJS via import dinamico) ────────────────────
 async function _exportXlsx(columns, rows, filename) {
   try {
-    // Import dinamico da CDN — compatibile con script setup
     const XLSX = await import('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.mjs')
     const ws = XLSX.utils.json_to_sheet(rows.map(r => {
       const obj = {}
@@ -6335,14 +6734,18 @@ async function _exportXlsx(columns, rows, filename) {
     XLSX.utils.book_append_sheet(wb, ws, 'Dati')
     XLSX.writeFile(wb, filename)
   } catch {
-    // Fallback CSV se l'import CDN fallisce (es. offline)
     _download(_toCsv(columns, rows), filename.replace('.xlsx', '.csv'))
   }
 }
 
-function exportQueryExcel() {
+function exportExcel() {
   if (!queryResult.value?.columns?.length) return
   _exportXlsx(queryResult.value.columns, queryResult.value.rows, 'query_result.xlsx')
+}
+
+function exportBrowseExcel() {
+  if (!tableData.value?.columns?.length) return
+  _exportXlsx(tableData.value.columns, tableData.value.rows, `${selectedTable.value || 'tabella'}.xlsx`)
 }
 
 // ── Formatters ────────────────────────────────────────────────────
@@ -6409,7 +6812,14 @@ onMounted(loadTables)
   min-height: 0;
 }
 
-.sidebar { overflow-y: auto; display: flex; flex-direction: column; min-height: 0; height: 100%; }
+.sidebar {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
 .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
 .sidebar-header h3 { margin: 0; font-size: 0.95rem; }
 .btn-refresh { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted, #888); }
@@ -6429,7 +6839,50 @@ onMounted(loadTables)
 .tab-btn:hover { background: #eff6ff; }
 .tab-btn.active { background: var(--primary, #3b82f6); color: #fff; border-color: var(--primary, #3b82f6); }
 
-.tab-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.75rem; min-height: 0; }
+/* Tab content base */
+.tab-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+/* FIX #6: Schema tab — il contenuto scrolla senza restringere il contenitore */
+.tab-content-scroll {
+  overflow-y: auto !important;
+}
+
+/* FIX #3/#5: Query tab — il textarea NON si rimpicciolisce dopo l'esecuzione */
+.tab-content-query {
+  overflow-y: auto;
+}
+
+/* Il textarea ha altezza minima garantita e non si restringe */
+.sql-input {
+  width: 100%;
+  min-height: 160px;        /* FIX: altezza minima garantita */
+  flex-shrink: 0;           /* FIX: non si restringe nel flex container */
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  resize: vertical;         /* l'utente può ridimensionare manualmente */
+  background: #1e1e2e;
+  color: #cdd6f4;
+  box-sizing: border-box;
+}
+
+/* FIX #6: schema scroll wrapper — prende tutto lo spazio disponibile e scrolla */
+.schema-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
 .empty-state { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted, #aaa); font-size: 0.95rem; }
 .loading { color: var(--text-muted, #888); font-size: 0.9rem; }
 
@@ -6439,21 +6892,28 @@ onMounted(loadTables)
 .browse-controls select { padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--border, #e5e7eb); }
 
 .table-info { font-size: 0.8rem; color: var(--text-muted, #888); }
+
 .table-scroll { overflow: auto; flex: 1; min-height: 0; }
 
 .data-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
 .data-table th { position: sticky; top: 0; background: var(--surface, #fff); padding: 0.5rem 0.6rem; text-align: left; border-bottom: 2px solid var(--border, #e5e7eb); font-weight: 600; white-space: nowrap; color: var(--text-muted, #666); font-size: 0.75rem; text-transform: uppercase; }
 .data-table td { padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--border, #f3f4f6); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.data-table tr:hover td { background: #f9fafb; }
+.data-table tr:hover td { background: rgba(255,255,255,.04); }
 .null-val { color: #ccc; font-style: italic; }
 
+.btn-page { padding: 0.35rem 0.9rem; border: 1px solid var(--border, #e5e7eb); background: var(--bg, #f9fafb); border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+.btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Schema */
 .schema-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 1rem; }
-.schema-table th { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 2px solid var(--border, #e5e7eb); font-weight: 600; color: var(--text-muted, #666); font-size: 0.75rem; text-transform: uppercase; }
+.schema-table th { position: sticky; top: 0; background: var(--surface, #fff); text-align: left; padding: 0.45rem 0.6rem; border-bottom: 2px solid var(--border, #e5e7eb); font-weight: 600; color: var(--text-muted, #666); font-size: 0.75rem; text-transform: uppercase; z-index: 1; }
 .schema-table td { padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--border, #f3f4f6); }
-.pk-row td { background: #fffbeb; }
+.col-idx { color: var(--text-muted, #aaa); font-size: 0.72rem; width: 2rem; }
+.pk-row td { background: rgba(251, 191, 36, 0.08); }
 .yes { color: #10b981; } .no { color: #6b7280; }
 .indexes h4 { margin: 0.75rem 0 0.5rem; font-size: 0.9rem; }
 
+/* Query */
 .query-header { display: flex; justify-content: space-between; align-items: center; }
 .query-header h3 { margin: 0; }
 .query-notice { font-size: 0.75rem; background: #fef3c7; color: #92400e; padding: 0.2rem 0.6rem; border-radius: 4px; }
@@ -6463,32 +6923,23 @@ onMounted(loadTables)
 .ql-btn { padding: 0.2rem 0.6rem; border: 1px solid var(--border, #e5e7eb); background: var(--bg, #f9fafb); border-radius: 20px; cursor: pointer; font-size: 0.75rem; transition: background 0.15s; }
 .ql-btn:hover { background: #eff6ff; border-color: #93c5fd; }
 
-.sql-input { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.85rem; line-height: 1.5; resize: vertical; background: #1e1e2e; color: #cdd6f4; box-sizing: border-box; flex-shrink: 0; }
-
-.query-controls { display: flex; justify-content: space-between; align-items: center; gap: 1rem; font-size: 0.85rem; flex-shrink: 0; }
+.query-controls { display: flex; justify-content: space-between; align-items: center; gap: 1rem; font-size: 0.85rem; }
 .query-controls select { padding: 0.3rem 0.5rem; border-radius: 4px; border: 1px solid var(--border, #e5e7eb); }
 
 .btn-run { padding: 0.5rem 1.5rem; background: var(--primary, #3b82f6); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
 .btn-run:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.btn-stop { padding: 0.5rem 1rem; background: #ef4444; color: #fff; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; }
-.btn-stop:hover { background: #dc2626; }
+.query-error { background: #fee2e2; color: #991b1b; padding: 0.6rem 0.9rem; border-radius: 6px; font-size: 0.85rem; font-family: monospace; }
 
-.query-error { background: #fee2e2; color: #991b1b; padding: 0.6rem 0.9rem; border-radius: 6px; font-size: 0.85rem; font-family: monospace; flex-shrink: 0; }
-
-.browse-actions { display: flex; gap: 0.6rem; align-items: center; margin: 0.25rem 0; flex-shrink: 0; }
-.pagination-inline { display: flex; gap: 0.4rem; }
-
+.browse-actions { display: flex; gap: 0.6rem; align-items: center; }
 .btn-open-dialog { padding: 0.4rem 1rem; background: var(--primary, #3b82f6); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
 .btn-open-dialog:hover { background: #1d4ed8; }
 .btn-export { padding: 0.35rem 0.9rem; border: 1px solid var(--border, #e5e7eb); background: var(--bg, #f9fafb); border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
 .btn-export:hover { background: #f0fdf4; border-color: #86efac; }
 
-.dialog-hint-inline { font-size: 0.75rem; color: var(--text-muted, #9ca3af); margin: 0; flex-shrink: 0; }
+.dialog-hint-inline { font-size: 0.75rem; color: var(--text-muted, #9ca3af); margin: 0; }
 
-.btn-page { padding: 0.35rem 0.9rem; border: 1px solid var(--border, #e5e7eb); background: var(--bg, #f9fafb); border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
-.btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
-
+/* Modal */
 .db-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 1100; padding: 1rem; }
 .db-modal { background: var(--surface, #fff); border-radius: 14px; width: min(1200px, 96vw); height: min(90vh, 860px); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
 .db-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--border, #e5e7eb); flex-shrink: 0; gap: 1rem; }
@@ -6498,7 +6949,7 @@ onMounted(loadTables)
 .db-modal-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .db-modal-select { padding: 0.3rem 0.5rem; border: 1px solid var(--border, #e5e7eb); border-radius: 6px; font-size: 0.82rem; }
 .db-modal-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted, #6b7280); line-height: 1; padding: 0.2rem; }
-.db-modal-close:hover { color: #111; }
+.db-modal-close:hover { color: #fff; }
 .btn-reload { display: flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.75rem; border: 1px solid var(--border, #e5e7eb); background: var(--bg, #f9fafb); border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--primary, #3b82f6); }
 .btn-reload:hover:not(:disabled) { background: #eff6ff; border-color: #93c5fd; }
 .btn-reload:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -6964,58 +7415,82 @@ async function runCompare() {
 .data-table th {
   text-align: left;
   padding: .6rem .9rem;
-  background: rgba(255,255,255,.04);
-  color: var(--color-muted);
-  font-size: .75rem;
+  background: rgba(255,255,255,.06);   /* ← era .04 — più visibile */
+  color: var(--color-text);            /* ← era var(--color-muted) */
+  font-size: .78rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .05em;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 2px solid var(--color-border);
   white-space: nowrap;
 }
 .data-table td {
   padding: .6rem .9rem;
-  border-bottom: 1px solid rgba(255,255,255,.04);
+  border-bottom: 1px solid rgba(255,255,255,.06);
   vertical-align: middle;
   color: var(--color-text);
+  font-weight: 500;                    /* ← aggiunto */
 }
+
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tr:hover td { background: rgba(255,255,255,.03); }
 
-.name-cell { font-weight: 600; color: var(--color-text) !important; }
-.stat-cell { font-family: 'Fira Code', monospace; font-size: .82rem; color: var(--color-text) !important; font-weight: 600; }
-.delta-positive { color: var(--color-success) !important; font-weight: 700; }
-.delta-negative { color: var(--color-danger) !important; font-weight: 700; }
+.name-cell  { font-weight: 700; color: var(--color-text) !important; }
+.stat-cell  { font-family: 'Fira Code', monospace; font-size: .88rem;
+              color: var(--color-text) !important; font-weight: 700; }
+.delta-positive { color: var(--color-success) !important; font-weight: 800; }
+.delta-negative { color: var(--color-danger)  !important; font-weight: 700; }
 
 .pos-cell { display: flex; align-items: center; gap: .5rem; }
 .pos-code { font-size: .7rem; flex-shrink: 0; }
 .pos-desc { font-size: .78rem; color: var(--color-muted); }
 
 /* Compare table */
-.compare-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 0; font-size: .88rem; }
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 0;
+  font-size: .88rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
 .compare-header {
   padding: .65rem 1rem;
   font-size: .75rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: #fff;                          /* ← era var(--color-muted) */
   letter-spacing: .05em;
-  background: rgba(255,255,255,.04);
+  background: var(--color-primary);     /* ← intestazioni blu solide */
+  border-bottom: 2px solid var(--color-border);
+}
+.player-col {
+  text-align: center;
+  font-weight: 700;
+  color: #fff;                          /* ← era var(--color-text) */
+  background: var(--color-primary);
+}
+.compare-metric {
+  padding: .55rem 1rem;
+  color: var(--color-text);             /* ← era var(--color-muted) — ora testo pieno */
+  font-size: .82rem;
+  font-weight: 600;                     /* ← aggiunto */
+  background: rgba(255,255,255,.03);
   border-bottom: 1px solid var(--color-border);
 }
-.compare-metric { padding: .55rem 1rem; color: var(--color-muted); font-size: .82rem; border-bottom: 1px solid rgba(255,255,255,.04); }
 .compare-val {
   padding: .55rem 1rem;
   font-family: 'Fira Code', monospace;
-  font-size: .82rem;
-  border-bottom: 1px solid rgba(255,255,255,.04);
-  border-left: 1px solid rgba(255,255,255,.04);
+  font-size: .88rem;                    /* ← era .82rem */
+  border-bottom: 1px solid var(--color-border);
+  border-left: 1px solid rgba(255,255,255,.08);
   text-align: center;
-  color: var(--color-text);
+  color: var(--color-text);             /* ← era var(--color-text) ma ora garantito visibile */
+  font-weight: 700;                     /* ← aggiunto */
 }
-.player-col { text-align: center; font-weight: 700; color: var(--color-text); }
-.cell-win  { color: var(--color-success) !important; font-weight: 700; }
-.cell-lose { color: var(--color-danger) !important; }
+.cell-win  { color: var(--color-success) !important; font-weight: 800; }
+.cell-lose { color: var(--color-danger)  !important; font-weight: 600; opacity: 0.85; }
 
 .empty-state { color: var(--color-muted); }
 </style>
@@ -7055,9 +7530,8 @@ FILE: src\views\ScoutingSearch.vue
           style="flex:1"
           @keyup.enter="doSearch"
         />
-        <button class="btn btn-primary" :disabled="scoutingStore.loading || !query.trim()" @click="doSearch">
+        <button class="btn btn-primary" :disabled="scoutingStore.loading || !canSearch" @click="doSearch"></button>
           {{ scoutingStore.loading ? '...' : '🔍 Cerca' }}
-        </button>
         <button v-if="scoutingStore.results.length" class="btn btn-ghost" @click="clearSearch">
           ✕ Pulisci
         </button>
@@ -7118,6 +7592,16 @@ FILE: src\views\ScoutingSearch.vue
   </div>
 </template>
 
+<!--
+FIX_5_ScoutingSearch.vue — patch della sezione <script setup>
+
+PROBLEMA: Il pulsante "Cerca" era disabilitato se query.value era vuota,
+impedendo la ricerca con soli filtri avanzati.
+
+CAMBIAMENTO: Il pulsante si attiva anche se ci sono filtri impostati.
+Sostituire la sezione <script setup> esistente con questa versione.
+-->
+
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
@@ -7137,6 +7621,15 @@ const filters  = ref({ position: '', min_age: null, max_age: null, nationality: 
 // Suggerimenti dai punti deboli della squadra
 const suggestions = computed(() => teamStore.scoutingSuggestions)
 
+// Il bottone Cerca è attivo se c'è una query O almeno un filtro impostato
+const canSearch = computed(() => {
+  return query.value.trim() ||
+    filters.value.position ||
+    filters.value.min_age != null ||
+    filters.value.max_age != null ||
+    filters.value.nationality
+})
+
 // Avvia ricerca da query-string (es: dal link in TeamTraits)
 onMounted(() => {
   if (route.query.q) {
@@ -7146,13 +7639,18 @@ onMounted(() => {
 })
 
 async function doSearch() {
-  if (!query.value.trim()) return
+  if (!canSearch.value) return
   searched.value = true
-  const params = { q: query.value, limit: 20 }
+  const params = { limit: 20 }
+
+  // q è opzionale: se presente lo aggiunge
+  if (query.value.trim()) params.q = query.value
+
   if (filters.value.position)    params.position    = filters.value.position
   if (filters.value.min_age)     params.min_age     = filters.value.min_age
   if (filters.value.max_age)     params.max_age     = filters.value.max_age
   if (filters.value.nationality) params.nationality = filters.value.nationality
+
   await scoutingStore.search(params)
 }
 
@@ -7167,6 +7665,15 @@ function clearSearch() {
   scoutingStore.clear()
 }
 </script>
+
+<!--
+Nella sezione <template>, cambia anche il bottone Cerca:
+PRIMA:
+  <button class="btn btn-primary" :disabled="scoutingStore.loading || !query.trim()" @click="doSearch">
+
+DOPO:
+  <button class="btn btn-primary" :disabled="scoutingStore.loading || !canSearch" @click="doSearch">
+-->
 
 <style scoped>
 .form-label { display:block; font-size:.8rem; color:var(--color-muted); margin-bottom:.3rem; }
@@ -7201,7 +7708,7 @@ FILE: src\views\TeamDashboard.vue
               {{ t.name }}
             </option>
           </select>
-          <button class="btn btn-primary" style="margin-left:auto" @click="showForm = true">
+          <button class="btn btn-primary" style="margin-left:auto" @click="openNew">
             + Nuova Squadra
           </button>
         </div>
@@ -7220,7 +7727,7 @@ FILE: src\views\TeamDashboard.vue
             <InfoRow label="Allenatore" :value="teamStore.activeTeam.coach" />
             <InfoRow label="Budget"     :value="teamStore.activeTeam.budget ? `€${teamStore.activeTeam.budget.toLocaleString('it')}` : '—'" />
           </div>
-          <button class="btn btn-ghost" style="margin-top:1rem; width:100%" @click="showForm = true">
+          <button class="btn btn-ghost" style="margin-top:1rem; width:100%" @click="openEdit">
             ✏️ Modifica
           </button>
         </div>
@@ -7259,7 +7766,7 @@ FILE: src\views\TeamDashboard.vue
     </template>
 
     <!-- Modal form -->
-    <ModalForm v-if="showForm" :team="teamStore.activeTeam" @close="showForm = false" @saved="showForm = false" />
+    <ModalForm v-if="showForm" :team="editingTeam" @close="showForm = false" @saved="showForm = false" />
   </div>
 </template>
 
@@ -7270,8 +7777,12 @@ import { useTeamStore } from '@/stores/teamStore'
 import ModalForm from '@/components/TeamForm.vue'
 import InfoRow from '@/components/InfoRow.vue'
 
-const teamStore = useTeamStore()
-const showForm  = ref(false)
+const teamStore  = useTeamStore()
+const showForm   = ref(false)
+const editingTeam = ref(null)   // null = nuova squadra, oggetto = modifica
+
+function openNew()  { editingTeam.value = null;                    showForm.value = true }
+function openEdit() { editingTeam.value = teamStore.activeTeam;    showForm.value = true }
 </script>
 
 

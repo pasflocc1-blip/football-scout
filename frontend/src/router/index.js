@@ -18,6 +18,14 @@ const routes = [
     meta: { title: 'Scouting Globale' },
   },
 
+  // 👤 Dettaglio giocatore (stile SofaScore)
+  {
+    path: '/players/:id?',
+    name: 'player-detail',
+    component: () => import('@/views/PlayerDetailView.vue'),
+    meta: { title: 'Scheda Giocatore' },
+  },
+
   {
     path: '/data-ingestion',
     name: 'DataIngestion',

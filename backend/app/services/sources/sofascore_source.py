@@ -1,5 +1,5 @@
 """
-sources/sofascore_source.py  — v1.0
+sources/old_sofascore_source.py  — v1.0
 -------------------------------------
 Servizio per scaricare dati da SofaScore (https://www.sofascore.com/).
 

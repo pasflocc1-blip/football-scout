@@ -12,6 +12,10 @@
         <RouterLink to="/"               class="nav-item"><span>🏠</span> Dashboard</RouterLink>
         <RouterLink to="/traits"         class="nav-item"><span>📋</span> Caratteristiche</RouterLink>
         <RouterLink to="/roster"         class="nav-item"><span>👥</span> Rosa</RouterLink>
+        <!--
+        <RouterLink to="/player-detail"  class="nav-item"><span>👥</span> Calciatore</RouterLink> 
+        -->
+        <RouterLink to="/players"  class="nav-item"><span>👥</span> Calciatori</RouterLink>        
         <RouterLink to="/scouting"       class="nav-item"><span>🔍</span> Scouting</RouterLink>
         <RouterLink to="/global-scouting" class="nav-item nav-item--hot"><span>🔥</span> Scouting globale</RouterLink>
         <router-link to="/data-ingestion" class="nav-item">
