@@ -37,7 +37,8 @@ def search(
     if not q and not position and min_age is None and max_age is None and not nationality:
         return []
 
-    return search_players(
+    # 1. Troviamo i giocatori con l'intelligenza artificiale
+    players = search_players(
         db=db,
         text=q,
         position=position,
@@ -46,3 +47,59 @@ def search(
         nationality=nationality,
         limit=limit,
     )
+
+    # 2. Importa il modello delle statistiche (se non c'è già in cima al file)
+    from app.models.models import PlayerSeasonStats
+
+    # 3. Costruiamo la risposta unendo l'anagrafica e le statistiche
+    response = []
+    for p in players:
+        # Cerchiamo l'ultima stagione di questo giocatore
+        stats = db.query(PlayerSeasonStats).filter(
+            PlayerSeasonStats.player_id == p.id
+        ).order_by(PlayerSeasonStats.fetched_at.desc()).first()
+
+        # Copiamo l'anagrafica in un dizionario
+        p_dict = p.__dict__.copy()
+
+        # Aggiungiamo tutte le statistiche che FastAPI pretende
+        # Usiamo getattr() così se il giocatore non ha statistiche, mettiamo 0 senza far crashare nulla
+        p_dict["xg_per90"] = getattr(stats, "xg_per90", 0.0)
+        p_dict["xa_per90"] = getattr(stats, "xa_per90", 0.0)
+        p_dict["npxg_per90"] = getattr(stats, "npxg_per90", 0.0)
+        p_dict["xgchain_per90"] = getattr(stats, "xgchain_per90", 0.0)
+        p_dict["xgbuildup_per90"] = getattr(stats, "xgbuildup_per90", 0.0)
+
+        # Mappiamo i nomi dal DB a quelli richiesti dal frontend
+        p_dict["minutes_season"] = getattr(stats, "minutes_played", 0)
+        p_dict["goals_season"] = getattr(stats, "goals", 0)
+        p_dict["assists_season"] = getattr(stats, "assists", 0)
+        p_dict["aerial_duels_won_pct"] = getattr(stats, "aerial_duels_won_pct", 0.0)
+        p_dict["duels_won_pct"] = getattr(stats, "total_duels_won_pct", 0.0)
+
+        response.append(p_dict)
+
+    return response
+
+
+@router.get("/autocomplete")
+def autocomplete_players(
+        q: str = Query(..., description="Nome del giocatore da cercare"),
+        db: Session = Depends(get_db)
+):
+    """
+    Endpoint leggerissimo dedicato ESCLUSIVAMENTE alla barra di ricerca del frontend.
+    """
+    # 👇 ECCO LA RIGA MAGICA CHE MANCAVA 👇
+    from app.models.models import ScoutingPlayer
+
+    if len(q) < 3:
+        return []
+
+    # Cerca i giocatori il cui nome contiene il testo digitato
+    players = db.query(ScoutingPlayer).filter(
+        ScoutingPlayer.name.ilike(f"%{q}%")
+    ).limit(10).all()
+
+    # Restituisce solo un dizionario pulito e leggero
+    return [{"id": p.id, "name": p.name, "position": p.position} for p in players]

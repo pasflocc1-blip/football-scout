@@ -6,7 +6,7 @@ Create Date: 2026-04-02
 
 ISTRUZIONI:
   1. Metti questo file in alembic/versions/
-  2. Rinomina secondo la convenzione Alembic (es. 001_normalize_player_data.py)
+  2. Rinomina secondo la convenzione Alembic (es. 001_normalize_player_data_revisionid.py)
   3. Aggiorna `down_revision` con l'ID dell'ultima migration esistente
   4. Esegui:
        docker compose exec backend alembic upgrade head
@@ -30,7 +30,7 @@ from datetime import datetime
 
 # ── Metadata migration ────────────────────────────────────────────
 revision     = '001_normalize_player_data'
-down_revision = '001'   # ← AGGIORNA con il tuo revision corrente
+down_revision = '0001'   # ← AGGIORNA con il tuo revision corrente
 branch_labels = None
 depends_on    = None
 

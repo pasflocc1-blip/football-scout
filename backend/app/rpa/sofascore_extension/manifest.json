@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "SofaScore Scout Interceptor",
+  "version": "1.0.0",
+  "description": "Intercetta i dati SofaScore e li invia al backend di scouting locale.",
+
+  "permissions": [
+    "webRequest",
+    "storage",
+    "tabs",
+    "scripting"
+  ],
+
+  "host_permissions": [
+    "https://api.sofascore.com/*",
+    "https://www.sofascore.com/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://www.sofascore.com/*"],
+      "js": ["content_script.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Scout Interceptor"
+  }
+}

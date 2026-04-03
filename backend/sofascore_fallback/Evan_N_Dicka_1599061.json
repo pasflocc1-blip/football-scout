@@ -1,0 +1,2804 @@
+{
+  "meta": {
+    "name": "Evan N'Dicka",
+    "sofascore_id": 1599061,
+    "league": "serie_a",
+    "saved_at": "2026-04-02T22:45:45.594199",
+    "rpa_version": "v8"
+  },
+  "raw_data": {
+    "player_id": 1599061,
+    "league_key": "serie_a",
+    "fetched_at": "2026-04-02T22:45:24.407526",
+    "profile": {},
+    "matches": [
+      {
+        "tournament": {
+          "name": "NCAA Men's Division I, Regular season",
+          "slug": "regular-season",
+          "category": {
+            "name": "USA (College)",
+            "slug": "usa-college",
+            "sport": {
+              "name": "Basketball",
+              "slug": "basketball",
+              "id": 2
+            },
+            "priority": 9,
+            "country": {},
+            "id": 2346,
+            "flag": "usa-college"
+          },
+          "uniqueTournament": {
+            "name": "NCAA Men's Division I",
+            "slug": "ncaa-men-s-division-i",
+            "category": {
+              "name": "USA (College)",
+              "slug": "usa-college",
+              "sport": {
+                "name": "Basketball",
+                "slug": "basketball",
+                "id": 2
+              },
+              "priority": 9,
+              "country": {},
+              "id": 2346,
+              "flag": "usa-college"
+            },
+            "userCount": 15,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 33651,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false
+          },
+          "priority": 0,
+          "isGroup": false,
+          "id": 178669
+        },
+        "season": {
+          "name": "NCAA 23/24",
+          "year": "23/24",
+          "editor": false,
+          "id": 91961
+        },
+        "roundInfo": {
+          "round": 1
+        },
+        "customId": "TRnsbNP",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Dayton Flyers",
+          "slug": "dayton-flyers",
+          "shortName": "Dayton",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 512,
+          "nameCode": "DAY",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34643,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#ce1141",
+            "text": "#ce1141"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دايتون فلايرس",
+              "ru": "Дэйтон Флайерз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "Grambling St Tigers",
+          "slug": "grambling-st-tigers",
+          "shortName": "Grambling St.",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 212,
+          "nameCode": "GRAM",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 101901,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#374df5",
+            "secondary": "#374df5",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "غرامبلينغ سانت تايغرز"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 76,
+          "display": 76,
+          "period1": 40,
+          "period2": 36,
+          "normaltime": 76
+        },
+        "awayScore": {
+          "current": 46,
+          "display": 46,
+          "period1": 16,
+          "period2": 30,
+          "normaltime": 46
+        },
+        "time": {
+          "played": 1200,
+          "periodLength": 1200,
+          "overtimeLength": 300,
+          "totalPeriodCount": 2,
+          "currentPeriodStartTimestamp": 1701550362
+        },
+        "changes": {
+          "changes": [
+            "time.currentPeriodStart"
+          ],
+          "changeTimestamp": 1701551755
+        },
+        "hasGlobalHighlights": false,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 11711732,
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "slug": "grambling-st-tigers-dayton-flyers",
+        "startTimestamp": 1701543600,
+        "finalResultOnly": false,
+        "feedLocked": false,
+        "isEditor": false
+      },
+      {
+        "tournament": {
+          "name": "NCAA Men's Division I, Regular season",
+          "slug": "regular-season",
+          "category": {
+            "name": "USA (College)",
+            "slug": "usa-college",
+            "sport": {
+              "name": "Basketball",
+              "slug": "basketball",
+              "id": 2
+            },
+            "priority": 9,
+            "country": {},
+            "id": 2346,
+            "flag": "usa-college"
+          },
+          "uniqueTournament": {
+            "name": "NCAA Men's Division I",
+            "slug": "ncaa-men-s-division-i",
+            "category": {
+              "name": "USA (College)",
+              "slug": "usa-college",
+              "sport": {
+                "name": "Basketball",
+                "slug": "basketball",
+                "id": 2
+              },
+              "priority": 9,
+              "country": {},
+              "id": 2346,
+              "flag": "usa-college"
+            },
+            "userCount": 15,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 33651,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false
+          },
+          "priority": 0,
+          "isGroup": false,
+          "id": 178669
+        },
+        "season": {
+          "name": "NCAA 23/24",
+          "year": "23/24",
+          "editor": false,
+          "id": 91961
+        },
+        "roundInfo": {
+          "round": 1
+        },
+        "customId": "TRnsrzq",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Dayton Flyers",
+          "slug": "dayton-flyers",
+          "shortName": "Dayton",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 512,
+          "nameCode": "DAY",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34643,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#ce1141",
+            "text": "#ce1141"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دايتون فلايرس",
+              "ru": "Дэйтон Флайерз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "Oakland Golden Grizzlies",
+          "slug": "oakland-golden-grizzlies",
+          "shortName": "Oakland",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 235,
+          "nameCode": "OAK",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 41217,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#374df5",
+            "secondary": "#374df5",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "اوكلاند غولدن غريزليز",
+              "ru": "Окленд"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 91,
+          "display": 91,
+          "period1": 46,
+          "period2": 45,
+          "normaltime": 91
+        },
+        "awayScore": {
+          "current": 67,
+          "display": 67,
+          "period1": 28,
+          "period2": 39,
+          "normaltime": 67
+        },
+        "time": {
+          "played": 1200,
+          "periodLength": 1200,
+          "overtimeLength": 300,
+          "totalPeriodCount": 2,
+          "currentPeriodStartTimestamp": 1703123264
+        },
+        "changes": {
+          "changes": [
+            "time.currentPeriodStart"
+          ],
+          "changeTimestamp": 1703124392
+        },
+        "hasGlobalHighlights": false,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 11711694,
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "slug": "oakland-golden-grizzlies-dayton-flyers",
+        "startTimestamp": 1703116800,
+        "finalResultOnly": false,
+        "feedLocked": false,
+        "isEditor": false
+      },
+      {
+        "tournament": {
+          "name": "NCAA Men's Division I, Regular season",
+          "slug": "regular-season",
+          "category": {
+            "name": "USA (College)",
+            "slug": "usa-college",
+            "sport": {
+              "name": "Basketball",
+              "slug": "basketball",
+              "id": 2
+            },
+            "priority": 9,
+            "country": {},
+            "id": 2346,
+            "flag": "usa-college"
+          },
+          "uniqueTournament": {
+            "name": "NCAA Men's Division I",
+            "slug": "ncaa-men-s-division-i",
+            "category": {
+              "name": "USA (College)",
+              "slug": "usa-college",
+              "sport": {
+                "name": "Basketball",
+                "slug": "basketball",
+                "id": 2
+              },
+              "priority": 9,
+              "country": {},
+              "id": 2346,
+              "flag": "usa-college"
+            },
+            "userCount": 15,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 33651,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false
+          },
+          "priority": 0,
+          "isGroup": false,
+          "id": 178669
+        },
+        "season": {
+          "name": "NCAA 24/25",
+          "year": "24/25",
+          "editor": false,
+          "id": 91973
+        },
+        "customId": "TRnszOJb",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Dayton Flyers",
+          "slug": "dayton-flyers",
+          "shortName": "Dayton",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 512,
+          "nameCode": "DAY",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34643,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#ce1141",
+            "text": "#ce1141"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دايتون فلايرس",
+              "ru": "Дэйтон Флайерз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "St. Francis (PA) Red Flash",
+          "slug": "st-francis-pa-red-flash",
+          "shortName": "St. Francis (PA)",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 128,
+          "nameCode": "SFPA",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 211974,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#374df5",
+            "secondary": "#374df5",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "سانت فرانشيس ريد فلاش"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 87,
+          "display": 87,
+          "period1": 40,
+          "period2": 47,
+          "normaltime": 87
+        },
+        "awayScore": {
+          "current": 57,
+          "display": 57,
+          "period1": 28,
+          "period2": 29,
+          "normaltime": 57
+        },
+        "time": {
+          "played": 1200,
+          "periodLength": 1200,
+          "overtimeLength": 300,
+          "totalPeriodCount": 2
+        },
+        "changes": {
+          "changes": [
+            "status.code",
+            "status.description",
+            "status.type",
+            "homeScore.normaltime",
+            "awayScore.normaltime"
+          ],
+          "changeTimestamp": 1730771656
+        },
+        "hasGlobalHighlights": false,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 12979634,
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "slug": "st-francis-pa-red-flash-dayton-flyers",
+        "startTimestamp": 1730764800,
+        "finalResultOnly": false,
+        "feedLocked": false,
+        "isEditor": false
+      },
+      {
+        "tournament": {
+          "name": "NCAA",
+          "slug": "ncaa",
+          "category": {
+            "name": "USA (College)",
+            "slug": "usa-college",
+            "sport": {
+              "name": "Basketball",
+              "slug": "basketball",
+              "id": 2
+            },
+            "priority": 9,
+            "country": {},
+            "id": 2346,
+            "flag": "usa-college"
+          },
+          "uniqueTournament": {
+            "name": "NCAA Men",
+            "slug": "ncaa-men",
+            "primaryColorHex": "#005eb8",
+            "secondaryColorHex": "#007dfb",
+            "category": {
+              "name": "USA (College)",
+              "slug": "usa-college",
+              "sport": {
+                "name": "Basketball",
+                "slug": "basketball",
+                "id": 2
+              },
+              "priority": 9,
+              "country": {},
+              "id": 2346,
+              "flag": "usa-college"
+            },
+            "userCount": 3443,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 648,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "بطولة الرابطة الوطنية لرياضة الجامعات للرجال",
+                "bn": "এনসিএএ ম্যান",
+                "hi": "एनसीएए मेन"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 0,
+          "isGroup": false,
+          "isLive": false,
+          "id": 698,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "الرابطة الوطنية لرياضة الجامعات",
+              "bn": "এনসিএএ",
+              "hi": "एनसीएए"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "season": {
+          "name": "NCAA, Regular Season 24/25",
+          "year": "24/25",
+          "editor": false,
+          "id": 67937
+        },
+        "customId": "TRnsYWIc",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Dayton Flyers",
+          "slug": "dayton-flyers",
+          "shortName": "Dayton",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 512,
+          "nameCode": "DAY",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34643,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#ce1141",
+            "text": "#ce1141"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دايتون فلايرس",
+              "ru": "Дэйтон Флайерз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "Capital Crusaders",
+          "slug": "capital-crusaders",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 4,
+          "nameCode": "CPTL",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 334848,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#374df5",
+            "secondary": "#374df5",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كابيتال كروسيادرز"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 76,
+          "display": 76,
+          "period1": 41,
+          "period2": 35,
+          "normaltime": 76
+        },
+        "awayScore": {
+          "current": 55,
+          "display": 55,
+          "period1": 28,
+          "period2": 27,
+          "normaltime": 55
+        },
+        "time": {
+          "played": 2400,
+          "periodLength": 1200,
+          "overtimeLength": 300,
+          "totalPeriodCount": 2,
+          "currentPeriodStartTimestamp": 1731807791
+        },
+        "changes": {
+          "changes": [
+            "time.currentPeriodStart"
+          ],
+          "changeTimestamp": 1731809004
+        },
+        "hasGlobalHighlights": false,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 12980031,
+        "periods": {
+          "current": "Score",
+          "period1": "1st half",
+          "period2": "2nd half",
+          "overtime": "Overtime"
+        },
+        "slug": "capital-crusaders-dayton-flyers",
+        "startTimestamp": 1731801600,
+        "finalResultOnly": false,
+        "feedLocked": false,
+        "isEditor": false
+      },
+      {
+        "tournament": {
+          "name": "NCAA Men's Division I, Regular season",
+          "slug": "regular-season",
+          "category": {
+            "name": "USA (College)",
+            "slug": "usa-college",
+            "sport": {
+              "name": "Basketball",
+              "slug": "basketball",
+              "id": 2
+            },
+            "priority": 9,
+            "country": {},
+            "id": 2346,
+            "flag": "usa-college"
+          },
+          "uniqueTournament": {
+            "name": "NCAA Men's Division I",
+            "slug": "ncaa-men-s-division-i",
+            "category": {
+              "name": "USA (College)",
+              "slug": "usa-college",
+              "sport": {
+                "name": "Basketball",
+                "slug": "basketball",
+                "id": 2
+              },
+              "priority": 9,
+              "country": {},
+              "id": 2346,
+              "flag": "usa-college"
+            },
+            "userCount": 15,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 33651,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false
+          },
+          "priority": 0,
+          "isGroup": false,
+          "id": 178669
+        },
+        "season": {
+          "name": "NCAA 24/25",
+          "year": "24/25",
+          "editor": false,
+          "id": 91973
+        },
+        "customId": "TRnsvzq",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Dayton Flyers",
+          "slug": "dayton-flyers",
+          "shortName": "Dayton",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 512,
+          "nameCode": "DAY",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34643,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#ce1141",
+            "text": "#ce1141"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دايتون فلايرس",
+              "ru": "Дэйтон Флайерз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "New Mexico State Aggies",
+          "slug": "new-mexico-state-aggies",
+          "shortName": "New Mexico St",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 226,
+          "nameCode": "NMSU",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 41220,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#761031",
+            "secondary": "#ffffff",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "نيو مكسيكو ستيت أجيز",
+              "ru": "Нью Мексико Стейт Эггис"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 74,
+          "display": 74,
+          "period1": 29,
+          "period2": 45,
+          "normaltime": 74
+        },
+        "awayScore": {
+          "current": 53,
+          "display": 53,
+          "period1": 28,
+          "period2": 25,
+          "normaltime": 53
+        },
+        "time": {
+          "played": 2400,
+          "periodLength": 1200,
+          "overtimeLength": 300,
+          "totalPeriodCount": 2,
+          "currentPeriodStartTimestamp": 1732154798
+        },
+        "changes": {
+          "changes": [
+            "time.currentPeriodStart"
+          ],
+          "changeTimestamp": 1732156095
+        },
+        "hasGlobalHighlights": false,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 12980113,
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "slug": "new-mexico-state-aggies-dayton-flyers",
+        "startTimestamp": 1732147200,
+        "finalResultOnly": false,
+        "feedLocked": false,
+        "isEditor": false
+      },
+      {
+        "tournament": {
+          "name": "NCAA Men's Division I, Regular season",
+          "slug": "regular-season",
+          "category": {
+            "name": "USA (College)",
+            "slug": "usa-college",
+            "sport": {
+              "name": "Basketball",
+              "slug": "basketball",
+              "id": 2
+            },
+            "priority": 9,
+            "country": {},
+            "id": 2346,
+            "flag": "usa-college"
+          },
+          "uniqueTournament": {
+            "name": "NCAA Men's Division I",
+            "slug": "ncaa-men-s-division-i",
+            "category": {
+              "name": "USA (College)",
+              "slug": "usa-college",
+              "sport": {
+                "name": "Basketball",
+                "slug": "basketball",
+                "id": 2
+              },
+              "priority": 9,
+              "country": {},
+              "id": 2346,
+              "flag": "usa-college"
+            },
+            "userCount": 15,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 33651,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false
+          },
+          "priority": 0,
+          "isGroup": false,
+          "id": 178669
+        },
+        "season": {
+          "name": "NCAA 24/25",
+          "year": "24/25",
+          "editor": false,
+          "id": 91973
+        },
+        "customId": "TRnsnzq",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Dayton Flyers",
+          "slug": "dayton-flyers",
+          "shortName": "Dayton",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 512,
+          "nameCode": "DAY",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34643,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#ce1141",
+            "text": "#ce1141"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دايتون فلايرس",
+              "ru": "Дэйтон Флайерз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "Lehigh Mountain Hawks",
+          "slug": "lehigh-mountain-hawks",
+          "shortName": "Lehigh Mountain",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 154,
+          "nameCode": "LEH",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 41213,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#374df5",
+            "secondary": "#374df5",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "لوهاي مونتين هاوكس",
+              "ru": "Лехай Маунтин Хокс"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 86,
+          "display": 86,
+          "period1": 41,
+          "period2": 45,
+          "normaltime": 86
+        },
+        "awayScore": {
+          "current": 62,
+          "display": 62,
+          "period1": 25,
+          "period2": 37,
+          "normaltime": 62
+        },
+        "time": {
+          "played": 2400,
+          "periodLength": 1200,
+          "overtimeLength": 300,
+          "totalPeriodCount": 2,
+          "currentPeriodStartTimestamp": 1733605046
+        },
+        "changes": {
+          "changes": [
+            "time.currentPeriodStart"
+          ],
+          "changeTimestamp": 1733606198
+        },
+        "hasGlobalHighlights": false,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 13067753,
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "slug": "lehigh-mountain-hawks-dayton-flyers",
+        "startTimestamp": 1733598000,
+        "finalResultOnly": false,
+        "feedLocked": false,
+        "isEditor": false
+      },
+      {
+        "tournament": {
+          "name": "NCAA Men's Division I, Regular season",
+          "slug": "regular-season",
+          "category": {
+            "name": "USA (College)",
+            "slug": "usa-college",
+            "sport": {
+              "name": "Basketball",
+              "slug": "basketball",
+              "id": 2
+            },
+            "priority": 9,
+            "country": {},
+            "id": 2346,
+            "flag": "usa-college"
+          },
+          "uniqueTournament": {
+            "name": "NCAA Men's Division I",
+            "slug": "ncaa-men-s-division-i",
+            "category": {
+              "name": "USA (College)",
+              "slug": "usa-college",
+              "sport": {
+                "name": "Basketball",
+                "slug": "basketball",
+                "id": 2
+              },
+              "priority": 9,
+              "country": {},
+              "id": 2346,
+              "flag": "usa-college"
+            },
+            "userCount": 15,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 33651,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false
+          },
+          "priority": 0,
+          "isGroup": false,
+          "id": 178669
+        },
+        "season": {
+          "name": "NCAA 24/25",
+          "year": "24/25",
+          "editor": false,
+          "id": 91973
+        },
+        "customId": "TRnsHKJ",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 2,
+        "homeTeam": {
+          "name": "Duquesne Dukes",
+          "slug": "duquesne-dukes",
+          "shortName": "Duquesne",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 252,
+          "nameCode": "DUQ",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 86782,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#c3152c",
+            "secondary": "#0e0244",
+            "text": "#0e0244"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دوكيسن ديوكس",
+              "ru": "Дюквусне Дюкс"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "Dayton Flyers",
+          "slug": "dayton-flyers",
+          "shortName": "Dayton",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 512,
+          "nameCode": "DAY",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34643,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#ce1141",
+            "text": "#ce1141"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دايتون فلايرس",
+              "ru": "Дэйтон Флайерз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 62,
+          "display": 62,
+          "period1": 25,
+          "period2": 37,
+          "normaltime": 62
+        },
+        "awayScore": {
+          "current": 82,
+          "display": 82,
+          "period1": 44,
+          "period2": 38,
+          "normaltime": 82
+        },
+        "time": {
+          "played": 2400,
+          "periodLength": 1200,
+          "overtimeLength": 300,
+          "totalPeriodCount": 2,
+          "currentPeriodStartTimestamp": 1737510687
+        },
+        "changes": {
+          "changes": [
+            "time.currentPeriodStart"
+          ],
+          "changeTimestamp": 1737511819
+        },
+        "hasGlobalHighlights": false,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 13072124,
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "slug": "duquesne-dukes-dayton-flyers",
+        "startTimestamp": 1737504000,
+        "finalResultOnly": false,
+        "feedLocked": false,
+        "isEditor": false
+      },
+      {
+        "tournament": {
+          "name": "NCAA Men's Division I, Regular season",
+          "slug": "regular-season",
+          "category": {
+            "name": "USA (College)",
+            "slug": "usa-college",
+            "sport": {
+              "name": "Basketball",
+              "slug": "basketball",
+              "id": 2
+            },
+            "priority": 9,
+            "country": {},
+            "id": 2346,
+            "flag": "usa-college"
+          },
+          "uniqueTournament": {
+            "name": "NCAA Men's Division I",
+            "slug": "ncaa-men-s-division-i",
+            "category": {
+              "name": "USA (College)",
+              "slug": "usa-college",
+              "sport": {
+                "name": "Basketball",
+                "slug": "basketball",
+                "id": 2
+              },
+              "priority": 9,
+              "country": {},
+              "id": 2346,
+              "flag": "usa-college"
+            },
+            "userCount": 15,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 33651,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false
+          },
+          "priority": 0,
+          "isGroup": false,
+          "id": 178669
+        },
+        "season": {
+          "name": "NCAA 25/26",
+          "year": "25/26",
+          "editor": false,
+          "id": 91956
+        },
+        "customId": "TRnsqHJ",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Dayton Flyers",
+          "slug": "dayton-flyers",
+          "shortName": "Dayton",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 512,
+          "nameCode": "DAY",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34643,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#ce1141",
+            "text": "#ce1141"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دايتون فلايرس",
+              "ru": "Дэйтон Флайерз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "Canisius Golden Griffins",
+          "slug": "canisius-golden-griffins",
+          "shortName": "Canisius",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 138,
+          "nameCode": "CAN",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 86616,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#0e2756",
+            "secondary": "#ffba00",
+            "text": "#ffba00"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كانيسيوس غولدن غريفينس",
+              "ru": "Канисиус Голден Гриффинс"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 88,
+          "display": 88,
+          "period1": 51,
+          "period2": 37,
+          "normaltime": 88
+        },
+        "awayScore": {
+          "current": 48,
+          "display": 48,
+          "period1": 27,
+          "period2": 21,
+          "normaltime": 48
+        },
+        "time": {
+          "played": 2400,
+          "periodLength": 1200,
+          "overtimeLength": 300,
+          "totalPeriodCount": 2,
+          "currentPeriodStartTimestamp": 1762222220
+        },
+        "changes": {
+          "changes": [
+            "time.currentPeriodStart"
+          ],
+          "changeTimestamp": 1762223255
+        },
+        "hasGlobalHighlights": false,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 14923374,
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "slug": "canisius-golden-griffins-dayton-flyers",
+        "startTimestamp": 1762214400,
+        "finalResultOnly": false,
+        "feedLocked": false,
+        "isEditor": false
+      },
+      {
+        "tournament": {
+          "name": "NCAA Men's Division I, Regular season",
+          "slug": "regular-season",
+          "category": {
+            "name": "USA (College)",
+            "slug": "usa-college",
+            "sport": {
+              "name": "Basketball",
+              "slug": "basketball",
+              "id": 2
+            },
+            "priority": 9,
+            "country": {},
+            "id": 2346,
+            "flag": "usa-college"
+          },
+          "uniqueTournament": {
+            "name": "NCAA Men's Division I",
+            "slug": "ncaa-men-s-division-i",
+            "category": {
+              "name": "USA (College)",
+              "slug": "usa-college",
+              "sport": {
+                "name": "Basketball",
+                "slug": "basketball",
+                "id": 2
+              },
+              "priority": 9,
+              "country": {},
+              "id": 2346,
+              "flag": "usa-college"
+            },
+            "userCount": 15,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 33651,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false
+          },
+          "priority": 0,
+          "isGroup": false,
+          "id": 178669
+        },
+        "season": {
+          "name": "NCAA 25/26",
+          "year": "25/26",
+          "editor": false,
+          "id": 91956
+        },
+        "customId": "TRnsEMP",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Dayton Flyers",
+          "slug": "dayton-flyers",
+          "shortName": "Dayton",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 512,
+          "nameCode": "DAY",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34643,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#ce1141",
+            "text": "#ce1141"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دايتون فلايرس",
+              "ru": "Дэйтон Флайерз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "North Carolina Central Eagles",
+          "slug": "north-carolina-central-eagles",
+          "shortName": "NC Central",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 188,
+          "nameCode": "NCCU",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 101879,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#374df5",
+            "secondary": "#374df5",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "نورث كارولينا سنترال إيجلز",
+              "ru": "NC Central Eagles"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 74,
+          "display": 74,
+          "period1": 44,
+          "period2": 30,
+          "normaltime": 74
+        },
+        "awayScore": {
+          "current": 55,
+          "display": 55,
+          "period1": 20,
+          "period2": 35,
+          "normaltime": 55
+        },
+        "time": {
+          "played": 2400,
+          "periodLength": 1200,
+          "overtimeLength": 300,
+          "totalPeriodCount": 2,
+          "currentPeriodStartTimestamp": 1763844913
+        },
+        "changes": {
+          "changes": [
+            "time.currentPeriodStart"
+          ],
+          "changeTimestamp": 1763846047
+        },
+        "hasGlobalHighlights": false,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 14978341,
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "slug": "north-carolina-central-eagles-dayton-flyers",
+        "startTimestamp": 1763838000,
+        "finalResultOnly": false,
+        "feedLocked": false,
+        "isEditor": false
+      },
+      {
+        "tournament": {
+          "name": "NCAA Men's Division I, Regular season",
+          "slug": "regular-season",
+          "category": {
+            "name": "USA (College)",
+            "slug": "usa-college",
+            "sport": {
+              "name": "Basketball",
+              "slug": "basketball",
+              "id": 2
+            },
+            "priority": 9,
+            "country": {},
+            "id": 2346,
+            "flag": "usa-college"
+          },
+          "uniqueTournament": {
+            "name": "NCAA Men's Division I",
+            "slug": "ncaa-men-s-division-i",
+            "category": {
+              "name": "USA (College)",
+              "slug": "usa-college",
+              "sport": {
+                "name": "Basketball",
+                "slug": "basketball",
+                "id": 2
+              },
+              "priority": 9,
+              "country": {},
+              "id": 2346,
+              "flag": "usa-college"
+            },
+            "userCount": 15,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 33651,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false
+          },
+          "priority": 0,
+          "isGroup": false,
+          "id": 178669
+        },
+        "season": {
+          "name": "NCAA 25/26",
+          "year": "25/26",
+          "editor": false,
+          "id": 91956
+        },
+        "customId": "TRnsnNP",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Dayton Flyers",
+          "slug": "dayton-flyers",
+          "shortName": "Dayton",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 512,
+          "nameCode": "DAY",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34643,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#ce1141",
+            "text": "#ce1141"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دايتون فلايرس",
+              "ru": "Дэйтон Флайерз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "North Florida Ospreys",
+          "slug": "north-florida-ospreys",
+          "shortName": "North Florida",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 162,
+          "nameCode": "UNF",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 101913,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#374df5",
+            "secondary": "#374df5",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "نورث فلوريدا أوسپريس"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 84,
+          "display": 84,
+          "period1": 46,
+          "period2": 38,
+          "normaltime": 84
+        },
+        "awayScore": {
+          "current": 61,
+          "display": 61,
+          "period1": 23,
+          "period2": 38,
+          "normaltime": 61
+        },
+        "time": {
+          "played": 2400,
+          "periodLength": 1200,
+          "overtimeLength": 300,
+          "totalPeriodCount": 2,
+          "currentPeriodStartTimestamp": 1765677495
+        },
+        "changes": {
+          "changes": [
+            "time.currentPeriodStart"
+          ],
+          "changeTimestamp": 1765678613
+        },
+        "hasGlobalHighlights": false,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 14978702,
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "slug": "north-florida-ospreys-dayton-flyers",
+        "startTimestamp": 1765670400,
+        "finalResultOnly": false,
+        "feedLocked": false,
+        "isEditor": false,
+        "eventFilters": {
+          "category": [
+            "club"
+          ],
+          "level": [
+            "top-competitions",
+            "pro"
+          ],
+          "gender": [
+            "M"
+          ]
+        }
+      },
+      {
+        "tournament": {
+          "name": "NCAA Men's Division I, Regular season",
+          "slug": "regular-season",
+          "category": {
+            "name": "USA (College)",
+            "slug": "usa-college",
+            "sport": {
+              "name": "Basketball",
+              "slug": "basketball",
+              "id": 2
+            },
+            "priority": 9,
+            "country": {},
+            "id": 2346,
+            "flag": "usa-college"
+          },
+          "uniqueTournament": {
+            "name": "NCAA Men's Division I",
+            "slug": "ncaa-men-s-division-i",
+            "category": {
+              "name": "USA (College)",
+              "slug": "usa-college",
+              "sport": {
+                "name": "Basketball",
+                "slug": "basketball",
+                "id": 2
+              },
+              "priority": 9,
+              "country": {},
+              "id": 2346,
+              "flag": "usa-college"
+            },
+            "userCount": 15,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 33651,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false
+          },
+          "priority": 0,
+          "isGroup": false,
+          "id": 178669
+        },
+        "season": {
+          "name": "NCAA 25/26",
+          "year": "25/26",
+          "editor": false,
+          "id": 91956
+        },
+        "customId": "TRnsiTn",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Dayton Flyers",
+          "slug": "dayton-flyers",
+          "shortName": "Dayton",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 512,
+          "nameCode": "DAY",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34643,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#ce1141",
+            "text": "#ce1141"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "دايتون فلايرس",
+              "ru": "Дэйтон Флайерз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "Florida State Seminoles",
+          "slug": "florida-state-seminoles",
+          "shortName": "Florida St",
+          "gender": "M",
+          "sport": {
+            "name": "Basketball",
+            "slug": "basketball",
+            "id": 2
+          },
+          "userCount": 559,
+          "nameCode": "FSU",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "US",
+            "alpha3": "USA",
+            "name": "USA",
+            "slug": "usa"
+          },
+          "id": 34658,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#782f40",
+            "secondary": "#ceb888",
+            "text": "#ceb888"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "فلوريدا ستايت سيمينوليس",
+              "ru": "Флорида Стейт Семиноулз"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 97,
+          "display": 97,
+          "period1": 42,
+          "period2": 55,
+          "normaltime": 97
+        },
+        "awayScore": {
+          "current": 69,
+          "display": 69,
+          "period1": 31,
+          "period2": 38,
+          "normaltime": 69
+        },
+        "time": {
+          "played": 2400,
+          "periodLength": 1200,
+          "overtimeLength": 300,
+          "totalPeriodCount": 2,
+          "currentPeriodStartTimestamp": 1765938156
+        },
+        "changes": {
+          "changes": [
+            "time.currentPeriodStart"
+          ],
+          "changeTimestamp": 1765939304
+        },
+        "hasGlobalHighlights": true,
+        "hasEventPlayerStatistics": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 14978735,
+        "periods": {
+          "current": "Score",
+          "period1": "1st quarter",
+          "period2": "2nd quarter",
+          "period3": "3rd quarter",
+          "period4": "4th quarter",
+          "overtime": "Overtime"
+        },
+        "slug": "florida-state-seminoles-dayton-flyers",
+        "startTimestamp": 1765929600,
+        "finalResultOnly": false,
+        "feedLocked": false,
+        "isEditor": false,
+        "eventFilters": {
+          "category": [
+            "club"
+          ],
+          "level": [
+            "top-competitions",
+            "pro"
+          ],
+          "gender": [
+            "M"
+          ]
+        }
+      }
+    ],
+    "transfers": [],
+    "national_stats": [],
+    "competitions": [
+      {
+        "tournament_id": 33651,
+        "season_id": 91961,
+        "tournament_name": "NCAA Men's Division I",
+        "season_year": "23/24",
+        "season_name": "NCAA 23/24",
+        "statistics": {},
+        "heatmap_points": []
+      },
+      {
+        "tournament_id": 33651,
+        "season_id": 91973,
+        "tournament_name": "NCAA Men's Division I",
+        "season_year": "24/25",
+        "season_name": "NCAA 24/25",
+        "statistics": {},
+        "heatmap_points": []
+      },
+      {
+        "tournament_id": 648,
+        "season_id": 67937,
+        "tournament_name": "NCAA Men",
+        "season_year": "24/25",
+        "season_name": "NCAA, Regular Season 24/25",
+        "statistics": {},
+        "heatmap_points": []
+      },
+      {
+        "tournament_id": 33651,
+        "season_id": 91956,
+        "tournament_name": "NCAA Men's Division I",
+        "season_year": "25/26",
+        "season_name": "NCAA 25/26",
+        "statistics": {},
+        "heatmap_points": []
+      }
+    ]
+  },
+  "mapped_payload": {
+    "name": "Evan N'Dicka",
+    "club": "AS Roma",
+    "db_id": 95,
+    "sofascore_id": 1599061,
+    "source": "playwright_v8",
+    "extracted": {
+      "profile": {
+        "sofascore_id": null,
+        "height_cm": null,
+        "weight_kg": null,
+        "preferred_foot": null,
+        "jersey_number": null,
+        "contract_until": null,
+        "market_value": null,
+        "nationality": null,
+        "date_of_birth": null,
+        "position": null,
+        "position_detail": "",
+        "gender": "M",
+        "slug": null,
+        "short_name": null,
+        "club": null,
+        "club_id": null
+      },
+      "competitions": [
+        {
+          "tournament_id": 33651,
+          "season_id": 91961,
+          "tournament_name": "NCAA Men's Division I",
+          "season_year": "23/24",
+          "season_name": "NCAA 23/24",
+          "statistics": {
+            "rating": null,
+            "total_rating": null,
+            "count_rating": null,
+            "appearances": null,
+            "matches_started": null,
+            "minutes_played": null,
+            "goals": null,
+            "assists": null,
+            "goals_assists_sum": null,
+            "shots_total": null,
+            "shots_on_target": null,
+            "shots_off_target": null,
+            "shots_inside_box": null,
+            "shots_outside_box": null,
+            "big_chances_created": null,
+            "big_chances_missed": null,
+            "goal_conversion_pct": null,
+            "headed_goals": null,
+            "left_foot_goals": null,
+            "right_foot_goals": null,
+            "goals_inside_box": null,
+            "goals_outside_box": null,
+            "free_kick_goals": null,
+            "penalty_goals": null,
+            "penalty_taken": null,
+            "penalty_won": null,
+            "penalty_conceded": null,
+            "own_goals": null,
+            "hit_woodwork": null,
+            "scoring_frequency": null,
+            "totw_appearances": null,
+            "set_piece_conversion": null,
+            "shot_from_set_piece": null,
+            "xg": null,
+            "xa": null,
+            "accurate_passes": null,
+            "inaccurate_passes": null,
+            "total_passes": null,
+            "pass_accuracy_pct": null,
+            "accurate_own_half_passes": null,
+            "accurate_opp_half_passes": null,
+            "total_own_half_passes": null,
+            "total_opp_half_passes": null,
+            "accurate_final_third_passes": null,
+            "accurate_long_balls": null,
+            "long_ball_accuracy_pct": null,
+            "total_long_balls": null,
+            "accurate_crosses": null,
+            "cross_accuracy_pct": null,
+            "total_crosses": null,
+            "key_passes": null,
+            "pass_to_assist": null,
+            "total_attempt_assist": null,
+            "accurate_chipped_passes": null,
+            "total_chipped_passes": null,
+            "successful_dribbles": null,
+            "dribble_success_pct": null,
+            "dribbled_past": null,
+            "dispossessed": null,
+            "ground_duels_won": null,
+            "ground_duels_won_pct": null,
+            "aerial_duels_won": null,
+            "aerial_duels_lost": null,
+            "aerial_duels_won_pct": null,
+            "total_duels_won": null,
+            "total_duels_won_pct": null,
+            "duel_lost": null,
+            "total_contest": null,
+            "tackles": null,
+            "tackles_won": null,
+            "tackles_won_pct": null,
+            "interceptions": null,
+            "clearances": null,
+            "blocked_shots": null,
+            "errors_led_to_goal": null,
+            "errors_led_to_shot": null,
+            "ball_recovery": null,
+            "possession_won_att_third": null,
+            "touches": null,
+            "possession_lost": null,
+            "yellow_cards": null,
+            "yellow_red_cards": null,
+            "red_cards": null,
+            "direct_red_cards": null,
+            "fouls_committed": null,
+            "fouls_won": null,
+            "offsides": null,
+            "saves": null,
+            "saves_caught": null,
+            "saves_parried": null,
+            "goals_conceded": null,
+            "goals_conceded_inside_box": null,
+            "goals_conceded_outside_box": null,
+            "clean_sheets": null,
+            "penalty_saved": null,
+            "penalty_faced": null,
+            "high_claims": null,
+            "punches": null,
+            "runs_out": null,
+            "successful_runs_out": null,
+            "saved_shots_inside_box": null,
+            "saved_shots_outside_box": null,
+            "goal_kicks": null,
+            "crosses_not_claimed": null,
+            "penalty_attempt_miss": null,
+            "penalty_attempt_post": null,
+            "penalty_attempt_target": null
+          },
+          "heatmap_points": []
+        },
+        {
+          "tournament_id": 33651,
+          "season_id": 91973,
+          "tournament_name": "NCAA Men's Division I",
+          "season_year": "24/25",
+          "season_name": "NCAA 24/25",
+          "statistics": {
+            "rating": null,
+            "total_rating": null,
+            "count_rating": null,
+            "appearances": null,
+            "matches_started": null,
+            "minutes_played": null,
+            "goals": null,
+            "assists": null,
+            "goals_assists_sum": null,
+            "shots_total": null,
+            "shots_on_target": null,
+            "shots_off_target": null,
+            "shots_inside_box": null,
+            "shots_outside_box": null,
+            "big_chances_created": null,
+            "big_chances_missed": null,
+            "goal_conversion_pct": null,
+            "headed_goals": null,
+            "left_foot_goals": null,
+            "right_foot_goals": null,
+            "goals_inside_box": null,
+            "goals_outside_box": null,
+            "free_kick_goals": null,
+            "penalty_goals": null,
+            "penalty_taken": null,
+            "penalty_won": null,
+            "penalty_conceded": null,
+            "own_goals": null,
+            "hit_woodwork": null,
+            "scoring_frequency": null,
+            "totw_appearances": null,
+            "set_piece_conversion": null,
+            "shot_from_set_piece": null,
+            "xg": null,
+            "xa": null,
+            "accurate_passes": null,
+            "inaccurate_passes": null,
+            "total_passes": null,
+            "pass_accuracy_pct": null,
+            "accurate_own_half_passes": null,
+            "accurate_opp_half_passes": null,
+            "total_own_half_passes": null,
+            "total_opp_half_passes": null,
+            "accurate_final_third_passes": null,
+            "accurate_long_balls": null,
+            "long_ball_accuracy_pct": null,
+            "total_long_balls": null,
+            "accurate_crosses": null,
+            "cross_accuracy_pct": null,
+            "total_crosses": null,
+            "key_passes": null,
+            "pass_to_assist": null,
+            "total_attempt_assist": null,
+            "accurate_chipped_passes": null,
+            "total_chipped_passes": null,
+            "successful_dribbles": null,
+            "dribble_success_pct": null,
+            "dribbled_past": null,
+            "dispossessed": null,
+            "ground_duels_won": null,
+            "ground_duels_won_pct": null,
+            "aerial_duels_won": null,
+            "aerial_duels_lost": null,
+            "aerial_duels_won_pct": null,
+            "total_duels_won": null,
+            "total_duels_won_pct": null,
+            "duel_lost": null,
+            "total_contest": null,
+            "tackles": null,
+            "tackles_won": null,
+            "tackles_won_pct": null,
+            "interceptions": null,
+            "clearances": null,
+            "blocked_shots": null,
+            "errors_led_to_goal": null,
+            "errors_led_to_shot": null,
+            "ball_recovery": null,
+            "possession_won_att_third": null,
+            "touches": null,
+            "possession_lost": null,
+            "yellow_cards": null,
+            "yellow_red_cards": null,
+            "red_cards": null,
+            "direct_red_cards": null,
+            "fouls_committed": null,
+            "fouls_won": null,
+            "offsides": null,
+            "saves": null,
+            "saves_caught": null,
+            "saves_parried": null,
+            "goals_conceded": null,
+            "goals_conceded_inside_box": null,
+            "goals_conceded_outside_box": null,
+            "clean_sheets": null,
+            "penalty_saved": null,
+            "penalty_faced": null,
+            "high_claims": null,
+            "punches": null,
+            "runs_out": null,
+            "successful_runs_out": null,
+            "saved_shots_inside_box": null,
+            "saved_shots_outside_box": null,
+            "goal_kicks": null,
+            "crosses_not_claimed": null,
+            "penalty_attempt_miss": null,
+            "penalty_attempt_post": null,
+            "penalty_attempt_target": null
+          },
+          "heatmap_points": []
+        },
+        {
+          "tournament_id": 648,
+          "season_id": 67937,
+          "tournament_name": "NCAA Men",
+          "season_year": "24/25",
+          "season_name": "NCAA, Regular Season 24/25",
+          "statistics": {
+            "rating": null,
+            "total_rating": null,
+            "count_rating": null,
+            "appearances": null,
+            "matches_started": null,
+            "minutes_played": null,
+            "goals": null,
+            "assists": null,
+            "goals_assists_sum": null,
+            "shots_total": null,
+            "shots_on_target": null,
+            "shots_off_target": null,
+            "shots_inside_box": null,
+            "shots_outside_box": null,
+            "big_chances_created": null,
+            "big_chances_missed": null,
+            "goal_conversion_pct": null,
+            "headed_goals": null,
+            "left_foot_goals": null,
+            "right_foot_goals": null,
+            "goals_inside_box": null,
+            "goals_outside_box": null,
+            "free_kick_goals": null,
+            "penalty_goals": null,
+            "penalty_taken": null,
+            "penalty_won": null,
+            "penalty_conceded": null,
+            "own_goals": null,
+            "hit_woodwork": null,
+            "scoring_frequency": null,
+            "totw_appearances": null,
+            "set_piece_conversion": null,
+            "shot_from_set_piece": null,
+            "xg": null,
+            "xa": null,
+            "accurate_passes": null,
+            "inaccurate_passes": null,
+            "total_passes": null,
+            "pass_accuracy_pct": null,
+            "accurate_own_half_passes": null,
+            "accurate_opp_half_passes": null,
+            "total_own_half_passes": null,
+            "total_opp_half_passes": null,
+            "accurate_final_third_passes": null,
+            "accurate_long_balls": null,
+            "long_ball_accuracy_pct": null,
+            "total_long_balls": null,
+            "accurate_crosses": null,
+            "cross_accuracy_pct": null,
+            "total_crosses": null,
+            "key_passes": null,
+            "pass_to_assist": null,
+            "total_attempt_assist": null,
+            "accurate_chipped_passes": null,
+            "total_chipped_passes": null,
+            "successful_dribbles": null,
+            "dribble_success_pct": null,
+            "dribbled_past": null,
+            "dispossessed": null,
+            "ground_duels_won": null,
+            "ground_duels_won_pct": null,
+            "aerial_duels_won": null,
+            "aerial_duels_lost": null,
+            "aerial_duels_won_pct": null,
+            "total_duels_won": null,
+            "total_duels_won_pct": null,
+            "duel_lost": null,
+            "total_contest": null,
+            "tackles": null,
+            "tackles_won": null,
+            "tackles_won_pct": null,
+            "interceptions": null,
+            "clearances": null,
+            "blocked_shots": null,
+            "errors_led_to_goal": null,
+            "errors_led_to_shot": null,
+            "ball_recovery": null,
+            "possession_won_att_third": null,
+            "touches": null,
+            "possession_lost": null,
+            "yellow_cards": null,
+            "yellow_red_cards": null,
+            "red_cards": null,
+            "direct_red_cards": null,
+            "fouls_committed": null,
+            "fouls_won": null,
+            "offsides": null,
+            "saves": null,
+            "saves_caught": null,
+            "saves_parried": null,
+            "goals_conceded": null,
+            "goals_conceded_inside_box": null,
+            "goals_conceded_outside_box": null,
+            "clean_sheets": null,
+            "penalty_saved": null,
+            "penalty_faced": null,
+            "high_claims": null,
+            "punches": null,
+            "runs_out": null,
+            "successful_runs_out": null,
+            "saved_shots_inside_box": null,
+            "saved_shots_outside_box": null,
+            "goal_kicks": null,
+            "crosses_not_claimed": null,
+            "penalty_attempt_miss": null,
+            "penalty_attempt_post": null,
+            "penalty_attempt_target": null
+          },
+          "heatmap_points": []
+        },
+        {
+          "tournament_id": 33651,
+          "season_id": 91956,
+          "tournament_name": "NCAA Men's Division I",
+          "season_year": "25/26",
+          "season_name": "NCAA 25/26",
+          "statistics": {
+            "rating": null,
+            "total_rating": null,
+            "count_rating": null,
+            "appearances": null,
+            "matches_started": null,
+            "minutes_played": null,
+            "goals": null,
+            "assists": null,
+            "goals_assists_sum": null,
+            "shots_total": null,
+            "shots_on_target": null,
+            "shots_off_target": null,
+            "shots_inside_box": null,
+            "shots_outside_box": null,
+            "big_chances_created": null,
+            "big_chances_missed": null,
+            "goal_conversion_pct": null,
+            "headed_goals": null,
+            "left_foot_goals": null,
+            "right_foot_goals": null,
+            "goals_inside_box": null,
+            "goals_outside_box": null,
+            "free_kick_goals": null,
+            "penalty_goals": null,
+            "penalty_taken": null,
+            "penalty_won": null,
+            "penalty_conceded": null,
+            "own_goals": null,
+            "hit_woodwork": null,
+            "scoring_frequency": null,
+            "totw_appearances": null,
+            "set_piece_conversion": null,
+            "shot_from_set_piece": null,
+            "xg": null,
+            "xa": null,
+            "accurate_passes": null,
+            "inaccurate_passes": null,
+            "total_passes": null,
+            "pass_accuracy_pct": null,
+            "accurate_own_half_passes": null,
+            "accurate_opp_half_passes": null,
+            "total_own_half_passes": null,
+            "total_opp_half_passes": null,
+            "accurate_final_third_passes": null,
+            "accurate_long_balls": null,
+            "long_ball_accuracy_pct": null,
+            "total_long_balls": null,
+            "accurate_crosses": null,
+            "cross_accuracy_pct": null,
+            "total_crosses": null,
+            "key_passes": null,
+            "pass_to_assist": null,
+            "total_attempt_assist": null,
+            "accurate_chipped_passes": null,
+            "total_chipped_passes": null,
+            "successful_dribbles": null,
+            "dribble_success_pct": null,
+            "dribbled_past": null,
+            "dispossessed": null,
+            "ground_duels_won": null,
+            "ground_duels_won_pct": null,
+            "aerial_duels_won": null,
+            "aerial_duels_lost": null,
+            "aerial_duels_won_pct": null,
+            "total_duels_won": null,
+            "total_duels_won_pct": null,
+            "duel_lost": null,
+            "total_contest": null,
+            "tackles": null,
+            "tackles_won": null,
+            "tackles_won_pct": null,
+            "interceptions": null,
+            "clearances": null,
+            "blocked_shots": null,
+            "errors_led_to_goal": null,
+            "errors_led_to_shot": null,
+            "ball_recovery": null,
+            "possession_won_att_third": null,
+            "touches": null,
+            "possession_lost": null,
+            "yellow_cards": null,
+            "yellow_red_cards": null,
+            "red_cards": null,
+            "direct_red_cards": null,
+            "fouls_committed": null,
+            "fouls_won": null,
+            "offsides": null,
+            "saves": null,
+            "saves_caught": null,
+            "saves_parried": null,
+            "goals_conceded": null,
+            "goals_conceded_inside_box": null,
+            "goals_conceded_outside_box": null,
+            "clean_sheets": null,
+            "penalty_saved": null,
+            "penalty_faced": null,
+            "high_claims": null,
+            "punches": null,
+            "runs_out": null,
+            "successful_runs_out": null,
+            "saved_shots_inside_box": null,
+            "saved_shots_outside_box": null,
+            "goal_kicks": null,
+            "crosses_not_claimed": null,
+            "penalty_attempt_miss": null,
+            "penalty_attempt_post": null,
+            "penalty_attempt_target": null
+          },
+          "heatmap_points": []
+        }
+      ],
+      "matches": [
+        {
+          "event_id": 11711732,
+          "sofascore_slug": "grambling-st-tigers-dayton-flyers",
+          "date": "2023-12-02T19:00:00+00:00",
+          "tournament_name": "NCAA Men's Division I",
+          "tournament_id": 33651,
+          "season_name": "NCAA 23/24",
+          "season_year": "23/24",
+          "season_id": 91961,
+          "round": 1,
+          "home_team": "Dayton Flyers",
+          "home_team_id": 34643,
+          "away_team": "Grambling St Tigers",
+          "away_team_id": 101901,
+          "home_score": 76,
+          "away_score": 46,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": false,
+          "has_player_stats": true,
+          "has_heatmap": false,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 11711694,
+          "sofascore_slug": "oakland-golden-grizzlies-dayton-flyers",
+          "date": "2023-12-21T00:00:00+00:00",
+          "tournament_name": "NCAA Men's Division I",
+          "tournament_id": 33651,
+          "season_name": "NCAA 23/24",
+          "season_year": "23/24",
+          "season_id": 91961,
+          "round": 1,
+          "home_team": "Dayton Flyers",
+          "home_team_id": 34643,
+          "away_team": "Oakland Golden Grizzlies",
+          "away_team_id": 41217,
+          "home_score": 91,
+          "away_score": 67,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": false,
+          "has_player_stats": true,
+          "has_heatmap": false,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 12979634,
+          "sofascore_slug": "st-francis-pa-red-flash-dayton-flyers",
+          "date": "2024-11-05T00:00:00+00:00",
+          "tournament_name": "NCAA Men's Division I",
+          "tournament_id": 33651,
+          "season_name": "NCAA 24/25",
+          "season_year": "24/25",
+          "season_id": 91973,
+          "round": null,
+          "home_team": "Dayton Flyers",
+          "home_team_id": 34643,
+          "away_team": "St. Francis (PA) Red Flash",
+          "away_team_id": 211974,
+          "home_score": 87,
+          "away_score": 57,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": false,
+          "has_player_stats": true,
+          "has_heatmap": false,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 12980031,
+          "sofascore_slug": "capital-crusaders-dayton-flyers",
+          "date": "2024-11-17T00:00:00+00:00",
+          "tournament_name": "NCAA Men",
+          "tournament_id": 648,
+          "season_name": "NCAA, Regular Season 24/25",
+          "season_year": "24/25",
+          "season_id": 67937,
+          "round": null,
+          "home_team": "Dayton Flyers",
+          "home_team_id": 34643,
+          "away_team": "Capital Crusaders",
+          "away_team_id": 334848,
+          "home_score": 76,
+          "away_score": 55,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": false,
+          "has_player_stats": true,
+          "has_heatmap": false,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 12980113,
+          "sofascore_slug": "new-mexico-state-aggies-dayton-flyers",
+          "date": "2024-11-21T00:00:00+00:00",
+          "tournament_name": "NCAA Men's Division I",
+          "tournament_id": 33651,
+          "season_name": "NCAA 24/25",
+          "season_year": "24/25",
+          "season_id": 91973,
+          "round": null,
+          "home_team": "Dayton Flyers",
+          "home_team_id": 34643,
+          "away_team": "New Mexico State Aggies",
+          "away_team_id": 41220,
+          "home_score": 74,
+          "away_score": 53,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": false,
+          "has_player_stats": true,
+          "has_heatmap": false,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 13067753,
+          "sofascore_slug": "lehigh-mountain-hawks-dayton-flyers",
+          "date": "2024-12-07T19:00:00+00:00",
+          "tournament_name": "NCAA Men's Division I",
+          "tournament_id": 33651,
+          "season_name": "NCAA 24/25",
+          "season_year": "24/25",
+          "season_id": 91973,
+          "round": null,
+          "home_team": "Dayton Flyers",
+          "home_team_id": 34643,
+          "away_team": "Lehigh Mountain Hawks",
+          "away_team_id": 41213,
+          "home_score": 86,
+          "away_score": 62,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": false,
+          "has_player_stats": true,
+          "has_heatmap": false,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 13072124,
+          "sofascore_slug": "duquesne-dukes-dayton-flyers",
+          "date": "2025-01-22T00:00:00+00:00",
+          "tournament_name": "NCAA Men's Division I",
+          "tournament_id": 33651,
+          "season_name": "NCAA 24/25",
+          "season_year": "24/25",
+          "season_id": 91973,
+          "round": null,
+          "home_team": "Duquesne Dukes",
+          "home_team_id": 86782,
+          "away_team": "Dayton Flyers",
+          "away_team_id": 34643,
+          "home_score": 62,
+          "away_score": 82,
+          "winner_code": 2,
+          "status": "finished",
+          "has_xg": false,
+          "has_player_stats": true,
+          "has_heatmap": false,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 14923374,
+          "sofascore_slug": "canisius-golden-griffins-dayton-flyers",
+          "date": "2025-11-04T00:00:00+00:00",
+          "tournament_name": "NCAA Men's Division I",
+          "tournament_id": 33651,
+          "season_name": "NCAA 25/26",
+          "season_year": "25/26",
+          "season_id": 91956,
+          "round": null,
+          "home_team": "Dayton Flyers",
+          "home_team_id": 34643,
+          "away_team": "Canisius Golden Griffins",
+          "away_team_id": 86616,
+          "home_score": 88,
+          "away_score": 48,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": false,
+          "has_player_stats": true,
+          "has_heatmap": false,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 14978341,
+          "sofascore_slug": "north-carolina-central-eagles-dayton-flyers",
+          "date": "2025-11-22T19:00:00+00:00",
+          "tournament_name": "NCAA Men's Division I",
+          "tournament_id": 33651,
+          "season_name": "NCAA 25/26",
+          "season_year": "25/26",
+          "season_id": 91956,
+          "round": null,
+          "home_team": "Dayton Flyers",
+          "home_team_id": 34643,
+          "away_team": "North Carolina Central Eagles",
+          "away_team_id": 101879,
+          "home_score": 74,
+          "away_score": 55,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": false,
+          "has_player_stats": true,
+          "has_heatmap": false,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 14978702,
+          "sofascore_slug": "north-florida-ospreys-dayton-flyers",
+          "date": "2025-12-14T00:00:00+00:00",
+          "tournament_name": "NCAA Men's Division I",
+          "tournament_id": 33651,
+          "season_name": "NCAA 25/26",
+          "season_year": "25/26",
+          "season_id": 91956,
+          "round": null,
+          "home_team": "Dayton Flyers",
+          "home_team_id": 34643,
+          "away_team": "North Florida Ospreys",
+          "away_team_id": 101913,
+          "home_score": 84,
+          "away_score": 61,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": false,
+          "has_player_stats": true,
+          "has_heatmap": false,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 14978735,
+          "sofascore_slug": "florida-state-seminoles-dayton-flyers",
+          "date": "2025-12-17T00:00:00+00:00",
+          "tournament_name": "NCAA Men's Division I",
+          "tournament_id": 33651,
+          "season_name": "NCAA 25/26",
+          "season_year": "25/26",
+          "season_id": 91956,
+          "round": null,
+          "home_team": "Dayton Flyers",
+          "home_team_id": 34643,
+          "away_team": "Florida State Seminoles",
+          "away_team_id": 34658,
+          "home_score": 97,
+          "away_score": 69,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": false,
+          "has_player_stats": true,
+          "has_heatmap": false,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        }
+      ],
+      "career": [],
+      "national": []
+    },
+    "extracted_at": "2026-04-02T22:45:45.475461"
+  }
+}

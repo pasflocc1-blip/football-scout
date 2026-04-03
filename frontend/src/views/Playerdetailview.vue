@@ -41,6 +41,7 @@
 
         <div class="tabs">
         <button class="tab-btn" :class="{ active: activeTab === 'stats' }" @click="activeTab = 'stats'">📊 Statistiche</button>
+        <button class="tab-btn" :class="{ active: activeTab === 'heatmap' }" @click="activeTab = 'heatmap'">🗺 Heatmap</button>
         <button class="tab-btn" :class="{ active: activeTab === 'matches' }" @click="activeTab = 'matches'">🗓 Partite</button>
         <button class="tab-btn" :class="{ active: activeTab === 'career' }" @click="activeTab = 'career'">🔄 Carriera</button>
       </div>
@@ -217,6 +218,122 @@
       </div>
     </div>
 
+    <!-- ══════════════════════ TAB HEATMAP & ATTRIBUTI ══════════════════════ -->
+    <div v-if="activeTab === 'heatmap' && player && !loading">
+
+      <!-- Radar attributi -->
+      <div class="card" style="margin-top: 1rem;" v-if="playerAttributes">
+        <h3 class="section-title">🎯 Panoramica attributi</h3>
+        <div class="attributes-layout">
+          <div class="radar-wrap">
+            <svg class="radar-svg" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">
+              <!-- Griglia di sfondo -->
+              <polygon v-for="level in [1,0.75,0.5,0.25]" :key="level"
+                :points="radarPoints(level)"
+                fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+              <!-- Assi -->
+              <line v-for="(axis, i) in radarAxes" :key="'ax'+i"
+                x1="130" y1="130"
+                :x2="130 + 110 * Math.cos((i * 2 * Math.PI / radarAxes.length) - Math.PI/2)"
+                :y2="130 + 110 * Math.sin((i * 2 * Math.PI / radarAxes.length) - Math.PI/2)"
+                stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+              <!-- Media (arancio) -->
+              <polygon v-if="averageAttributes"
+                :points="radarDataPoints(averageAttributes)"
+                fill="rgba(245,158,11,0.15)" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/>
+              <!-- Giocatore (verde) -->
+              <polygon
+                :points="radarDataPoints(playerAttributes)"
+                fill="rgba(34,197,94,0.2)" stroke="#22c55e" stroke-width="2"/>
+              <!-- Dots giocatore -->
+              <circle v-for="(pt, i) in radarDots(playerAttributes)" :key="'dot'+i"
+                :cx="pt.x" :cy="pt.y" r="4" fill="#22c55e"/>
+              <!-- Label assi -->
+              <text v-for="(axis, i) in radarAxes" :key="'lbl'+i"
+                :x="radarLabelPos(i).x" :y="radarLabelPos(i).y"
+                text-anchor="middle" dominant-baseline="middle"
+                fill="rgba(255,255,255,0.7)" font-size="10" font-family="monospace">
+                {{ axis.label }}
+              </text>
+              <!-- Valori giocatore -->
+              <text v-for="(axis, i) in radarAxes" :key="'val'+i"
+                :x="radarValuePos(i, playerAttributes).x" :y="radarValuePos(i, playerAttributes).y"
+                text-anchor="middle" dominant-baseline="middle"
+                fill="#22c55e" font-size="11" font-weight="700" font-family="monospace">
+                {{ playerAttributes[axis.key] ?? '—' }}
+              </text>
+            </svg>
+          </div>
+          <div class="attr-bars">
+            <div v-for="axis in radarAxes" :key="axis.key" class="attr-bar-row">
+              <span class="attr-bar-lbl">{{ axis.label }}</span>
+              <div class="attr-bar-track">
+                <div class="attr-bar-fill" :style="{
+                  width: ((playerAttributes[axis.key] || 0) / 99 * 100) + '%',
+                  background: attrColor(playerAttributes[axis.key])
+                }"></div>
+              </div>
+              <span class="attr-bar-val" :style="{ color: attrColor(playerAttributes[axis.key]) }">
+                {{ playerAttributes[axis.key] ?? '—' }}
+              </span>
+              <span class="attr-avg-val" v-if="averageAttributes">
+                ⌀ {{ averageAttributes[axis.key] ?? '—' }}
+              </span>
+            </div>
+            <p class="attr-note">🟠 Media SofaScore &nbsp;|&nbsp; 🟢 Giocatore</p>
+          </div>
+        </div>
+      </div>
+      <div class="card empty-state" style="margin-top: 1rem;" v-else>
+        <p>Dati attributi non disponibili per questo giocatore.</p>
+      </div>
+
+      <!-- Heatmap per competizione -->
+      <div v-for="comp in heatmapCompetitions" :key="comp.competition_id" class="card" style="margin-top: 1rem;">
+        <h3 class="section-title">
+          🗺 Heatmap — {{ comp.competition_name }}
+          <span class="heat-meta">{{ comp.heatmap_points?.length ?? 0 }} posizioni · {{ comp.appearances ?? '?' }} presenze</span>
+        </h3>
+        <div class="heatmap-outer">
+          <div class="heatmap-pitch-wrap">
+            <!-- Campo da calcio SVG -->
+            <svg class="pitch-svg" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Manto erboso -->
+              <rect x="0" y="0" width="100" height="100" fill="#1a4a1a"/>
+              <rect x="0" y="0" width="50" height="100" fill="#1e541e"/>
+              <!-- Linee campo -->
+              <rect x="2" y="2" width="96" height="96" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>
+              <line x1="50" y1="2" x2="50" y2="98" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>
+              <!-- Cerchio centrocampo -->
+              <circle cx="50" cy="50" r="9.15" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>
+              <circle cx="50" cy="50" r="0.8" fill="rgba(255,255,255,0.6)"/>
+              <!-- Area di rigore sx -->
+              <rect x="2" y="21.1" width="16.5" height="57.8" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>
+              <!-- Piccola area sx -->
+              <rect x="2" y="36.8" width="5.5" height="26.4" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>
+              <!-- Area di rigore dx -->
+              <rect x="81.5" y="21.1" width="16.5" height="57.8" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>
+              <!-- Piccola area dx -->
+              <rect x="92.5" y="36.8" width="5.5" height="26.4" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.5"/>
+              <!-- Punti rigore -->
+              <circle cx="11" cy="50" r="0.6" fill="rgba(255,255,255,0.5)"/>
+              <circle cx="89" cy="50" r="0.6" fill="rgba(255,255,255,0.5)"/>
+            </svg>
+            <!-- Canvas overlay per heatmap -->
+            <canvas
+              :ref="el => heatmapCanvases[comp.competition_id] = el"
+              class="heatmap-canvas"
+              width="600" height="600">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="!heatmapCompetitions.length" class="card empty-state" style="margin-top: 1rem;">
+        <p>Nessun dato heatmap disponibile. Rilanciare l'RPA per scaricare i dati.</p>
+      </div>
+    </div>
+
     <div v-if="activeTab === 'career' && player && !loading">
       <div class="card" style="margin-top: 1rem;">
         <h3 class="section-title">🔄 Storico trasferimenti</h3>
@@ -259,7 +376,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
@@ -336,7 +453,148 @@ async function loadMatches() {
   }
 }
 
+// ══════════════════════════════════════════════
+// HEATMAP & ATTRIBUTI
+// ══════════════════════════════════════════════
+
+const heatmapCanvases = ref({})
+
+// Competizioni con heatmap disponibile
+const heatmapCompetitions = computed(() => {
+  if (!player.value?.competitions) return []
+  return player.value.competitions.filter(c => c.heatmap_points?.length > 0)
+})
+
+// Attributi del giocatore (prende il più recente: yearShift più alto o primo elemento)
+const playerAttributes = computed(() => {
+  const attrs = player.value?.sofascore_attributes
+  if (!attrs) return null
+  // Struttura: array di {attacking, technical, tactical, defending, creativity, ...}
+  if (Array.isArray(attrs) && attrs.length > 0) {
+    // Prende quello con yearShift più alto (più recente)
+    return attrs.reduce((best, curr) => 
+      (curr.yearShift ?? 0) > (best.yearShift ?? 0) ? curr : best
+    )
+  }
+  // Fallback: struttura piatta già come oggetto (attr_attacking, ecc.)
+  if (typeof attrs === 'object' && !Array.isArray(attrs)) {
+    const mapped = {}
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k.startsWith('attr_') && !k.startsWith('attr_title_') && !k.startsWith('attr_avg_')) {
+        mapped[k.replace('attr_', '')] = v
+      }
+    }
+    return Object.keys(mapped).length ? mapped : null
+  }
+  return null
+})
+
+// Media attributi (averageAttributeOverviews)
+const averageAttributes = computed(() => {
+  const raw = player.value?.sofascore_attributes_avg
+  if (!raw) return null
+  if (Array.isArray(raw) && raw.length > 0) return raw[0]
+  return null
+})
+
+// Assi del radar
+const radarAxes = [
+  { key: 'attacking',  label: 'ATT' },
+  { key: 'technical',  label: 'TEC' },
+  { key: 'tactical',   label: 'TAC' },
+  { key: 'defending',  label: 'DEF' },
+  { key: 'creativity', label: 'CRE' },
+]
+
+function radarPoints(scale = 1) {
+  const cx = 130, cy = 130, r = 110 * scale, n = radarAxes.length
+  return radarAxes.map((_, i) => {
+    const angle = (i * 2 * Math.PI / n) - Math.PI / 2
+    return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`
+  }).join(' ')
+}
+
+function radarDataPoints(attrs) {
+  const cx = 130, cy = 130, r = 110, n = radarAxes.length, MAX = 99
+  return radarAxes.map((axis, i) => {
+    const val = (attrs[axis.key] ?? 0) / MAX
+    const angle = (i * 2 * Math.PI / n) - Math.PI / 2
+    return `${cx + r * val * Math.cos(angle)},${cy + r * val * Math.sin(angle)}`
+  }).join(' ')
+}
+
+function radarDots(attrs) {
+  const cx = 130, cy = 130, r = 110, n = radarAxes.length, MAX = 99
+  return radarAxes.map((axis, i) => {
+    const val = (attrs[axis.key] ?? 0) / MAX
+    const angle = (i * 2 * Math.PI / n) - Math.PI / 2
+    return { x: cx + r * val * Math.cos(angle), y: cy + r * val * Math.sin(angle) }
+  })
+}
+
+function radarLabelPos(i) {
+  const cx = 130, cy = 130, r = 128, n = radarAxes.length
+  const angle = (i * 2 * Math.PI / n) - Math.PI / 2
+  return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) }
+}
+
+function radarValuePos(i, attrs) {
+  const cx = 130, cy = 130, r = 110, n = radarAxes.length, MAX = 99
+  const val = (attrs[radarAxes[i].key] ?? 0) / MAX
+  const angle = (i * 2 * Math.PI / n) - Math.PI / 2
+  // Posiziona il valore leggermente più esterno del punto
+  const dist = Math.max(r * val - 14, 20)
+  return { x: cx + dist * Math.cos(angle), y: cy + dist * Math.sin(angle) }
+}
+
+function attrColor(val) {
+  if (val == null) return '#666'
+  if (val >= 75) return '#22c55e'
+  if (val >= 55) return '#3b82f6'
+  if (val >= 40) return '#f59e0b'
+  return '#ef4444'
+}
+
+// Disegna la heatmap su canvas quando la tab viene attivata
+function drawHeatmaps() {
+  nextTick(() => {
+    heatmapCompetitions.value.forEach(comp => {
+      const canvas = heatmapCanvases.value[comp.competition_id]
+      if (!canvas) return
+      const ctx = canvas.getContext('2d')
+      const W = canvas.width, H = canvas.height
+      ctx.clearRect(0, 0, W, H)
+
+      const points = comp.heatmap_points || []
+      if (!points.length) return
+
+      // Trova max count per normalizzare l'intensità
+      const maxCount = Math.max(...points.map(p => p.count || 1), 1)
+
+      points.forEach(pt => {
+        // SofaScore: x=avanzamento (0=porta sx, 100=porta dx), y=larghezza (0=sotto, 100=sopra)
+        const px = (pt.x / 100) * W
+        const py = (1 - pt.y / 100) * H
+        const intensity = Math.min((pt.count || 1) / maxCount, 1)
+        const radius = 22 + intensity * 18
+
+        const grad = ctx.createRadialGradient(px, py, 0, px, py, radius)
+        const alpha = 0.15 + intensity * 0.55
+        grad.addColorStop(0, `rgba(255, ${Math.round(50 + intensity * 150)}, 0, ${alpha})`)
+        grad.addColorStop(0.5, `rgba(255, ${Math.round(100 + intensity * 100)}, 0, ${alpha * 0.5})`)
+        grad.addColorStop(1, 'rgba(255, 100, 0, 0)')
+
+        ctx.fillStyle = grad
+        ctx.beginPath()
+        ctx.arc(px, py, radius, 0, Math.PI * 2)
+        ctx.fill()
+      })
+    })
+  })
+}
+
 watch(activeTab, (tab) => {
+  if (tab === 'heatmap') drawHeatmaps()
   if (tab === 'matches' && !matches.value.length && route.params.id) {
     loadMatches()
   }
@@ -813,6 +1071,128 @@ const filteredMatches = computed(() => {
 .national-stats { display: flex; gap: 2rem; }
 
 /* ─── Empty ─────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  color: var(--color-muted, #888);
+  padding: 2rem;
+  font-size: 1rem;
+}
+
+/* ─── Heatmap & Attributi ───────────────────── */
+.heat-meta {
+  font-size: .78rem;
+  color: var(--color-muted, #888);
+  font-weight: 400;
+  margin-left: .6rem;
+}
+
+.heatmap-outer {
+  display: flex;
+  justify-content: center;
+  padding: .5rem 0 1rem;
+}
+
+.heatmap-pitch-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.pitch-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.heatmap-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Radar + barre fianco a fianco */
+.attributes-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: .5rem 0;
+}
+
+.radar-wrap {
+  flex: 0 0 260px;
+}
+
+.radar-svg {
+  width: 260px;
+  height: 260px;
+}
+
+.attr-bars {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+}
+
+.attr-bar-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.attr-bar-lbl {
+  width: 36px;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--color-muted, #888);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  flex-shrink: 0;
+}
+
+.attr-bar-track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.attr-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width .5s ease;
+}
+
+.attr-bar-val {
+  width: 28px;
+  font-size: .9rem;
+  font-weight: 700;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.attr-avg-val {
+  width: 48px;
+  font-size: .78rem;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.attr-note {
+  font-size: .75rem;
+  color: var(--color-muted, #666);
+  margin-top: .4rem;
+}
+
 .empty-state {
   text-align: center;
   color: var(--color-muted, #888);

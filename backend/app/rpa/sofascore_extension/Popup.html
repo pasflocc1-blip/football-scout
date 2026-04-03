@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { font-family: sans-serif; width: 280px; padding: 12px; font-size: 13px; }
+  h3   { margin: 0 0 10px; font-size: 14px; }
+  label { display: block; margin-bottom: 4px; color: #555; }
+  input { width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+  button { margin-top: 8px; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .btn-save   { background: #1a73e8; color: #fff; }
+  .btn-retry  { background: #f1f3f4; color: #333; }
+  .status { margin-top: 10px; padding: 8px; background: #f8f9fa; border-radius: 4px; font-size: 11px; color: #444; line-height: 1.6; }
+  .ok  { color: #188038; }
+  .err { color: #c5221f; }
+</style>
+</head>
+<body>
+<h3>Scout Interceptor</h3>
+
+<label>Backend URL</label>
+<input type="text" id="backendUrl" placeholder="http://localhost:8000"/>
+<button class="btn-save" id="saveBtn">Salva</button>
+<button class="btn-retry" id="retryBtn">Retry falliti</button>
+
+<div class="status" id="status">Caricamento...</div>
+
+<script>
+const backendInput = document.getElementById('backendUrl');
+const statusDiv    = document.getElementById('status');
+
+// Carica config salvata
+chrome.storage.local.get(['backendUrl'], r => {
+  backendInput.value = r.backendUrl || 'http://localhost:8000';
+});
+
+// Mostra status
+function refreshStatus() {
+  chrome.runtime.sendMessage({ action: 'get_status' }, r => {
+    if (!r) return;
+    statusDiv.innerHTML =
+      `<span class="ok">✓ Inviati: ${r.sent_count}</span><br>` +
+      `<span class="${r.failed_count > 0 ? 'err' : 'ok'}">` +
+      `${r.failed_count > 0 ? '✗' : '✓'} Falliti: ${r.failed_count}</span><br>` +
+      `Backend: ${r.backend}`;
+  });
+}
+refreshStatus();
+
+// Salva backend URL
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const url = backendInput.value.trim().replace(/\/$/, '');
+  chrome.storage.local.set({ backendUrl: url }, () => {
+    statusDiv.textContent = 'Salvato: ' + url;
+    setTimeout(refreshStatus, 1000);
+  });
+});
+
+// Retry falliti
+document.getElementById('retryBtn').addEventListener('click', () => {
+  statusDiv.textContent = 'Retry in corso...';
+  chrome.runtime.sendMessage({ action: 'retry_failed' }, r => {
+    statusDiv.textContent = `Retry: ${r?.retried || 0} payload rimandati`;
+    setTimeout(refreshStatus, 2000);
+  });
+});
+</script>
+</body>
+</html>

@@ -26,7 +26,7 @@ import httpx
 from sqlalchemy.orm import Session
 
 from app.services.player_matcher import find_player_in_db
-from app.models.models import ScoutingPlayer
+from app.models.models import ScoutingPlayer, Club
 
 BASE_URL = "https://api.football-data.org/v4"
 
@@ -105,25 +105,29 @@ async def fetch_standings(competition_code: str, season: int) -> list[dict]:
 
 
 async def sync_player_clubs(
-    db: Session,
-    competition_code: str,
-    season: int,
-    progress_cb=None,
-    stop_event: threading.Event = None,
+        db: Session,
+        competition_code: str,
+        season: int,
+        progress_cb=None,
+        stop_event: threading.Event = None,
 ) -> dict:
     """
     Scarica la rosa di ogni squadra e per ogni giocatore:
-      1. Cerca nel DB tramite find_player_in_db (match fuzzy nome+club)
-      2. Se trovato  → aggiorna .club
-      3. Se NON trovato → inserisce nuovo ScoutingPlayer con i dati base disponibili
-         (name, club, nationality, position) cosi il giocatore e tracciabile in seguito
-
-    Ritorna dict con teams_processed, players_updated, players_inserted, competition, season
+      1. Gestisce la tabella Club: cerca o crea il club e ottiene il club_id.
+      2. Cerca nel DB tramite find_player_in_db.
+      3. Se trovato  → aggiorna .club e .club_id.
+      4. Se NON trovato → inserisce nuovo ScoutingPlayer con club_id.
     """
+    from app.models.models import Club  # Assicurati che l'import sia corretto
+
     headers = _headers()
     updated = 0
     inserted = 0
     teams_processed = 0
+
+    # Determina la league_key corretta dal codice competizione
+    inv_map = {v: k for k, v in COMPETITION_CODES.items()}
+    current_league_key = inv_map.get(competition_code, "unknown")
 
     async with httpx.AsyncClient(timeout=20) as client:
         # Lista squadre
@@ -132,83 +136,86 @@ async def sync_player_clubs(
             headers=headers, params={"season": season},
         )
         teams_resp.raise_for_status()
-        teams = teams_resp.json().get("teams", [])
+        teams_data = teams_resp.json()
+        teams = teams_data.get("teams", [])
+
+        # Recupera il nome del paese dalla competizione per i nuovi club
+        country_name = teams_data.get("area", {}).get("name", "Unknown")
+
         now_str = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
         print(f"  → Football-Data: [{now_str}] - {len(teams)} squadre trovate")
 
         for team in teams:
-            # Controlla cancellazione prima di ogni squadra
             if stop_event and stop_event.is_set():
-                print("  ⏹ Football-Data: interruzione richiesta, mi fermo.")
+                print("  ⏹ Football-Data: interruzione richiesta.")
                 break
 
             team_name = team["name"]
-            team_id   = team["id"]
+            team_id = team["id"]
             teams_processed += 1
 
-            try:
-                # Rate limit free tier: 10 req/min
-                await asyncio.sleep(6)
+            # --- GESTIONE TABELLA CLUBS ---
+            # Cerchiamo il club nel DB per nome
+            club = db.query(Club).filter(Club.name == team_name).first()
 
-                # Controlla cancellazione anche durante il sleep
-                if stop_event and stop_event.is_set():
-                    print("  ⏹ Football-Data: interruzione durante sleep.")
-                    break
+            if not club:
+                # Se il club non esiste, lo creiamo al volo
+                club = Club(
+                    name=team_name,
+                    league_key=current_league_key,
+                    country=country_name
+                )
+                db.add(club)
+                db.flush()  # Genera l'ID senza fare il commit definitivo
+            # ------------------------------
+
+            try:
+                await asyncio.sleep(6)  # Rate limit 10 req/min
+
+                if stop_event and stop_event.is_set(): break
 
                 squad_resp = await client.get(
                     f"{BASE_URL}/teams/{team_id}", headers=headers,
                 )
                 squad_resp.raise_for_status()
                 squad_data = squad_resp.json()
-                squad      = squad_data.get("squad", [])
+                squad = squad_data.get("squad", [])
 
-                team_updated  = 0
+                team_updated = 0
                 team_inserted = 0
 
                 for member in squad:
                     player_name = member.get("name", "")
-                    if not player_name:
-                        continue
+                    if not player_name: continue
 
                     # 1. Tenta match nel DB
                     player = find_player_in_db(db, player_name, team_name)
 
                     if player:
-                        # Aggiorna club (e nazionalita se mancante)
+                        # Aggiorna club e collega il club_id
                         player.club = team_name
+                        player.club_id = club.id
                         if not player.nationality and member.get("nationality"):
                             player.nationality = member["nationality"]
                         updated += 1
                         team_updated += 1
                     else:
-                        # 2. Non trovato → inserisci come nuovo player
-                        #    Mappa la posizione Football-Data → nostra convenzione
-                        pos_raw = member.get("position", "")
-                        position = _map_position(pos_raw)
-
+                        # 2. Inserisce nuovo player con il riferimento club_id
                         new_player = ScoutingPlayer(
-                            name        = player_name,
-                            club        = team_name,
-                            nationality = member.get("nationality"),
-                            position    = position,
-                            age         = _calc_age(member.get("dateOfBirth")),
-                            # Tutti gli attributi numerici restano None/0
-                            # verranno riempiti da API-Football o Kaggle
+                            name=player_name,
+                            club=team_name,
+                            club_id=club.id,  # <--- RELAZIONE
+                            nationality=member.get("nationality"),
+                            position=_map_position(member.get("position", "")),
+                            age=_calc_age(member.get("dateOfBirth")),
                         )
                         db.add(new_player)
                         inserted += 1
                         team_inserted += 1
 
                 now_str = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-                print(
-                    f"  → Football-Data: [{now_str}] - {teams_processed}/{len(teams)} {team_name} "
-                    f"({len(squad)} giocatori | "
-                    f"aggiornati: {team_updated} | inseriti: {team_inserted})"
-                )
+                print(f"  → Football-Data: {teams_processed}/{len(teams)} {team_name} processata")
 
-            except httpx.HTTPStatusError as e:
-                print(f"  ⚠ Errore {team_name}: HTTP {e.response.status_code}")
-                continue
             except Exception as e:
                 print(f"  ⚠ Errore {team_name}: {e}")
                 continue
@@ -216,27 +223,19 @@ async def sync_player_clubs(
             if progress_cb:
                 progress_cb(teams_processed, len(teams))
 
-            # Commit ogni 5 squadre per non perdere troppo in caso di stop
             if teams_processed % 5 == 0:
                 db.commit()
 
     db.commit()
-    total = updated + inserted
-    print(
-        f"  → Football-Data: completato — "
-        f"{updated} club aggiornati, {inserted} nuovi giocatori inseriti "
-        f"(totale modifiche: {total})"
-    )
+    print(f"  → Football-Data: completato. Aggiornati: {updated}, Inseriti: {inserted}")
 
     return {
         "teams_processed":   teams_processed,
         "players_updated":   updated,
         "players_inserted":  inserted,
-        "players_total":     total,
         "competition":       competition_code,
         "season":            season,
     }
-
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 

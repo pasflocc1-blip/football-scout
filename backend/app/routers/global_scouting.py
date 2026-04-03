@@ -1,8 +1,8 @@
 """
-routers/global_scouting.py — aggiornato per pipeline oggettivo (Fase 1-5)
---------------------------------------------------------------------------
-FIX: rimossi tutti i riferimenti a pace/shooting/passing/dribbling/defending/physical
-     che non esistono più nel modello ScoutingPlayer aggiornato.
+routers/global_scouting.py — v2.0 (fix post-ristrutturazione DB)
+-----------------------------------------------------------------
+FIX: xg_per90, xa_per90, ecc. sono ora in player_season_stats.
+     Le query fanno JOIN con PlayerSeasonStats e aggregano per player.
 
 GET  /global-scouting/search
 GET  /global-scouting/top-xg
@@ -13,20 +13,50 @@ GET  /global-scouting/compare
 
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, asc
+from sqlalchemy import desc, asc, func
 from typing import Optional
 
 from app.database import get_db
-from app.models.models import ScoutingPlayer
+from app.models.models import ScoutingPlayer, PlayerSeasonStats
 
 router = APIRouter(prefix="/global-scouting", tags=["Global Scouting"])
 
 
-def _g(p, attr, default=None):
-    return getattr(p, attr, default)
+def _g(obj, attr, default=None):
+    return getattr(obj, attr, default)
 
 
-def _player_dict(p: ScoutingPlayer) -> dict:
+def _get_season_stats_subquery(db: Session):
+    """
+    Subquery che aggrega player_season_stats per player_id:
+    prende i valori dalla stagione più recente (max fetched_at per player).
+    """
+    # Subquery: per ogni player, prende la riga con il rating più alto
+    # (proxy per "stagione più importante / campionato principale")
+    latest = (
+        db.query(
+            PlayerSeasonStats.player_id,
+            func.max(PlayerSeasonStats.xg_per90).label("xg_per90"),
+            func.max(PlayerSeasonStats.xa_per90).label("xa_per90"),
+            func.max(PlayerSeasonStats.npxg_per90).label("npxg_per90"),
+            func.max(PlayerSeasonStats.xgchain_per90).label("xgchain_per90"),
+            func.max(PlayerSeasonStats.xgbuildup_per90).label("xgbuildup_per90"),
+            func.sum(PlayerSeasonStats.goals).label("goals_season"),
+            func.sum(PlayerSeasonStats.assists).label("assists_season"),
+            func.sum(PlayerSeasonStats.minutes_played).label("minutes_season"),
+            func.sum(PlayerSeasonStats.appearances).label("games_season"),
+            func.sum(PlayerSeasonStats.shots_total).label("shots_season"),
+            func.sum(PlayerSeasonStats.key_passes).label("key_passes_season"),
+            func.max(PlayerSeasonStats.sofascore_rating).label("sofascore_rating"),
+        )
+        .group_by(PlayerSeasonStats.player_id)
+        .subquery()
+    )
+    return latest
+
+
+def _player_dict_with_stats(p: ScoutingPlayer, stats) -> dict:
+    """Costruisce dict giocatore unendo ScoutingPlayer e stats aggregate."""
     return {
         "id":                   p.id,
         "name":                 p.name,
@@ -35,27 +65,23 @@ def _player_dict(p: ScoutingPlayer) -> dict:
         "nationality":          p.nationality,
         "age":                  p.age,
         "preferred_foot":       p.preferred_foot,
-        # xG / xA per 90
-        "xg_per90":             _g(p, "xg_per90"),
-        "xa_per90":             _g(p, "xa_per90"),
-        "npxg_per90":           _g(p, "npxg_per90"),
-        "xgchain_per90":        _g(p, "xgchain_per90"),
-        "xgbuildup_per90":      _g(p, "xgbuildup_per90"),
-        # Stagione
-        "goals_season":         _g(p, "goals_season"),
-        "assists_season":       _g(p, "assists_season"),
-        "minutes_season":       _g(p, "minutes_season"),
-        "games_season":         _g(p, "games_season"),
-        "shots_season":         _g(p, "shots_season"),
-        "key_passes_season":    _g(p, "key_passes_season"),
-        # Progressione
-        "progressive_passes":   _g(p, "progressive_passes"),
-        "progressive_carries":  _g(p, "progressive_carries"),
-        # Difesa
-        "aerial_duels_won_pct": _g(p, "aerial_duels_won_pct"),
-        "duels_won_pct":        _g(p, "duels_won_pct"),
-        "pressures_season":     _g(p, "pressures_season"),
-        # Score oggettivi (Fase 3)
+        "sofascore_id":         p.sofascore_id,
+        "market_value":         p.market_value,
+        # xG / xA (da PlayerSeasonStats)
+        "xg_per90":             getattr(stats, "xg_per90", None) if stats else None,
+        "xa_per90":             getattr(stats, "xa_per90", None) if stats else None,
+        "npxg_per90":           getattr(stats, "npxg_per90", None) if stats else None,
+        "xgchain_per90":        getattr(stats, "xgchain_per90", None) if stats else None,
+        "xgbuildup_per90":      getattr(stats, "xgbuildup_per90", None) if stats else None,
+        # Stagione aggregata
+        "goals_season":         getattr(stats, "goals_season", None) if stats else None,
+        "assists_season":       getattr(stats, "assists_season", None) if stats else None,
+        "minutes_season":       getattr(stats, "minutes_season", None) if stats else None,
+        "games_season":         getattr(stats, "games_season", None) if stats else None,
+        "shots_season":         getattr(stats, "shots_season", None) if stats else None,
+        "key_passes_season":    getattr(stats, "key_passes_season", None) if stats else None,
+        "sofascore_rating":     getattr(stats, "sofascore_rating", None) if stats else p.sofascore_rating,
+        # Score oggettivi (Fase 3) - ancora su ScoutingPlayer
         "finishing_score":      _g(p, "finishing_score"),
         "creativity_score":     _g(p, "creativity_score"),
         "pressing_score":       _g(p, "pressing_score"),
@@ -69,7 +95,7 @@ def _player_dict(p: ScoutingPlayer) -> dict:
         "carrying_pct":         _g(p, "carrying_pct"),
         "defending_pct":        _g(p, "defending_pct"),
         "buildup_pct":          _g(p, "buildup_pct"),
-        # Legacy (compatibilità PlayerCard)
+        # Score legacy
         "heading_score":        _g(p, "heading_score"),
         "build_up_score":       _g(p, "build_up_score"),
         "defensive_score":      _g(p, "defensive_score"),
@@ -92,7 +118,12 @@ def global_search(
     limit:          int             = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
 ):
-    query = db.query(ScoutingPlayer)
+    sq = _get_season_stats_subquery(db)
+
+    query = (
+        db.query(ScoutingPlayer, sq)
+        .outerjoin(sq, ScoutingPlayer.id == sq.c.player_id)
+    )
 
     if q:
         like = f"%{q.strip().lower()}%"
@@ -112,18 +143,18 @@ def global_search(
     if club:
         query = query.filter(ScoutingPlayer.club.ilike(f"%{club}%"))
     if min_xg is not None:
-        query = query.filter(ScoutingPlayer.xg_per90 >= min_xg)
+        query = query.filter(sq.c.xg_per90 >= min_xg)
     if min_xa is not None:
-        query = query.filter(ScoutingPlayer.xa_per90 >= min_xa)
+        query = query.filter(sq.c.xa_per90 >= min_xa)
     if preferred_foot:
         query = query.filter(ScoutingPlayer.preferred_foot.ilike(preferred_foot))
 
-    # Mappa ordinamento — SOLO colonne presenti nel modello aggiornato
+    # Mappa ordinamento
     _SORT = {
         "name":             ScoutingPlayer.name,
-        "xg_per90":         ScoutingPlayer.xg_per90,
-        "xa_per90":         ScoutingPlayer.xa_per90,
-        "npxg_per90":       ScoutingPlayer.npxg_per90,
+        "xg_per90":         sq.c.xg_per90,
+        "xa_per90":         sq.c.xa_per90,
+        "npxg_per90":       sq.c.npxg_per90,
         "age":              ScoutingPlayer.age,
         "finishing_score":  ScoutingPlayer.finishing_score,
         "creativity_score": ScoutingPlayer.creativity_score,
@@ -131,14 +162,16 @@ def global_search(
         "carrying_score":   ScoutingPlayer.carrying_score,
         "finishing_pct":    ScoutingPlayer.finishing_pct,
         "creativity_pct":   ScoutingPlayer.creativity_pct,
-        "minutes_season":   ScoutingPlayer.minutes_season,
-        "goals_season":     ScoutingPlayer.goals_season,
+        "minutes_season":   sq.c.minutes_season,
+        "goals_season":     sq.c.goals_season,
     }
     sort_col = _SORT.get(sort_by, ScoutingPlayer.name)
     order_fn = desc if sort_dir == "desc" else asc
     query = query.order_by(order_fn(sort_col))
 
-    return [_player_dict(p) for p in query.limit(limit).all()]
+    rows = query.limit(limit).all()
+    #return [_player_dict_with_stats(p, stats) for p, stats in rows]
+    return [_player_dict_with_stats(row[0], row) for row in rows]
 
 
 @router.get("/top-xg")
@@ -148,31 +181,36 @@ def top_xg(
     position:    Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    query = db.query(ScoutingPlayer).filter(ScoutingPlayer.xg_per90.isnot(None))
-    try:
-        if min_minutes > 0:
-            query = query.filter(ScoutingPlayer.minutes_season >= min_minutes)
-    except Exception:
-        pass
+    sq = _get_season_stats_subquery(db)
+
+    query = (
+        db.query(ScoutingPlayer, sq)
+        .join(sq, ScoutingPlayer.id == sq.c.player_id)
+        .filter(sq.c.xg_per90.isnot(None))
+    )
+    if min_minutes > 0:
+        query = query.filter(sq.c.minutes_season >= min_minutes)
     if position:
         query = query.filter(ScoutingPlayer.position.ilike(f"%{position}%"))
 
+    rows = query.order_by(desc(sq.c.xg_per90)).limit(limit).all()
+
     return [
         {
-            "id":              p.id,
-            "name":            p.name,
-            "club":            p.club,
-            "position":        p.position,
-            "nationality":     p.nationality,
-            "age":             p.age,
-            "xg_per90":        p.xg_per90,
-            "xa_per90":        _g(p, "xa_per90"),
-            "npxg_per90":      _g(p, "npxg_per90"),
-            "finishing_score": _g(p, "finishing_score"),
-            "finishing_pct":   _g(p, "finishing_pct"),
-            "minutes":         _g(p, "minutes_season"),
+            "id":              row[0].id,
+            "name":            row[0].name,
+            "club":            row[0].club,
+            "position":        row[0].position,
+            "nationality":     row[0].nationality,
+            "age":             row[0].age,
+            "xg_per90":        row.xg_per90,
+            "xa_per90":        row.xa_per90,
+            "npxg_per90":      row.npxg_per90,
+            "finishing_score": _g(row[0], "finishing_score"),
+            "finishing_pct":   _g(row[0], "finishing_pct"),
+            "minutes":         row.minutes_season,
         }
-        for p in query.order_by(desc(ScoutingPlayer.xg_per90)).limit(limit).all()
+        for row in rows
     ]
 
 
@@ -183,28 +221,33 @@ def overperforming(
     position:    Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    query = db.query(ScoutingPlayer).filter(ScoutingPlayer.xg_per90.isnot(None))
-    try:
-        if min_minutes > 0:
-            query = query.filter(ScoutingPlayer.minutes_season >= min_minutes)
-        query = query.filter(ScoutingPlayer.goals_season.isnot(None))
-    except Exception:
-        pass
+    sq = _get_season_stats_subquery(db)
+
+    query = (
+        db.query(ScoutingPlayer, sq)
+        .join(sq, ScoutingPlayer.id == sq.c.player_id)
+        .filter(sq.c.xg_per90.isnot(None))
+        .filter(sq.c.goals_season.isnot(None))
+    )
+    if min_minutes > 0:
+        query = query.filter(sq.c.minutes_season >= min_minutes)
     if position:
         query = query.filter(ScoutingPlayer.position.ilike(f"%{position}%"))
 
     result = []
-    for p in query.all():
-        minutes = _g(p, "minutes_season")
-        goals   = _g(p, "goals_season")
+    for row in query.all():
+        p = row[0]
+        stats = row
+        minutes = stats.minutes_season
+        goals = stats.goals_season
         if not minutes or goals is None:
             continue
-        xg_total = p.xg_per90 * (minutes / 90)
-        delta    = goals - xg_total
+        xg_total = stats.xg_per90 * (minutes / 90)
+        delta = goals - xg_total
         result.append({
             "id": p.id, "name": p.name, "club": p.club,
             "position": p.position, "nationality": p.nationality, "age": p.age,
-            "goals": goals, "xg_per90": p.xg_per90, "xa_per90": _g(p, "xa_per90"),
+            "goals": goals, "xg_per90": stats.xg_per90, "xa_per90": stats.xa_per90,
             "xg_estimated": round(xg_total, 2), "delta": round(delta, 2),
             "minutes": minutes, "finishing_pct": _g(p, "finishing_pct"),
         })
@@ -220,28 +263,33 @@ def underperforming(
     position:    Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    query = db.query(ScoutingPlayer).filter(ScoutingPlayer.xg_per90.isnot(None))
-    try:
-        if min_minutes > 0:
-            query = query.filter(ScoutingPlayer.minutes_season >= min_minutes)
-        query = query.filter(ScoutingPlayer.goals_season.isnot(None))
-    except Exception:
-        pass
+    sq = _get_season_stats_subquery(db)
+
+    query = (
+        db.query(ScoutingPlayer, sq)
+        .join(sq, ScoutingPlayer.id == sq.c.player_id)
+        .filter(sq.c.xg_per90.isnot(None))
+        .filter(sq.c.goals_season.isnot(None))
+    )
+    if min_minutes > 0:
+        query = query.filter(sq.c.minutes_season >= min_minutes)
     if position:
         query = query.filter(ScoutingPlayer.position.ilike(f"%{position}%"))
 
     result = []
-    for p in query.all():
-        minutes = _g(p, "minutes_season")
-        goals   = _g(p, "goals_season")
+    for row in query.all():
+        p = row[0]
+        stats = row
+        minutes = stats.minutes_season
+        goals = stats.goals_season
         if not minutes or goals is None:
             continue
-        xg_total = p.xg_per90 * (minutes / 90)
-        delta    = goals - xg_total
+        xg_total = stats.xg_per90 * (minutes / 90)
+        delta = goals - xg_total
         result.append({
             "id": p.id, "name": p.name, "club": p.club,
             "position": p.position, "nationality": p.nationality, "age": p.age,
-            "goals": goals, "xg_per90": p.xg_per90, "xa_per90": _g(p, "xa_per90"),
+            "goals": goals, "xg_per90": stats.xg_per90, "xa_per90": stats.xa_per90,
             "xg_estimated": round(xg_total, 2), "delta": round(delta, 2),
             "minutes": minutes, "finishing_pct": _g(p, "finishing_pct"),
         })
@@ -256,16 +304,24 @@ def compare_players(
     name2: str = Query(...),
     db: Session = Depends(get_db),
 ):
+    sq = _get_season_stats_subquery(db)
+
     def _find(name):
-        p = db.query(ScoutingPlayer).filter(
-            ScoutingPlayer.name.ilike(f"%{name.strip()}%")
-        ).first()
-        if not p:
+        row = (
+            db.query(ScoutingPlayer, sq)
+            .outerjoin(sq, ScoutingPlayer.id == sq.c.player_id)
+            .filter(ScoutingPlayer.name.ilike(f"%{name.strip()}%"))
+            .first()
+        )
+        if not row:
             raise HTTPException(404, f"Giocatore '{name}' non trovato")
-        return p
+        return row
 
-    p1, p2 = _find(name1), _find(name2)
+    row1 = _find(name1)
+    p1, s1 = row1[0], row1
 
+    row2 = _find(name2)
+    p2, s2 = row2[0], row2
     def _diff(a, b):
         if a is None or b is None:
             return None
@@ -274,6 +330,9 @@ def compare_players(
         except (TypeError, ValueError):
             return None
 
+    d1 = _player_dict_with_stats(p1, s1)
+    d2 = _player_dict_with_stats(p2, s2)
+
     METRICS = [
         "xg_per90", "xa_per90", "npxg_per90", "xgchain_per90", "xgbuildup_per90",
         "finishing_score", "creativity_score", "pressing_score",
@@ -281,12 +340,10 @@ def compare_players(
         "finishing_pct", "creativity_pct", "pressing_pct",
         "carrying_pct", "defending_pct", "buildup_pct",
         "heading_score", "build_up_score", "defensive_score",
-        "aerial_duels_won_pct", "duels_won_pct",
-        "progressive_passes", "progressive_carries",
     ]
 
     return {
-        "player1": _player_dict(p1),
-        "player2": _player_dict(p2),
-        "diff":    {m: _diff(_g(p1, m), _g(p2, m)) for m in METRICS},
+        "player1": d1,
+        "player2": d2,
+        "diff":    {m: _diff(d1.get(m), d2.get(m)) for m in METRICS},
     }
