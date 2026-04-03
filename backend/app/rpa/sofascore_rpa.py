@@ -1251,7 +1251,7 @@ def main():
     parser.add_argument('--name')
     parser.add_argument('--club', default='')
     parser.add_argument('--sofascore-id', type=int, dest='sofascore_id')
-    parser.add_argument('--only-missing', action='store_true', default=True)
+    parser.add_argument('--only-missing', action='store_true', default=False)
     parser.add_argument('--backend', default=None)
     args = parser.parse_args()
 

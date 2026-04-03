@@ -1,39 +1,14 @@
-2026-04-03 22:09:36,560 [INFO] RPA: Avvio sessione per la lega 'serie_a'
-2026-04-03 22:09:36,616 [INFO] DB: 198 giocatori caricati.
-2026-04-03 22:09:36,619 [INFO] Avvio RPA v9.5-fast: 198 giocatori
-2026-04-03 22:09:36,619 [INFO] Backend: http://backend:8000
-2026-04-03 22:09:37,568 [WARNING] [PW] playwright-stealth non disponibile
-2026-04-03 22:09:37,569 [INFO] [PW] Browser avviato
-2026-04-03 22:09:37,569 [INFO] [1/198] Alain Taho
-2026-04-03 22:09:37,570 [INFO] ── Alain Taho (FC Internazionale Milano) ──
-2026-04-03 22:09:37,571 [INFO]   sofascore_id=None league=serie_a
-2026-04-03 22:09:46,628 [WARNING]   Match parziale: Alain Taho → id=1605228
-2026-04-03 22:09:49,626 [INFO]   [PW] Step 1: acquisizione cookie (homepage)...
-2026-04-03 22:09:52,273 [INFO]   [📡] Token intercettato: 37030b
-2026-04-03 22:09:53,126 [INFO]   [PW] Step 2: profilo + slug player 1605228...
-2026-04-03 22:09:57,519 [INFO]   [PW] Profilo OK (21 campi) | slug=alain-taho
-2026-04-03 22:09:58,021 [INFO]   [PW] Step 3: navigazione profilo: https://www.sofascore.com/player/alain-taho/1605228
-2026-04-03 22:10:01,795 [INFO]   [📡] Attributi intercettati: /www.sofascore.com/api/v1/player/1605228/attribute-overviews
-2026-04-03 22:10:01,804 [INFO]   [📡] Attributi intercettati: /www.sofascore.com/api/v1/player/1605228/attribute-overviews
-2026-04-03 22:10:01,820 [INFO]   [PW] ✅ Attributi intercettati in anticipo — proseguo
-2026-04-03 22:10:01,826 [INFO]   [PW] Step 4: navigazione Statistics (heatmap)...
-2026-04-03 22:10:14,030 [INFO]   [PW] ⏱ Timeout heatmap passiva — userò JS fetch per competizione
-2026-04-03 22:10:14,031 [INFO]   [PW] Step 5: token=✅ 37030b
-2026-04-03 22:10:14,031 [INFO]   [PW] ✅ attribute-overviews da captured
-2026-04-03 22:10:14,031 [INFO]   [PW] ✅ Attributi: 8 valori
-2026-04-03 22:10:14,032 [INFO]   [PW-JS] Forcing fetch: transfer-history
-2026-04-03 22:10:14,121 [WARNING]   [PW-JS] Fallito: transfer-history
-2026-04-03 22:10:14,534 [INFO]   [PW] ✅ national-team-statistics da captured
-2026-04-03 22:10:14,535 [INFO]   [PW] Partite: 30
-2026-04-03 22:10:14,539 [INFO]   [PW] Nazionale: 0
-2026-04-03 22:10:14,540 [INFO]   [PW] Trasferimenti: 0
-2026-04-03 22:10:14,541 [INFO]   Competizioni trovate nelle partite: 8
-2026-04-03 22:10:14,542 [INFO]     → U19 European Championship Qualif. 25/26 (tid=748, sid=79947)
-2026-04-03 22:10:14,543 [INFO]     → Campionato Primavera 1 25/26 (tid=2292, sid=77407)
-2026-04-03 22:10:14,545 [INFO]     → UEFA Champions League 25/26 (tid=7, sid=76953)
-2026-04-03 22:10:14,545 [INFO]     → Serie A 25/26 (tid=23, sid=76457)
-2026-04-03 22:10:14,546 [INFO]     → Coppa Italia 25/26 (tid=328, sid=77308)
-2026-04-03 22:10:14,547 [INFO]     → Supercoppa Italiana 25/26 (tid=341, sid=83227)
-2026-04-03 22:10:14,548 [INFO]     → UEFA Youth League 25/26 (tid=2132, sid=81894)
-2026-04-03 22:10:14,549 [INFO]     → Primavera Cup 25/26 (tid=1554, sid=77309)
-2026-04-03 22:10:14,550 [INFO]   [PW] Step 7: 8 competizioni...
+2026-04-03 22:37:01,664 [INFO] RPA: Avvio sessione per la lega 'serie_a'
+2026-04-03 22:37:01,760 [INFO] DB: 630 giocatori caricati.
+2026-04-03 22:37:01,764 [INFO] Avvio RPA v9.5-fast: 630 giocatori
+2026-04-03 22:37:01,768 [INFO] Backend: http://backend:8000
+2026-04-03 22:37:03,005 [WARNING] [PW] playwright-stealth non disponibile
+2026-04-03 22:37:03,006 [INFO] [PW] Browser avviato
+2026-04-03 22:37:03,008 [INFO] [1/630] Abdelhamid Sabiri
+2026-04-03 22:37:03,008 [INFO] ── Abdelhamid Sabiri (ACF Fiorentina) ──
+2026-04-03 22:37:03,009 [INFO]   sofascore_id=807400 league=serie_a
+2026-04-03 22:37:03,262 [INFO]   [PW] Step 1: acquisizione cookie (homepage)...
+2026-04-03 22:37:10,838 [INFO]   [📡] Token intercettato: 24a7a8
+2026-04-03 22:37:11,255 [INFO]   [PW] Step 2: profilo + slug player 807400...
+2026-04-03 22:37:15,428 [INFO]   [PW] Profilo OK (22 campi) | slug=abdelhamid-sabiri
+2026-04-03 22:37:15,933 [INFO]   [PW] Step 3: navigazione profilo: https://www.sofascore.com/player/abdelhamid-sabiri/807400

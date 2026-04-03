@@ -68,3 +68,4 @@ logs/
 data/*.csv
 data/*.json
 !data/.gitkeep
+"backend/sofascore_fallback/" 

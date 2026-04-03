@@ -3,14 +3,201 @@
     "name": "Abdoulaye N'Diaye",
     "sofascore_id": 1010079,
     "league": "serie_a",
-    "saved_at": "2026-04-02T21:36:58.218834",
-    "rpa_version": "v8"
+    "saved_at": "2026-04-03T22:40:31.760510",
+    "rpa_version": "v9.5-fast"
   },
   "raw_data": {
     "player_id": 1010079,
     "league_key": "serie_a",
-    "fetched_at": "2026-04-02T21:36:43.750127",
-    "profile": {},
+    "fetched_at": "2026-04-03T22:39:41.555554",
+    "profile": {
+      "name": "Abdoulaye N'Diaye",
+      "firstName": "Abdoulaye",
+      "lastName": "N'Diaye",
+      "slug": "abdoulaye-ndiaye",
+      "shortName": "A. N'Diaye",
+      "team": {
+        "name": "U.S Raon-l'Étape",
+        "slug": "raon-letape",
+        "shortName": "Raon-l'Étape",
+        "gender": "M",
+        "sport": {
+          "name": "Football",
+          "slug": "football",
+          "id": 1
+        },
+        "tournament": {
+          "name": "Coupe de France",
+          "slug": "coupe-de-france",
+          "category": {
+            "name": "France",
+            "slug": "france",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 6,
+            "country": {
+              "alpha2": "FR",
+              "alpha3": "FRA",
+              "name": "France",
+              "slug": "france"
+            },
+            "id": 7,
+            "flag": "france",
+            "alpha2": "FR",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "hi": "फ्रांस",
+                "ar": "فرنسا",
+                "bn": "ফ্রান্স",
+                "ru": "Франция"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "Coupe de France",
+            "slug": "coupe-de-france",
+            "primaryColorHex": "#062b5c",
+            "secondaryColorHex": "#ff0000",
+            "category": {
+              "name": "France",
+              "slug": "france",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 6,
+              "country": {
+                "alpha2": "FR",
+                "alpha3": "FRA",
+                "name": "France",
+                "slug": "france"
+              },
+              "id": 7,
+              "flag": "france",
+              "alpha2": "FR",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "hi": "फ्रांस",
+                  "ar": "فرنسا",
+                  "bn": "ফ্রান্স",
+                  "ru": "Франция"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 49813,
+            "country": {},
+            "id": 335,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "كأس فرنسا",
+                "bn": "কুপে ডি ফ্রান্স",
+                "hi": "कूप डी फ्रांस"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 483,
+          "isLive": false,
+          "id": 77,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كأس فرنسا",
+              "bn": "কুপে ডি ফ্রান্স",
+              "hi": "कूप डी फ्रांस"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "primaryUniqueTournament": {
+          "name": "Grand Est Régional 1",
+          "slug": "grand-est-regional-1",
+          "category": {
+            "name": "France Amateur",
+            "slug": "france-amateur",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 0,
+            "country": {
+              "alpha2": "FR",
+              "alpha3": "FRA",
+              "name": "France",
+              "slug": "france"
+            },
+            "id": 1626,
+            "flag": "france",
+            "alpha2": "FR",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "فرنسا هواة",
+                "ru": "Франция Любители"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "userCount": 75,
+          "country": {},
+          "id": 18391,
+          "displayInverseHomeAwayTeams": false,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "الدوري الإقليمي غراند إيست 1"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "userCount": 251,
+        "nameCode": "RET",
+        "national": false,
+        "type": 0,
+        "country": {
+          "alpha2": "FR",
+          "alpha3": "FRA",
+          "name": "France",
+          "slug": "france"
+        },
+        "id": 6071,
+        "teamColors": {
+          "primary": "#0000ff",
+          "secondary": "#ffffff",
+          "text": "#ffffff"
+        },
+        "fieldTranslations": {
+          "nameTranslation": {
+            "ar": "يو. إس راون-ليتاف",
+            "ru": "Раон Л´Этапе"
+          },
+          "shortNameTranslation": {
+            "ar": "راون-ليتاف"
+          }
+        }
+      },
+      "position": "F",
+      "dateOfBirth": "1996-08-02T00:00:00+00:00",
+      "userCount": 1,
+      "gender": "M",
+      "country": {},
+      "id": 1010079,
+      "dateOfBirthTimestamp": 838944000,
+      "fieldTranslations": {
+        "nameTranslation": {
+          "ar": "عبد الله نداي"
+        },
+        "shortNameTranslation": {
+          "ar": "ع. نداي"
+        }
+      }
+    },
+    "attributes": {},
     "matches": [],
     "transfers": [],
     "national_stats": [],
@@ -31,10 +218,10 @@
     "club": "Parma Calcio 1913",
     "db_id": 368,
     "sofascore_id": 1010079,
-    "source": "playwright_v8",
+    "source": "playwright_v9",
     "extracted": {
       "profile": {
-        "sofascore_id": null,
+        "sofascore_id": 1010079,
         "height_cm": null,
         "weight_kg": null,
         "preferred_foot": null,
@@ -42,15 +229,16 @@
         "contract_until": null,
         "market_value": null,
         "nationality": null,
-        "date_of_birth": null,
-        "position": null,
+        "date_of_birth": "1996-08-02",
+        "position": "F",
         "position_detail": "",
         "gender": "M",
-        "slug": null,
-        "short_name": null,
-        "club": null,
-        "club_id": null
+        "slug": "abdoulaye-ndiaye",
+        "short_name": "A. N'Diaye",
+        "club": "U.S Raon-l'Étape",
+        "club_id": 6071
       },
+      "attributes": {},
       "competitions": [
         {
           "tournament_id": 23,
@@ -174,6 +362,6 @@
       "career": [],
       "national": []
     },
-    "extracted_at": "2026-04-02T21:36:58.013102"
+    "extracted_at": "2026-04-03T22:40:31.669571"
   }
 }
