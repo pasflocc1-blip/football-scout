@@ -1,30 +1,29 @@
 """
-services/scoring.py — v3.1
+services/scoring.py — v3.0
 ---------------------------
-MODIFICHE v3.0 → v3.1:
+FIX rispetto a v2:
 
-  FIX 4 — defending score consapevole del ruolo CB/fullback:
-    Il vecchio defending usava solo duels_won_pct + aerial_won_pct + tackles_p90.
-    Per un CB (Gatti) questo dava score bassissimo perché i CB fanno pochi tackles
-    ma molte respinte, intercetti e recuperi — dati presenti in SofaScore ma ignorati.
+  CAUSA VERA dei 100 sistematici:
+    Dal DB di Spinazzola: pressures=NULL, xgchain=NULL → quei score
+    dovrebbero essere 0. Ma nell'immagine erano 100.
+    Questo significa che la riga letta da _get_best_season_stats
+    NON era quella con NULL — era una riga DIVERSA (altra fonte, altro
+    periodo) che aveva valori alti per progressive_carries o touches_att_pen.
+    Esempio: riga playwright_v8 con minutes=1579 e carries=alto → 100.
+    La riga playwright_v9 con minutes=1579 e carries=basso veniva ignorata.
 
-    Nuovo _compute_defending():
-      Livello A (formula storica): duelli + tackles — buono per CM/DM
-      Livello B (formula CB):      clearances + interceptions + ball_recovery +
-                                   duelli aerei — buono per CB/fullback
-      Risultato: max(A, B) — il giocatore prende sempre la formula più favorevole.
+  FIX 1 — _merge_season_rows():
+    Invece di prendere UNA sola riga, aggrega tutte le righe della stessa
+    (season, league) prendendo il valore migliore per ogni campo
+    con priorità per fonte (understat per xG, fbref per progressive, ecc.)
 
-    Nuove metriche aggiunte a _merge_season_rows:
-      clearances, interceptions, ball_recovery, tackles_won_pct
+  FIX 2 — Soglie _REF ricalibrate (95° percentile reale):
+    prog_carries_p90: 5→8, pressures_p90: 20→30, xa_p90: 0.40→0.35
 
-    Nuovi _REF calibrati (95° percentile CB):
-      clearances_p90=5.0, interceptions_p90=1.5, ball_recovery_p90=4.5,
-      tackles_won_pct=70.0
-
-  Invariato rispetto a v3.0:
-    FIX 1 — _merge_season_rows con priorità per fonte
-    FIX 2 — soglie _REF ricalibrate
-    FIX 3 — fallback onesti (pressing=0 se pressures=NULL)
+  FIX 3 — Fallback onesti:
+    pressing=0 se pressures=NULL (non si inventa un proxy)
+    carrying usa dribbles come fallback se carries=NULL
+    buildup usa xa+prog_passes come proxy se xgchain=NULL (penalizzato -25%)
 """
 
 from __future__ import annotations
@@ -32,26 +31,22 @@ from app.models.models import ScoutingPlayer, PlayerSeasonStats
 
 
 _REF = {
-    "npxg_p90":           0.55,
-    "shots_p90":          4.5,
-    "goal_conversion":    0.30,
-    "xa_p90":             0.35,
-    "prog_passes_p90":    10.0,
-    "key_passes_p90":     2.8,
-    "pressures_p90":      30.0,
-    "regains_p90":        4.0,
-    "prog_carries_p90":   8.0,
-    "dribbles_p90":       3.5,
-    "touches_att_p90":    5.0,
-    "duels_won_pct":      68.0,
-    "aerial_won_pct":     68.0,
-    "tackles_p90":        3.5,
-    "tackles_won_pct":    70.0,   # % tackle vinti — 70% è buono per un difensore
-    "clearances_p90":     5.0,    # 95° pct CB: ~5 respinte/90
-    "interceptions_p90":  1.5,    # 95° pct CB: ~1.5 intercetti/90
-    "ball_recovery_p90":  4.5,    # 95° pct: ~4.5 recuperi/90
-    "xgchain_p90":        1.00,
-    "xgbuildup_p90":      0.65,
+    "npxg_p90":         0.55,
+    "shots_p90":        4.5,
+    "goal_conversion":  0.30,
+    "xa_p90":           0.35,
+    "prog_passes_p90":  10.0,
+    "key_passes_p90":   2.8,
+    "pressures_p90":    30.0,
+    "regains_p90":      4.0,
+    "prog_carries_p90": 8.0,
+    "dribbles_p90":     3.5,
+    "touches_att_p90":  5.0,
+    "duels_won_pct":    68.0,
+    "aerial_won_pct":   68.0,
+    "tackles_p90":      3.5,
+    "xgchain_p90":      1.00,
+    "xgbuildup_p90":    0.65,
 }
 
 
@@ -112,17 +107,18 @@ def _merge_season_rows(p: ScoutingPlayer) -> dict:
         if not rows:
             return {}
 
-        # Prende la stagione più recente con più minuti
-        best_season = rows[0].season
-        # Tra tutte le leghe di quella stagione, prende quella con più minuti
-        season_rows = [r for r in rows if r.season == best_season]
+        # Trova la lega con piu minuti giocati tra tutte le righe.
+        # NON si usa il confronto stringa sulla stagione: '2026' > '2025-26'
+        # alfabeticamente, ma 103 minuti di World Cup non sono la stagione
+        # principale. La lega con piu minuti rappresenta meglio il giocatore.
         best_league = max(
-            set(r.league for r in season_rows),
-            key=lambda lg: max(
-                _safe(r.minutes_played) for r in season_rows if r.league == lg
-            )
+            set(r.league for r in rows),
+            key=lambda lg: max(_safe(r.minutes_played) for r in rows if r.league == lg)
         )
-        target_rows = [r for r in season_rows if r.league == best_league]
+        # Tra le righe di quella lega, prende la stagione piu recente
+        league_rows = [r for r in rows if r.league == best_league]
+        best_season = max(league_rows, key=lambda r: r.season).season
+        target_rows = [r for r in league_rows if r.season == best_season]
 
         def best_val(field, prefer_fbref=False, prefer_understat=False):
             if prefer_understat and field in _UNDERSTAT_FIELDS:
@@ -163,12 +159,8 @@ def _merge_season_rows(p: ScoutingPlayer) -> dict:
             'pressures':            best_val('pressures', prefer_fbref=True),
             'pressure_regains':     best_val('pressure_regains', prefer_fbref=True),
             'tackles':              best_val('tackles'),
-            'tackles_won_pct':      best_val('tackles_won_pct'),
             'total_duels_won_pct':  best_val('total_duels_won_pct'),
             'aerial_duels_won_pct': best_val('aerial_duels_won_pct'),
-            'clearances':           best_val('clearances'),
-            'interceptions':        best_val('interceptions'),
-            'ball_recovery':        best_val('ball_recovery'),
             'successful_dribbles':  best_val('successful_dribbles'),
             'xgchain_per90':        best_val('xgchain_per90', prefer_fbref=True),
             'xgbuildup_per90':      best_val('xgbuildup_per90', prefer_fbref=True),
@@ -187,8 +179,7 @@ def normalize_per90(p: ScoutingPlayer) -> dict:
             "npxg_p90", "xg_p90", "xa_p90", "xgchain_p90", "xgbuildup_p90",
             "shots_p90", "key_passes_p90", "prog_passes_p90", "prog_carries_p90",
             "dribbles_p90", "touches_att_p90", "pressures_p90", "regains_p90",
-            "tackles_p90", "tackles_won_pct", "clearances_p90", "interceptions_p90",
-            "ball_recovery_p90", "duels_won_pct", "aerial_won_pct", "goal_conversion",
+            "tackles_p90", "duels_won_pct", "aerial_won_pct", "goal_conversion",
         ]} | {"minutes": m}
 
     m = _safe(merged.get('minutes_played'))
@@ -226,57 +217,11 @@ def normalize_per90(p: ScoutingPlayer) -> dict:
         "pressures_p90":    _p90(merged.get('pressures'), m),
         "regains_p90":      _p90(merged.get('pressure_regains'), m),
         "tackles_p90":      _p90(merged.get('tackles'), m),
-        "tackles_won_pct":  _safe(merged.get('tackles_won_pct')),
-        "clearances_p90":   _p90(merged.get('clearances'), m),
-        "interceptions_p90":_p90(merged.get('interceptions'), m),
-        "ball_recovery_p90":_p90(merged.get('ball_recovery'), m),
         "duels_won_pct":    _safe(merged.get('total_duels_won_pct')),
         "aerial_won_pct":   _safe(merged.get('aerial_duels_won_pct')),
         "goal_conversion":  goal_conversion_val,
         "minutes":          m,
     }
-
-
-def _compute_defending(v: dict) -> float:
-    """
-    Calcola il defending score con due livelli di dati:
-
-    Livello A — dati FBref (pressures, regains): formula completa
-    Livello B — solo dati SofaScore (clearances, interceptions, ball_recovery):
-                formula alternativa pensata per CB e fullback che fanno
-                pochi tackle ma molte respinte/intercetti/recuperi.
-
-    Se entrambi i livelli hanno dati, prende il massimo tra i due
-    (un giocatore non deve essere penalizzato per avere dati più ricchi).
-    """
-    # Livello A: formula storica con duelli + tackles (funziona per CM/DM)
-    score_a = (
-        _scale(v["duels_won_pct"],  _REF["duels_won_pct"])  * 0.40 +
-        _scale(v["aerial_won_pct"], _REF["aerial_won_pct"]) * 0.35 +
-        _scale(v["tackles_p90"],    _REF["tackles_p90"])     * 0.25
-    )
-
-    # Livello B: formula CB/fullback con clearances, interceptions, ball_recovery
-    # Disponibili da SofaScore — proxy solido per difensori puri
-    has_cb_data = (
-        v.get("clearances_p90", 0) > 0 or
-        v.get("interceptions_p90", 0) > 0 or
-        v.get("ball_recovery_p90", 0) > 0
-    )
-    if has_cb_data:
-        score_b = (
-            _scale(v["duels_won_pct"],      _REF["duels_won_pct"])      * 0.20 +
-            _scale(v["aerial_won_pct"],     _REF["aerial_won_pct"])     * 0.20 +
-            _scale(v["clearances_p90"],     _REF["clearances_p90"])     * 0.25 +
-            _scale(v["interceptions_p90"],  _REF["interceptions_p90"])  * 0.20 +
-            _scale(v["ball_recovery_p90"],  _REF["ball_recovery_p90"])  * 0.15
-        )
-        # Bonus tackles_won_pct se disponibile (qualità del tackle, non volume)
-        if v.get("tackles_won_pct", 0) > 0:
-            score_b = score_b * 0.90 + _scale(v["tackles_won_pct"], _REF["tackles_won_pct"]) * 0.10
-        return max(score_a, score_b)
-
-    return score_a
 
 
 def compute_objective_scores(p: ScoutingPlayer) -> dict:
@@ -311,7 +256,11 @@ def compute_objective_scores(p: ScoutingPlayer) -> dict:
     else:
         carrying = 0.0
 
-    defending = _compute_defending(v)
+    defending = (
+        _scale(v["duels_won_pct"],   _REF["duels_won_pct"])    * 0.40 +
+        _scale(v["aerial_won_pct"],  _REF["aerial_won_pct"])   * 0.35 +
+        _scale(v["tackles_p90"],     _REF["tackles_p90"])       * 0.25
+    )
     # Buildup: proxy xa+prog_passes se xgchain NULL (penalizzato -25%)
     if v["xgchain_p90"] > 0 or v["xgbuildup_p90"] > 0:
         buildup = (

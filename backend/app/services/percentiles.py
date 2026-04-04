@@ -15,6 +15,11 @@ Soglia minima: solo giocatori con minutes_season >= MIN_MINUTES
 vengono usati come riferimento percentile (per evitare sample size piccoli).
 Giocatori sotto soglia ricevono percentile = NULL.
 
+Valori degeneri: se tutti i giocatori eligible hanno lo stesso score
+(es. pressing=0 perche pressures e NULL in assenza di dati FBref),
+il percentile viene impostato a NULL — non ha senso mostrare 100
+a tutti solo perche nessuno ha il dato.
+
 Esecuzione:
     POST /admin/recalculate-scores   ← chiama questa fase in automatico
     oppure:
@@ -118,6 +123,14 @@ def recalculate_percentiles(db, progress_cb=None) -> dict:
 
         if eligible_df.empty:
             # Nessun dato: tutti NULL
+            for pid in result_pcts:
+                result_pcts[pid][pct_col] = None
+            continue
+
+        # Se tutti i valori sono uguali (es. tutti 0 perche il dato manca
+        # per quella metrica, come pressures senza FBref), il percentile
+        # non e significativo — lo impostiamo a NULL per tutti.
+        if eligible_df[score_col].nunique() <= 1:
             for pid in result_pcts:
                 result_pcts[pid][pct_col] = None
             continue
