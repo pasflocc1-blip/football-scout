@@ -1,0 +1,2128 @@
+{
+  "meta": {
+    "name": "Tommaso Guizzo",
+    "sofascore_id": 2450618,
+    "league": "serie_a",
+    "saved_at": "2026-04-04T09:21:47.737204",
+    "rpa_version": "v9.5-fast"
+  },
+  "raw_data": {
+    "player_id": 2450618,
+    "league_key": "serie_a",
+    "fetched_at": "2026-04-04T09:21:16.201735",
+    "profile": {
+      "name": "Tommaso Guizzo",
+      "firstName": "Tommaso Guizzo",
+      "slug": "tommaso-guizzo",
+      "shortName": "T. Guizzo",
+      "team": {
+        "name": "Pisa U17",
+        "slug": "pisa-u17",
+        "shortName": "Pisa U17",
+        "gender": "M",
+        "sport": {
+          "name": "Football",
+          "slug": "football",
+          "id": 1
+        },
+        "tournament": {
+          "name": "U17 Allievi Nazionali, Serie A/B - Girone A",
+          "slug": "u17-allievi-nazionali-serie-ab-girone-a",
+          "category": {
+            "name": "Italy Amateur",
+            "slug": "italy-amateur",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 0,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 1600,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "إيطاليا هواة",
+                "ru": "Италия Любители"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "U17 Allievi Nazionali",
+            "slug": "u17-allievi-nazionali",
+            "category": {
+              "name": "Italy Amateur",
+              "slug": "italy-amateur",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 0,
+              "country": {
+                "alpha2": "IT",
+                "alpha3": "ITA",
+                "name": "Italy",
+                "slug": "italy"
+              },
+              "id": 1600,
+              "flag": "italy",
+              "alpha2": "IT",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "ar": "إيطاليا هواة",
+                  "ru": "Италия Любители"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 20,
+            "country": {},
+            "id": 30706,
+            "displayInverseHomeAwayTeams": false
+          },
+          "priority": 0,
+          "id": 168202
+        },
+        "primaryUniqueTournament": {
+          "name": "U17 Allievi Nazionali",
+          "slug": "u17-allievi-nazionali",
+          "category": {
+            "name": "Italy Amateur",
+            "slug": "italy-amateur",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 0,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 1600,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "إيطاليا هواة",
+                "ru": "Италия Любители"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "userCount": 20,
+          "country": {},
+          "id": 30706,
+          "displayInverseHomeAwayTeams": false
+        },
+        "userCount": 6,
+        "nameCode": "PU1",
+        "national": false,
+        "parentTeam": {
+          "name": "Pisa",
+          "slug": "pisa",
+          "shortName": "Pisa",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "tournament": {
+            "name": "Serie B",
+            "slug": "serie-b",
+            "category": {
+              "name": "Italy",
+              "slug": "italy",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 7,
+              "country": {
+                "alpha2": "IT",
+                "alpha3": "ITA",
+                "name": "Italy",
+                "slug": "italy"
+              },
+              "id": 31,
+              "flag": "italy",
+              "alpha2": "IT",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "hi": "इटली",
+                  "ar": "إيطاليا",
+                  "bn": "ইতালি",
+                  "ru": "Италия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "uniqueTournament": {
+              "name": "Serie B",
+              "slug": "serie-b",
+              "primaryColorHex": "#027d32",
+              "secondaryColorHex": "#f18f01",
+              "category": {
+                "name": "Italy",
+                "slug": "italy",
+                "sport": {
+                  "name": "Football",
+                  "slug": "football",
+                  "id": 1
+                },
+                "priority": 7,
+                "country": {
+                  "alpha2": "IT",
+                  "alpha3": "ITA",
+                  "name": "Italy",
+                  "slug": "italy"
+                },
+                "id": 31,
+                "flag": "italy",
+                "alpha2": "IT",
+                "fieldTranslations": {
+                  "nameTranslation": {
+                    "hi": "इटली",
+                    "ar": "إيطاليا",
+                    "bn": "ইতালি",
+                    "ru": "Италия"
+                  },
+                  "shortNameTranslation": {}
+                }
+              },
+              "userCount": 34735,
+              "country": {},
+              "id": 53,
+              "displayInverseHomeAwayTeams": false,
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "ar": "دوري الدرجة الثانية",
+                  "bn": "সেরি বি",
+                  "hi": "सीरी बी"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "priority": 346,
+            "isLive": false,
+            "id": 34,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "الدرجة الثانية",
+                "bn": "সেরি বি",
+                "hi": "सीरी बी"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "primaryUniqueTournament": {
+            "name": "Serie A",
+            "slug": "serie-a",
+            "primaryColorHex": "#09519e",
+            "secondaryColorHex": "#008fd7",
+            "category": {
+              "name": "Italy",
+              "slug": "italy",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 7,
+              "country": {
+                "alpha2": "IT",
+                "alpha3": "ITA",
+                "name": "Italy",
+                "slug": "italy"
+              },
+              "id": 31,
+              "flag": "italy",
+              "alpha2": "IT",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "hi": "इटली",
+                  "ar": "إيطاليا",
+                  "bn": "ইতালি",
+                  "ru": "Италия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 632023,
+            "country": {},
+            "id": 23,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "الدوري الإيطالي",
+                "hi": "सीरी ए",
+                "bn": "সিরি আ"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "userCount": 61666,
+          "nameCode": "PIS",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2737,
+          "teamColors": {
+            "primary": "#4aa5ff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "بيزا",
+              "ru": "Пиза"
+            },
+            "shortNameTranslation": {
+              "ar": "بيزا"
+            }
+          }
+        },
+        "type": 0,
+        "country": {
+          "alpha2": "IT",
+          "alpha3": "ITA",
+          "name": "Italy",
+          "slug": "italy"
+        },
+        "id": 1145816,
+        "teamColors": {
+          "primary": "#374df5",
+          "secondary": "#374df5",
+          "text": "#ffffff"
+        }
+      },
+      "position": "G",
+      "jerseyNumber": "34",
+      "dateOfBirth": "2009-06-18T00:00:00+00:00",
+      "userCount": 9,
+      "gender": "M",
+      "country": {
+        "alpha2": "IT",
+        "alpha3": "ITA",
+        "name": "Italy",
+        "slug": "italy"
+      },
+      "id": 2450618,
+      "shirtNumber": 34,
+      "dateOfBirthTimestamp": 1245283200,
+      "fieldTranslations": {
+        "nameTranslation": {
+          "ar": "تومماسو غويتزو"
+        },
+        "shortNameTranslation": {
+          "ar": "ت. غويتزو"
+        }
+      }
+    },
+    "attributes": {},
+    "matches": [
+      {
+        "eventState": {},
+        "correctAiInsight": true,
+        "correctHalftimeAiInsight": true,
+        "tournament": {
+          "name": "Serie A",
+          "slug": "serie-a",
+          "category": {
+            "name": "Italy",
+            "slug": "italy",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 7,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 31,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "hi": "इटली",
+                "ar": "إيطاليا",
+                "bn": "ইতালি",
+                "ru": "Италия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "Serie A",
+            "slug": "serie-a",
+            "primaryColorHex": "#09519e",
+            "secondaryColorHex": "#008fd7",
+            "category": {
+              "name": "Italy",
+              "slug": "italy",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 7,
+              "country": {
+                "alpha2": "IT",
+                "alpha3": "ITA",
+                "name": "Italy",
+                "slug": "italy"
+              },
+              "id": 31,
+              "flag": "italy",
+              "alpha2": "IT",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "hi": "इटली",
+                  "ar": "إيطاليا",
+                  "bn": "ইতালি",
+                  "ru": "Италия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 632023,
+            "hasPerformanceGraphFeature": true,
+            "country": {},
+            "id": 23,
+            "hasEventPlayerStatistics": true,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "الدوري الإيطالي",
+                "hi": "सीरी ए",
+                "bn": "সিরি আ"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 700,
+          "isGroup": false,
+          "isLive": false,
+          "id": 33,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "hi": "सीरी ए",
+              "ar": "الدوري الإيطالي",
+              "bn": "সিরি আ"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "season": {
+          "name": "Serie A 25/26",
+          "year": "25/26",
+          "editor": false,
+          "id": 76457
+        },
+        "roundInfo": {
+          "round": 22
+        },
+        "customId": "XdbsMeb",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Inter",
+          "slug": "inter",
+          "shortName": "Inter",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 1892345,
+          "nameCode": "INT",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2697,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#1a57cc",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "انتر",
+              "bn": "ইন্টার",
+              "hi": "इंटर",
+              "ru": "Интер"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "Pisa",
+          "slug": "pisa",
+          "shortName": "Pisa",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 61666,
+          "nameCode": "PIS",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2737,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#4aa5ff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "بيزا",
+              "ru": "Пиза"
+            },
+            "shortNameTranslation": {
+              "ar": "بيزا"
+            }
+          }
+        },
+        "homeScore": {
+          "current": 6,
+          "display": 6,
+          "period1": 3,
+          "period2": 3,
+          "normaltime": 6
+        },
+        "awayScore": {
+          "current": 2,
+          "display": 2,
+          "period1": 2,
+          "period2": 0,
+          "normaltime": 2
+        },
+        "time": {
+          "injuryTime1": 4,
+          "injuryTime2": 4,
+          "currentPeriodStartTimestamp": 1769201552
+        },
+        "changes": {
+          "changes": [
+            "status.code",
+            "status.description",
+            "status.type",
+            "homeScore.normaltime"
+          ],
+          "changeTimestamp": 1769204506
+        },
+        "hasGlobalHighlights": false,
+        "hasXg": true,
+        "hasEventPlayerStatistics": true,
+        "hasEventPlayerHeatMap": true,
+        "detailId": 1,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 13981637,
+        "slug": "pisa-inter",
+        "startTimestamp": 1769197500,
+        "finalResultOnly": false,
+        "feedLocked": true,
+        "isEditor": false,
+        "eventFilters": {
+          "category": [
+            "club"
+          ],
+          "level": [
+            "top-competitions",
+            "pro"
+          ],
+          "gender": [
+            "M"
+          ]
+        }
+      },
+      {
+        "eventState": {},
+        "correctAiInsight": true,
+        "correctHalftimeAiInsight": true,
+        "tournament": {
+          "name": "Serie A",
+          "slug": "serie-a",
+          "category": {
+            "name": "Italy",
+            "slug": "italy",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 7,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 31,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "hi": "इटली",
+                "ar": "إيطاليا",
+                "bn": "ইতালি",
+                "ru": "Италия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "Serie A",
+            "slug": "serie-a",
+            "primaryColorHex": "#09519e",
+            "secondaryColorHex": "#008fd7",
+            "category": {
+              "name": "Italy",
+              "slug": "italy",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 7,
+              "country": {
+                "alpha2": "IT",
+                "alpha3": "ITA",
+                "name": "Italy",
+                "slug": "italy"
+              },
+              "id": 31,
+              "flag": "italy",
+              "alpha2": "IT",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "hi": "इटली",
+                  "ar": "إيطاليا",
+                  "bn": "ইতালি",
+                  "ru": "Италия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 632023,
+            "hasPerformanceGraphFeature": true,
+            "country": {},
+            "id": 23,
+            "hasEventPlayerStatistics": true,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "الدوري الإيطالي",
+                "hi": "सीरी ए",
+                "bn": "সিরি আ"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 700,
+          "isGroup": false,
+          "isLive": false,
+          "id": 33,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "hi": "सीरी ए",
+              "ar": "الدوري الإيطالي",
+              "bn": "সিরি আ"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "season": {
+          "name": "Serie A 25/26",
+          "year": "25/26",
+          "editor": false,
+          "id": 76457
+        },
+        "roundInfo": {
+          "round": 23
+        },
+        "customId": "MebsTfb",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 2,
+        "homeTeam": {
+          "name": "Pisa",
+          "slug": "pisa",
+          "shortName": "Pisa",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 61666,
+          "nameCode": "PIS",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2737,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#4aa5ff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "بيزا",
+              "ru": "Пиза"
+            },
+            "shortNameTranslation": {
+              "ar": "بيزا"
+            }
+          }
+        },
+        "awayTeam": {
+          "name": "Sassuolo",
+          "slug": "sassuolo",
+          "shortName": "Sassuolo",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 111113,
+          "nameCode": "SAS",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2793,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#006600",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "ساسولو",
+              "bn": "সাসুওলো",
+              "hi": "ससुओलो",
+              "ru": "Сассуоло"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 1,
+          "display": 1,
+          "period1": 0,
+          "period2": 1,
+          "normaltime": 1
+        },
+        "awayScore": {
+          "current": 3,
+          "display": 3,
+          "period1": 2,
+          "period2": 1,
+          "normaltime": 3
+        },
+        "time": {
+          "injuryTime1": 2,
+          "injuryTime2": 6,
+          "currentPeriodStartTimestamp": 1769871895
+        },
+        "changes": {
+          "changes": [
+            "status.code",
+            "status.description",
+            "status.type"
+          ],
+          "changeTimestamp": 1769874965
+        },
+        "hasGlobalHighlights": false,
+        "hasXg": true,
+        "hasEventPlayerStatistics": true,
+        "hasEventPlayerHeatMap": true,
+        "detailId": 1,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 13981652,
+        "slug": "sassuolo-pisa",
+        "startTimestamp": 1769868000,
+        "finalResultOnly": false,
+        "feedLocked": true,
+        "isEditor": false,
+        "eventFilters": {
+          "category": [
+            "club"
+          ],
+          "level": [
+            "top-competitions",
+            "pro"
+          ],
+          "gender": [
+            "M"
+          ]
+        }
+      },
+      {
+        "eventState": {},
+        "correctAiInsight": false,
+        "correctHalftimeAiInsight": false,
+        "tournament": {
+          "name": "Serie A",
+          "slug": "serie-a",
+          "category": {
+            "name": "Italy",
+            "slug": "italy",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 7,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 31,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "hi": "इटली",
+                "ar": "إيطاليا",
+                "bn": "ইতালি",
+                "ru": "Италия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "Serie A",
+            "slug": "serie-a",
+            "primaryColorHex": "#09519e",
+            "secondaryColorHex": "#008fd7",
+            "category": {
+              "name": "Italy",
+              "slug": "italy",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 7,
+              "country": {
+                "alpha2": "IT",
+                "alpha3": "ITA",
+                "name": "Italy",
+                "slug": "italy"
+              },
+              "id": 31,
+              "flag": "italy",
+              "alpha2": "IT",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "hi": "इटली",
+                  "ar": "إيطاليا",
+                  "bn": "ইতালি",
+                  "ru": "Италия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 632023,
+            "hasPerformanceGraphFeature": true,
+            "country": {},
+            "id": 23,
+            "hasEventPlayerStatistics": true,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "الدوري الإيطالي",
+                "hi": "सीरी ए",
+                "bn": "সিরি আ"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 700,
+          "isGroup": false,
+          "isLive": false,
+          "id": 33,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "hi": "सीरी ए",
+              "ar": "الدوري الإيطالي",
+              "bn": "সিরি আ"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "season": {
+          "name": "Serie A 25/26",
+          "year": "25/26",
+          "editor": false,
+          "id": 76457
+        },
+        "roundInfo": {
+          "round": 24
+        },
+        "customId": "bebsMeb",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 3,
+        "homeTeam": {
+          "name": "Hellas Verona",
+          "slug": "hellas-verona",
+          "shortName": "Verona",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 103204,
+          "nameCode": "VER",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2701,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#071d7e",
+            "secondary": "#ffcc00",
+            "text": "#ffcc00"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "هيلاس فيرونا",
+              "hi": "हेल्लास वेरोना",
+              "ru": "Верона"
+            },
+            "shortNameTranslation": {
+              "ar": "فيرونا",
+              "bn": "ভেরোনা",
+              "hi": "वेरोना"
+            }
+          }
+        },
+        "awayTeam": {
+          "name": "Pisa",
+          "slug": "pisa",
+          "shortName": "Pisa",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 61666,
+          "nameCode": "PIS",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2737,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#4aa5ff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "بيزا",
+              "ru": "Пиза"
+            },
+            "shortNameTranslation": {
+              "ar": "بيزا"
+            }
+          }
+        },
+        "homeScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0,
+          "period2": 0,
+          "normaltime": 0
+        },
+        "awayScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0,
+          "period2": 0,
+          "normaltime": 0
+        },
+        "time": {
+          "injuryTime1": 3,
+          "injuryTime2": 4,
+          "currentPeriodStartTimestamp": 1770411052
+        },
+        "changes": {
+          "changes": [
+            "status.code",
+            "status.description",
+            "status.type"
+          ],
+          "changeTimestamp": 1770413999
+        },
+        "hasGlobalHighlights": false,
+        "hasXg": true,
+        "hasEventPlayerStatistics": true,
+        "hasEventPlayerHeatMap": true,
+        "detailId": 1,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 13981662,
+        "slug": "pisa-hellas-verona",
+        "startTimestamp": 1770407100,
+        "finalResultOnly": false,
+        "feedLocked": true,
+        "isEditor": false,
+        "eventFilters": {
+          "category": [
+            "club"
+          ],
+          "level": [
+            "top-competitions",
+            "pro"
+          ],
+          "gender": [
+            "M"
+          ]
+        }
+      },
+      {
+        "eventState": {},
+        "correctAiInsight": true,
+        "correctHalftimeAiInsight": true,
+        "tournament": {
+          "name": "Serie A",
+          "slug": "serie-a",
+          "category": {
+            "name": "Italy",
+            "slug": "italy",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 7,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 31,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "hi": "इटली",
+                "ar": "إيطاليا",
+                "bn": "ইতালি",
+                "ru": "Италия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "Serie A",
+            "slug": "serie-a",
+            "primaryColorHex": "#09519e",
+            "secondaryColorHex": "#008fd7",
+            "category": {
+              "name": "Italy",
+              "slug": "italy",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 7,
+              "country": {
+                "alpha2": "IT",
+                "alpha3": "ITA",
+                "name": "Italy",
+                "slug": "italy"
+              },
+              "id": 31,
+              "flag": "italy",
+              "alpha2": "IT",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "hi": "इटली",
+                  "ar": "إيطاليا",
+                  "bn": "ইতালি",
+                  "ru": "Италия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 632023,
+            "hasPerformanceGraphFeature": true,
+            "country": {},
+            "id": 23,
+            "hasEventPlayerStatistics": true,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "الدوري الإيطالي",
+                "hi": "सीरी ए",
+                "bn": "সিরি আ"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 700,
+          "isGroup": false,
+          "isLive": false,
+          "id": 33,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "hi": "सीरी ए",
+              "ar": "الدوري الإيطالي",
+              "bn": "সিরি আ"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "season": {
+          "name": "Serie A 25/26",
+          "year": "25/26",
+          "editor": false,
+          "id": 76457
+        },
+        "roundInfo": {
+          "round": 25
+        },
+        "customId": "RdbsMeb",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 2,
+        "homeTeam": {
+          "name": "Pisa",
+          "slug": "pisa",
+          "shortName": "Pisa",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 61666,
+          "nameCode": "PIS",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2737,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#4aa5ff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "بيزا",
+              "ru": "Пиза"
+            },
+            "shortNameTranslation": {
+              "ar": "بيزا"
+            }
+          }
+        },
+        "awayTeam": {
+          "name": "Milan",
+          "slug": "milan",
+          "shortName": "Milan",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 1658274,
+          "nameCode": "ACM",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2692,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#000000",
+            "secondary": "#cc0000",
+            "text": "#cc0000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "ميلان",
+              "bn": "মিলান",
+              "hi": "मिलान",
+              "ru": "Милан"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "homeScore": {
+          "current": 1,
+          "display": 1,
+          "period1": 0,
+          "period2": 1,
+          "normaltime": 1
+        },
+        "awayScore": {
+          "current": 2,
+          "display": 2,
+          "period1": 1,
+          "period2": 1,
+          "normaltime": 2
+        },
+        "time": {
+          "injuryTime1": 1,
+          "injuryTime2": 4,
+          "currentPeriodStartTimestamp": 1771015787
+        },
+        "changes": {
+          "changes": [
+            "status.code",
+            "status.description",
+            "status.type"
+          ],
+          "changeTimestamp": 1771018785
+        },
+        "hasGlobalHighlights": false,
+        "hasXg": true,
+        "hasEventPlayerStatistics": true,
+        "hasEventPlayerHeatMap": true,
+        "detailId": 1,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 13981670,
+        "awayRedCards": 1,
+        "slug": "pisa-milan",
+        "startTimestamp": 1771011900,
+        "finalResultOnly": false,
+        "feedLocked": true,
+        "isEditor": false,
+        "eventFilters": {
+          "category": [
+            "club"
+          ],
+          "level": [
+            "top-competitions",
+            "pro"
+          ],
+          "gender": [
+            "M"
+          ]
+        }
+      },
+      {
+        "eventState": {
+          "statusIndicator": "varInProgressHome",
+          "timestamp": 1771871938
+        },
+        "correctAiInsight": true,
+        "correctHalftimeAiInsight": true,
+        "tournament": {
+          "name": "Serie A",
+          "slug": "serie-a",
+          "category": {
+            "name": "Italy",
+            "slug": "italy",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 7,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 31,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "hi": "इटली",
+                "ar": "إيطاليا",
+                "bn": "ইতালি",
+                "ru": "Италия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "Serie A",
+            "slug": "serie-a",
+            "primaryColorHex": "#09519e",
+            "secondaryColorHex": "#008fd7",
+            "category": {
+              "name": "Italy",
+              "slug": "italy",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 7,
+              "country": {
+                "alpha2": "IT",
+                "alpha3": "ITA",
+                "name": "Italy",
+                "slug": "italy"
+              },
+              "id": 31,
+              "flag": "italy",
+              "alpha2": "IT",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "hi": "इटली",
+                  "ar": "إيطاليا",
+                  "bn": "ইতালি",
+                  "ru": "Италия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 632023,
+            "hasPerformanceGraphFeature": true,
+            "country": {},
+            "id": 23,
+            "hasEventPlayerStatistics": true,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "الدوري الإيطالي",
+                "hi": "सीरी ए",
+                "bn": "সিরি আ"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 700,
+          "isGroup": false,
+          "isLive": false,
+          "id": 33,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "hi": "सीरी ए",
+              "ar": "الدوري الإيطالي",
+              "bn": "সিরি আ"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "season": {
+          "name": "Serie A 25/26",
+          "year": "25/26",
+          "editor": false,
+          "id": 76457
+        },
+        "roundInfo": {
+          "round": 26
+        },
+        "customId": "TdbsMeb",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Fiorentina",
+          "slug": "fiorentina",
+          "shortName": "Fiorentina",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 302249,
+          "nameCode": "FIO",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2693,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#542baa",
+            "secondary": "#ffffff",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "فيورنتينا",
+              "bn": "ফিওরেন্টিনা",
+              "hi": "फियोरेंटीना",
+              "ru": "Фиорентина"
+            },
+            "shortNameTranslation": {
+              "ar": "فيورنتينا"
+            }
+          }
+        },
+        "awayTeam": {
+          "name": "Pisa",
+          "slug": "pisa",
+          "shortName": "Pisa",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 61666,
+          "nameCode": "PIS",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2737,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#4aa5ff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "بيزا",
+              "ru": "Пиза"
+            },
+            "shortNameTranslation": {
+              "ar": "بيزا"
+            }
+          }
+        },
+        "homeScore": {
+          "current": 1,
+          "display": 1,
+          "period1": 1,
+          "period2": 0,
+          "normaltime": 1
+        },
+        "awayScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0,
+          "period2": 0,
+          "normaltime": 0
+        },
+        "time": {
+          "injuryTime1": 1,
+          "injuryTime2": 5,
+          "currentPeriodStartTimestamp": 1771871830
+        },
+        "changes": {
+          "changes": [
+            "status.code",
+            "status.description",
+            "status.type"
+          ],
+          "changeTimestamp": 1771874848
+        },
+        "hasGlobalHighlights": true,
+        "hasXg": true,
+        "hasEventPlayerStatistics": true,
+        "hasEventPlayerHeatMap": true,
+        "detailId": 1,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 13981677,
+        "slug": "pisa-fiorentina",
+        "startTimestamp": 1771867800,
+        "finalResultOnly": false,
+        "feedLocked": true,
+        "isEditor": false,
+        "eventFilters": {
+          "category": [
+            "club"
+          ],
+          "level": [
+            "top-competitions",
+            "pro"
+          ],
+          "gender": [
+            "M"
+          ]
+        }
+      },
+      {
+        "eventState": {},
+        "correctAiInsight": true,
+        "correctHalftimeAiInsight": true,
+        "tournament": {
+          "name": "Serie A",
+          "slug": "serie-a",
+          "category": {
+            "name": "Italy",
+            "slug": "italy",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 7,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 31,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "hi": "इटली",
+                "ar": "إيطاليا",
+                "bn": "ইতালি",
+                "ru": "Италия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "Serie A",
+            "slug": "serie-a",
+            "primaryColorHex": "#09519e",
+            "secondaryColorHex": "#008fd7",
+            "category": {
+              "name": "Italy",
+              "slug": "italy",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 7,
+              "country": {
+                "alpha2": "IT",
+                "alpha3": "ITA",
+                "name": "Italy",
+                "slug": "italy"
+              },
+              "id": 31,
+              "flag": "italy",
+              "alpha2": "IT",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "hi": "इटली",
+                  "ar": "إيطاليا",
+                  "bn": "ইতালি",
+                  "ru": "Италия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 632023,
+            "hasPerformanceGraphFeature": true,
+            "country": {},
+            "id": 23,
+            "hasEventPlayerStatistics": true,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "الدوري الإيطالي",
+                "hi": "सीरी ए",
+                "bn": "সিরি আ"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 700,
+          "isGroup": false,
+          "isLive": false,
+          "id": 33,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "hi": "सीरी ए",
+              "ar": "الدوري الإيطالي",
+              "bn": "সিরি আ"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "season": {
+          "name": "Serie A 25/26",
+          "year": "25/26",
+          "editor": false,
+          "id": 76457
+        },
+        "roundInfo": {
+          "round": 28
+        },
+        "customId": "MdbsMeb",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Juventus",
+          "slug": "juventus",
+          "shortName": "Juventus",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 1573638,
+          "nameCode": "JUV",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2687,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "يوفنتوس",
+              "bn": "জুভেন্টাস",
+              "hi": "जुवेंटस",
+              "ru": "Ювентус"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "awayTeam": {
+          "name": "Pisa",
+          "slug": "pisa",
+          "shortName": "Pisa",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 61666,
+          "nameCode": "PIS",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "IT",
+            "alpha3": "ITA",
+            "name": "Italy",
+            "slug": "italy"
+          },
+          "id": 2737,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#4aa5ff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "بيزا",
+              "ru": "Пиза"
+            },
+            "shortNameTranslation": {
+              "ar": "بيزا"
+            }
+          }
+        },
+        "homeScore": {
+          "current": 4,
+          "display": 4,
+          "period1": 0,
+          "period2": 4,
+          "normaltime": 4
+        },
+        "awayScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0,
+          "period2": 0,
+          "normaltime": 0
+        },
+        "time": {
+          "injuryTime1": 1,
+          "injuryTime2": 3,
+          "currentPeriodStartTimestamp": 1772916386
+        },
+        "changes": {
+          "changes": [
+            "status.code",
+            "status.description",
+            "status.type",
+            "homeScore.normaltime"
+          ],
+          "changeTimestamp": 1772919338
+        },
+        "hasGlobalHighlights": true,
+        "hasXg": true,
+        "hasEventPlayerStatistics": true,
+        "hasEventPlayerHeatMap": true,
+        "detailId": 1,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 13981697,
+        "slug": "pisa-juventus",
+        "startTimestamp": 1772912700,
+        "finalResultOnly": false,
+        "feedLocked": true,
+        "isEditor": false,
+        "eventFilters": {
+          "category": [
+            "club"
+          ],
+          "level": [
+            "top-competitions",
+            "pro"
+          ],
+          "gender": [
+            "M"
+          ]
+        }
+      }
+    ],
+    "transfers": [],
+    "national_stats": [],
+    "competitions": [
+      {
+        "tournament_id": 23,
+        "season_id": 76457,
+        "tournament_name": "Serie A",
+        "season_year": "25/26",
+        "season_name": "Serie A 25/26",
+        "statistics": {},
+        "heatmap_points": []
+      }
+    ]
+  },
+  "mapped_payload": {
+    "name": "Tommaso Guizzo",
+    "club": "AC Pisa 1909",
+    "db_id": 529,
+    "sofascore_id": 2450618,
+    "source": "playwright_v9",
+    "extracted": {
+      "profile": {
+        "sofascore_id": 2450618,
+        "height_cm": null,
+        "weight_kg": null,
+        "preferred_foot": null,
+        "jersey_number": "34",
+        "contract_until": null,
+        "market_value": null,
+        "nationality": "Italy",
+        "date_of_birth": "2009-06-18",
+        "position": "G",
+        "position_detail": "",
+        "gender": "M",
+        "slug": "tommaso-guizzo",
+        "short_name": "T. Guizzo",
+        "club": "Pisa U17",
+        "club_id": 1145816
+      },
+      "attributes": {},
+      "competitions": [
+        {
+          "tournament_id": 23,
+          "season_id": 76457,
+          "tournament_name": "Serie A",
+          "season_year": "25/26",
+          "season_name": "Serie A 25/26",
+          "statistics": {
+            "rating": null,
+            "total_rating": null,
+            "count_rating": null,
+            "appearances": null,
+            "matches_started": null,
+            "minutes_played": null,
+            "goals": null,
+            "assists": null,
+            "goals_assists_sum": null,
+            "shots_total": null,
+            "shots_on_target": null,
+            "shots_off_target": null,
+            "shots_inside_box": null,
+            "shots_outside_box": null,
+            "big_chances_created": null,
+            "big_chances_missed": null,
+            "goal_conversion_pct": null,
+            "headed_goals": null,
+            "left_foot_goals": null,
+            "right_foot_goals": null,
+            "goals_inside_box": null,
+            "goals_outside_box": null,
+            "free_kick_goals": null,
+            "penalty_goals": null,
+            "penalty_taken": null,
+            "penalty_won": null,
+            "penalty_conceded": null,
+            "own_goals": null,
+            "hit_woodwork": null,
+            "scoring_frequency": null,
+            "totw_appearances": null,
+            "set_piece_conversion": null,
+            "shot_from_set_piece": null,
+            "xg": null,
+            "xa": null,
+            "accurate_passes": null,
+            "inaccurate_passes": null,
+            "total_passes": null,
+            "pass_accuracy_pct": null,
+            "accurate_own_half_passes": null,
+            "accurate_opp_half_passes": null,
+            "total_own_half_passes": null,
+            "total_opp_half_passes": null,
+            "accurate_final_third_passes": null,
+            "accurate_long_balls": null,
+            "long_ball_accuracy_pct": null,
+            "total_long_balls": null,
+            "accurate_crosses": null,
+            "cross_accuracy_pct": null,
+            "total_crosses": null,
+            "key_passes": null,
+            "pass_to_assist": null,
+            "total_attempt_assist": null,
+            "accurate_chipped_passes": null,
+            "total_chipped_passes": null,
+            "successful_dribbles": null,
+            "dribble_success_pct": null,
+            "dribbled_past": null,
+            "dispossessed": null,
+            "ground_duels_won": null,
+            "ground_duels_won_pct": null,
+            "aerial_duels_won": null,
+            "aerial_duels_lost": null,
+            "aerial_duels_won_pct": null,
+            "total_duels_won": null,
+            "total_duels_won_pct": null,
+            "duel_lost": null,
+            "total_contest": null,
+            "tackles": null,
+            "tackles_won": null,
+            "tackles_won_pct": null,
+            "interceptions": null,
+            "clearances": null,
+            "blocked_shots": null,
+            "errors_led_to_goal": null,
+            "errors_led_to_shot": null,
+            "ball_recovery": null,
+            "possession_won_att_third": null,
+            "touches": null,
+            "possession_lost": null,
+            "yellow_cards": null,
+            "yellow_red_cards": null,
+            "red_cards": null,
+            "direct_red_cards": null,
+            "fouls_committed": null,
+            "fouls_won": null,
+            "offsides": null,
+            "saves": null,
+            "saves_caught": null,
+            "saves_parried": null,
+            "goals_conceded": null,
+            "goals_conceded_inside_box": null,
+            "goals_conceded_outside_box": null,
+            "clean_sheets": null,
+            "penalty_saved": null,
+            "penalty_faced": null,
+            "high_claims": null,
+            "punches": null,
+            "runs_out": null,
+            "successful_runs_out": null,
+            "saved_shots_inside_box": null,
+            "saved_shots_outside_box": null,
+            "goal_kicks": null,
+            "crosses_not_claimed": null,
+            "penalty_attempt_miss": null,
+            "penalty_attempt_post": null,
+            "penalty_attempt_target": null
+          },
+          "heatmap_points": []
+        }
+      ],
+      "matches": [
+        {
+          "event_id": 13981637,
+          "sofascore_slug": "pisa-inter",
+          "date": "2026-01-23T19:45:00+00:00",
+          "tournament_name": "Serie A",
+          "tournament_id": 23,
+          "season_name": "Serie A 25/26",
+          "season_year": "25/26",
+          "season_id": 76457,
+          "round": 22,
+          "home_team": "Inter",
+          "home_team_id": 2697,
+          "away_team": "Pisa",
+          "away_team_id": 2737,
+          "home_score": 6,
+          "away_score": 2,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": true,
+          "has_player_stats": true,
+          "has_heatmap": true,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 13981652,
+          "sofascore_slug": "sassuolo-pisa",
+          "date": "2026-01-31T14:00:00+00:00",
+          "tournament_name": "Serie A",
+          "tournament_id": 23,
+          "season_name": "Serie A 25/26",
+          "season_year": "25/26",
+          "season_id": 76457,
+          "round": 23,
+          "home_team": "Pisa",
+          "home_team_id": 2737,
+          "away_team": "Sassuolo",
+          "away_team_id": 2793,
+          "home_score": 1,
+          "away_score": 3,
+          "winner_code": 2,
+          "status": "finished",
+          "has_xg": true,
+          "has_player_stats": true,
+          "has_heatmap": true,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 13981662,
+          "sofascore_slug": "pisa-hellas-verona",
+          "date": "2026-02-06T19:45:00+00:00",
+          "tournament_name": "Serie A",
+          "tournament_id": 23,
+          "season_name": "Serie A 25/26",
+          "season_year": "25/26",
+          "season_id": 76457,
+          "round": 24,
+          "home_team": "Hellas Verona",
+          "home_team_id": 2701,
+          "away_team": "Pisa",
+          "away_team_id": 2737,
+          "home_score": 0,
+          "away_score": 0,
+          "winner_code": 3,
+          "status": "finished",
+          "has_xg": true,
+          "has_player_stats": true,
+          "has_heatmap": true,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 13981670,
+          "sofascore_slug": "pisa-milan",
+          "date": "2026-02-13T19:45:00+00:00",
+          "tournament_name": "Serie A",
+          "tournament_id": 23,
+          "season_name": "Serie A 25/26",
+          "season_year": "25/26",
+          "season_id": 76457,
+          "round": 25,
+          "home_team": "Pisa",
+          "home_team_id": 2737,
+          "away_team": "Milan",
+          "away_team_id": 2692,
+          "home_score": 1,
+          "away_score": 2,
+          "winner_code": 2,
+          "status": "finished",
+          "has_xg": true,
+          "has_player_stats": true,
+          "has_heatmap": true,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 13981677,
+          "sofascore_slug": "pisa-fiorentina",
+          "date": "2026-02-23T17:30:00+00:00",
+          "tournament_name": "Serie A",
+          "tournament_id": 23,
+          "season_name": "Serie A 25/26",
+          "season_year": "25/26",
+          "season_id": 76457,
+          "round": 26,
+          "home_team": "Fiorentina",
+          "home_team_id": 2693,
+          "away_team": "Pisa",
+          "away_team_id": 2737,
+          "home_score": 1,
+          "away_score": 0,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": true,
+          "has_player_stats": true,
+          "has_heatmap": true,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 13981697,
+          "sofascore_slug": "pisa-juventus",
+          "date": "2026-03-07T19:45:00+00:00",
+          "tournament_name": "Serie A",
+          "tournament_id": 23,
+          "season_name": "Serie A 25/26",
+          "season_year": "25/26",
+          "season_id": 76457,
+          "round": 28,
+          "home_team": "Juventus",
+          "home_team_id": 2687,
+          "away_team": "Pisa",
+          "away_team_id": 2737,
+          "home_score": 4,
+          "away_score": 0,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": true,
+          "has_player_stats": true,
+          "has_heatmap": true,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        }
+      ],
+      "career": [],
+      "national": []
+    },
+    "extracted_at": "2026-04-04T09:21:47.694103"
+  }
+}

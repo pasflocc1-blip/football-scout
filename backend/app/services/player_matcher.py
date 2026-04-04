@@ -91,16 +91,59 @@ def _abbrev_variants(name: str) -> set:
     return variants
 
 
-def find_player_in_db(
-        db: Session,
-        name: str,
-        club: str,
-        birth_date: Optional[date] = None
-) -> Optional[ScoutingPlayer]:
-    if not name:
-        return None
-    all_players = db.query(ScoutingPlayer).all()
-    return find_player_in_list(name, club, all_players, birth_date)
+def find_player_in_db(db, name: str, club: str = '', season: str = None):
+    """
+    Trova un giocatore nel DB per nome (e opzionalmente club e stagione).
+
+    Con season_club aggiunto a ScoutingPlayer, filtriamo anche per stagione
+    se specificata — evita di restituire lo stesso giocatore di stagioni diverse.
+
+    Priorità ricerca:
+      1. Nome esatto + club esatto + season  (match perfetto)
+      2. Nome esatto + club esatto
+      3. Nome ILIKE + club parziale
+      4. Nome ILIKE solo
+    """
+    from app.models.models import ScoutingPlayer
+
+    name_clean = name.strip()
+    club_clean = club.strip() if club else ''
+
+    # 1. Match esatto con season
+    if season:
+        q = db.query(ScoutingPlayer).filter(
+            ScoutingPlayer.name == name_clean,
+            ScoutingPlayer.season_club == season,
+        )
+        if club_clean:
+            q = q.filter(ScoutingPlayer.club.ilike(f'%{club_clean}%'))
+        p = q.first()
+        if p:
+            return p
+
+    # 2. Nome esatto + club esatto (stagione più recente)
+    if club_clean:
+        p = db.query(ScoutingPlayer).filter(
+            ScoutingPlayer.name == name_clean,
+            ScoutingPlayer.club.ilike(f'%{club_clean}%'),
+        ).order_by(ScoutingPlayer.last_updated_sofascore.desc()).first()
+        if p:
+            return p
+
+    # 3. Nome esatto (qualsiasi club) — stagione più recente
+    p = db.query(ScoutingPlayer).filter(
+        ScoutingPlayer.name == name_clean,
+    ).order_by(ScoutingPlayer.last_updated_sofascore.desc()).first()
+    if p:
+        return p
+
+    # 4. ILIKE fallback
+    q = db.query(ScoutingPlayer).filter(
+        ScoutingPlayer.name.ilike(f'%{name_clean}%'),
+    )
+    if club_clean:
+        q = q.filter(ScoutingPlayer.club.ilike(f'%{club_clean}%'))
+    return q.order_by(ScoutingPlayer.last_updated_sofascore.desc()).first()
 
 
 def find_player_in_list(

@@ -1,0 +1,25 @@
+{
+  "report": {
+    "total": 1,
+    "done": 1,
+    "failed": 0,
+    "skipped": 0,
+    "duration_minutes": 1.1,
+    "avg_sec_player": 68.9
+  },
+  "players": [
+    {
+      "name": "Federico Gatti",
+      "sofascore_id": 1128063,
+      "league": "serie_a",
+      "status": "done",
+      "error": "",
+      "competitions": 4,
+      "matches": 30,
+      "transfers": 10,
+      "attributes": 8,
+      "started_at": "2026-04-04T17:21:33.878829",
+      "completed_at": "2026-04-04T17:22:41.653276"
+    }
+  ]
+}

@@ -3,13 +3,13 @@
     "name": "Christos Alexiou",
     "sofascore_id": 1154602,
     "league": "serie_a",
-    "saved_at": "2026-04-03T22:41:37.600202",
+    "saved_at": "2026-04-04T00:34:23.346055",
     "rpa_version": "v9.5-fast"
   },
   "raw_data": {
     "player_id": 1154602,
     "league_key": "serie_a",
-    "fetched_at": "2026-04-03T22:40:15.940738",
+    "fetched_at": "2026-04-04T00:33:06.388037",
     "profile": {
       "name": "Christos Alexiou",
       "firstName": "Christos Alexiou",
@@ -25708,6 +25708,6 @@
       "career": [],
       "national": []
     },
-    "extracted_at": "2026-04-03T22:41:37.424668"
+    "extracted_at": "2026-04-04T00:34:23.244091"
   }
 }

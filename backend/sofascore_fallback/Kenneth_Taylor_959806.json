@@ -1,0 +1,907 @@
+{
+  "meta": {
+    "name": "Kenneth Taylor",
+    "sofascore_id": 959806,
+    "league": "serie_a",
+    "saved_at": "2026-04-04T04:11:58.961368",
+    "rpa_version": "v9.5-fast"
+  },
+  "raw_data": {
+    "player_id": 959806,
+    "league_key": "serie_a",
+    "fetched_at": "2026-04-04T04:11:26.941624",
+    "profile": {
+      "name": "Kenneth Taylor",
+      "slug": "kenneth-taylor",
+      "shortName": "K. Taylor",
+      "team": {
+        "name": "Lazio",
+        "slug": "lazio",
+        "shortName": "Lazio",
+        "gender": "M",
+        "sport": {
+          "name": "Football",
+          "slug": "football",
+          "id": 1
+        },
+        "tournament": {
+          "name": "Serie A",
+          "slug": "serie-a",
+          "category": {
+            "name": "Italy",
+            "slug": "italy",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 7,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 31,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "hi": "इटली",
+                "ar": "إيطاليا",
+                "bn": "ইতালি",
+                "ru": "Италия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "Serie A",
+            "slug": "serie-a",
+            "primaryColorHex": "#09519e",
+            "secondaryColorHex": "#008fd7",
+            "category": {
+              "name": "Italy",
+              "slug": "italy",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 7,
+              "country": {
+                "alpha2": "IT",
+                "alpha3": "ITA",
+                "name": "Italy",
+                "slug": "italy"
+              },
+              "id": 31,
+              "flag": "italy",
+              "alpha2": "IT",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "hi": "इटली",
+                  "ar": "إيطاليا",
+                  "bn": "ইতালি",
+                  "ru": "Италия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 631654,
+            "country": {},
+            "id": 23,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "الدوري الإيطالي",
+                "hi": "सीरी ए",
+                "bn": "সিরি আ"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 700,
+          "isLive": false,
+          "id": 33,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "hi": "सीरी ए",
+              "ar": "الدوري الإيطالي",
+              "bn": "সিরি আ"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "primaryUniqueTournament": {
+          "name": "Serie A",
+          "slug": "serie-a",
+          "primaryColorHex": "#09519e",
+          "secondaryColorHex": "#008fd7",
+          "category": {
+            "name": "Italy",
+            "slug": "italy",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 7,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 31,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "hi": "इटली",
+                "ar": "إيطاليا",
+                "bn": "ইতালি",
+                "ru": "Италия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "userCount": 631654,
+          "country": {},
+          "id": 23,
+          "displayInverseHomeAwayTeams": false,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "الدوري الإيطالي",
+              "hi": "सीरी ए",
+              "bn": "সিরি আ"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "userCount": 376432,
+        "nameCode": "LAZ",
+        "disabled": false,
+        "national": false,
+        "type": 0,
+        "country": {
+          "alpha2": "IT",
+          "alpha3": "ITA",
+          "name": "Italy",
+          "slug": "italy"
+        },
+        "id": 2699,
+        "teamColors": {
+          "primary": "#64b6e1",
+          "secondary": "#ffffff",
+          "text": "#ffffff"
+        },
+        "fieldTranslations": {
+          "nameTranslation": {
+            "ar": "لاتسيو",
+            "bn": "ল্যাজিও",
+            "hi": "लाज़ियो",
+            "ru": "Лацио"
+          },
+          "shortNameTranslation": {}
+        }
+      },
+      "position": "M",
+      "positionsDetailed": [
+        "MC"
+      ],
+      "jerseyNumber": "24",
+      "height": 182,
+      "dateOfBirth": "2002-05-16T00:00:00+00:00",
+      "preferredFoot": "Left",
+      "userCount": 3852,
+      "gender": "M",
+      "country": {
+        "alpha2": "NL",
+        "alpha3": "NLD",
+        "name": "Netherlands",
+        "slug": "netherlands"
+      },
+      "id": 959806,
+      "shirtNumber": 24,
+      "dateOfBirthTimestamp": 1021507200,
+      "contractUntilTimestamp": 1909008000,
+      "proposedMarketValue": 21000000,
+      "proposedMarketValueRaw": {
+        "value": 21000000,
+        "currency": "EUR"
+      },
+      "fieldTranslations": {
+        "nameTranslation": {
+          "ar": "كينيث تايلور",
+          "bn": "কেনেথ টেলর",
+          "hi": "केनेथ टेलर"
+        },
+        "shortNameTranslation": {
+          "ar": "ك. تايلور",
+          "bn": "কে. টেলর",
+          "hi": "के. टेलर"
+        }
+      }
+    },
+    "attributes": {
+      "attr_attacking": 58,
+      "attr_technical": 58,
+      "attr_tactical": 45,
+      "attr_defending": 43,
+      "attr_creativity": 55,
+      "attr_position": "M",
+      "attr_yearShift": 3,
+      "attr_id": 131380
+    },
+    "matches": [],
+    "transfers": [
+      {
+        "player": {
+          "name": "Kenneth Taylor",
+          "slug": "kenneth-taylor",
+          "shortName": "K. Taylor",
+          "position": "M",
+          "jerseyNumber": "24",
+          "userCount": 3852,
+          "gender": "M",
+          "id": 959806,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كينيث تايلور",
+              "bn": "কেনেথ টেলর",
+              "hi": "केनेथ टेलर"
+            },
+            "shortNameTranslation": {
+              "ar": "ك. تايلور",
+              "bn": "কে. টেলর",
+              "hi": "के. टेलर"
+            }
+          }
+        },
+        "transferFrom": {
+          "name": "AFC Ajax",
+          "slug": "ajax",
+          "shortName": "Ajax",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 493028,
+          "nameCode": "AJA",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 2953,
+          "teamColors": {
+            "primary": "#bb002b",
+            "secondary": "#ffffff",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "أياكس أمستردام",
+              "bn": "আয়াক্স",
+              "hi": "अजाक्स",
+              "ru": "Аякс"
+            },
+            "shortNameTranslation": {
+              "ar": "أياكس"
+            }
+          }
+        },
+        "transferTo": {
+          "name": "Lazio",
+          "slug": "lazio",
+          "shortName": "Lazio",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 376432,
+          "nameCode": "LAZ",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 2699,
+          "teamColors": {
+            "primary": "#64b6e1",
+            "secondary": "#ffffff",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "لاتسيو",
+              "bn": "ল্যাজিও",
+              "hi": "लाज़ियो",
+              "ru": "Лацио"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "fromTeamName": "AFC Ajax",
+        "toTeamName": "Lazio",
+        "type": 3,
+        "transferFee": 16850000,
+        "transferFeeDescription": "16.9M €",
+        "id": 2675944,
+        "transferDateTimestamp": 1767916800,
+        "transferFeeRaw": {
+          "value": 16850000,
+          "currency": "EUR"
+        }
+      },
+      {
+        "player": {
+          "name": "Kenneth Taylor",
+          "slug": "kenneth-taylor",
+          "shortName": "K. Taylor",
+          "position": "M",
+          "jerseyNumber": "24",
+          "userCount": 3852,
+          "gender": "M",
+          "id": 959806,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كينيث تايلور",
+              "bn": "কেনেথ টেলর",
+              "hi": "केनेथ टेलर"
+            },
+            "shortNameTranslation": {
+              "ar": "ك. تايلور",
+              "bn": "কে. টেলর",
+              "hi": "के. टेलर"
+            }
+          }
+        },
+        "transferFrom": {
+          "name": "Jong Ajax",
+          "slug": "jong-ajax",
+          "shortName": "Jong Ajax",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 22694,
+          "nameCode": "AJA",
+          "disabled": false,
+          "national": false,
+          "parentTeam": {
+            "name": "AFC Ajax",
+            "slug": "ajax",
+            "shortName": "Ajax",
+            "gender": "M",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "userCount": 493028,
+            "nameCode": "AJA",
+            "disabled": false,
+            "national": false,
+            "type": 0,
+            "id": 2953,
+            "teamColors": {
+              "primary": "#bb002b",
+              "secondary": "#ffffff",
+              "text": "#ffffff"
+            },
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "أياكس أمستردام",
+                "bn": "আয়াক্স",
+                "hi": "अजाक्स",
+                "ru": "Аякс"
+              },
+              "shortNameTranslation": {
+                "ar": "أياكس"
+              }
+            }
+          },
+          "type": 0,
+          "id": 46160,
+          "teamColors": {
+            "primary": "#bb002b",
+            "secondary": "#ffffff",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "يونغ أياكس"
+            },
+            "shortNameTranslation": {
+              "ar": "يونغ أياكس"
+            }
+          }
+        },
+        "transferTo": {
+          "name": "AFC Ajax",
+          "slug": "ajax",
+          "shortName": "Ajax",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 493028,
+          "nameCode": "AJA",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 2953,
+          "teamColors": {
+            "primary": "#bb002b",
+            "secondary": "#ffffff",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "أياكس أمستردام",
+              "bn": "আয়াক্স",
+              "hi": "अजाक्स",
+              "ru": "Аякс"
+            },
+            "shortNameTranslation": {
+              "ar": "أياكس"
+            }
+          }
+        },
+        "fromTeamName": "Jong Ajax",
+        "toTeamName": "AFC Ajax",
+        "type": 3,
+        "transferFee": 0,
+        "transferFeeDescription": "-",
+        "id": 1105187,
+        "transferDateTimestamp": 1604966400,
+        "transferFeeRaw": {
+          "value": 0,
+          "currency": "EUR"
+        }
+      },
+      {
+        "player": {
+          "name": "Kenneth Taylor",
+          "slug": "kenneth-taylor",
+          "shortName": "K. Taylor",
+          "position": "M",
+          "jerseyNumber": "24",
+          "userCount": 3852,
+          "gender": "M",
+          "id": 959806,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كينيث تايلور",
+              "bn": "কেনেথ টেলর",
+              "hi": "केनेथ टेलर"
+            },
+            "shortNameTranslation": {
+              "ar": "ك. تايلور",
+              "bn": "কে. টেলর",
+              "hi": "के. टेलर"
+            }
+          }
+        },
+        "transferFrom": {
+          "name": "Ajax U19",
+          "slug": "ajax-u19",
+          "shortName": "Ajax U19",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 3277,
+          "nameCode": "AJA",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 90118,
+          "teamColors": {
+            "primary": "#bb002b",
+            "secondary": "#ffffff",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "أياكس تحت 19",
+              "ru": "ФК Аякс Амстердам"
+            },
+            "shortNameTranslation": {
+              "ar": "أياكس تحت 19"
+            }
+          }
+        },
+        "transferTo": {
+          "name": "Jong Ajax",
+          "slug": "jong-ajax",
+          "shortName": "Jong Ajax",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 22694,
+          "nameCode": "AJA",
+          "disabled": false,
+          "national": false,
+          "parentTeam": {
+            "name": "AFC Ajax",
+            "slug": "ajax",
+            "shortName": "Ajax",
+            "gender": "M",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "userCount": 493028,
+            "nameCode": "AJA",
+            "disabled": false,
+            "national": false,
+            "type": 0,
+            "id": 2953,
+            "teamColors": {
+              "primary": "#bb002b",
+              "secondary": "#ffffff",
+              "text": "#ffffff"
+            },
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "أياكس أمستردام",
+                "bn": "আয়াক্স",
+                "hi": "अजाक्स",
+                "ru": "Аякс"
+              },
+              "shortNameTranslation": {
+                "ar": "أياكس"
+              }
+            }
+          },
+          "type": 0,
+          "id": 46160,
+          "teamColors": {
+            "primary": "#bb002b",
+            "secondary": "#ffffff",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "يونغ أياكس"
+            },
+            "shortNameTranslation": {
+              "ar": "يونغ أياكس"
+            }
+          }
+        },
+        "fromTeamName": "Ajax U19",
+        "toTeamName": "Jong Ajax",
+        "type": 3,
+        "transferFee": 0,
+        "transferFeeDescription": "-",
+        "id": 849738,
+        "transferDateTimestamp": 1561939200,
+        "transferFeeRaw": {
+          "value": 0,
+          "currency": "EUR"
+        }
+      },
+      {
+        "player": {
+          "name": "Kenneth Taylor",
+          "slug": "kenneth-taylor",
+          "shortName": "K. Taylor",
+          "position": "M",
+          "jerseyNumber": "24",
+          "userCount": 3852,
+          "gender": "M",
+          "id": 959806,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كينيث تايلور",
+              "bn": "কেনেথ টেলর",
+              "hi": "केनेथ टेलर"
+            },
+            "shortNameTranslation": {
+              "ar": "ك. تايلور",
+              "bn": "কে. টেলর",
+              "hi": "के. टेलर"
+            }
+          }
+        },
+        "fromTeamName": "Foresters Yth.",
+        "toTeamName": "Ajax Youth ",
+        "type": 3,
+        "transferFee": 0,
+        "transferFeeDescription": "Free",
+        "id": 746525,
+        "transferDateTimestamp": 1277942400,
+        "transferFeeRaw": {
+          "value": 0,
+          "currency": "EUR"
+        }
+      }
+    ],
+    "national_stats": [
+      {
+        "team": {
+          "name": "Netherlands",
+          "slug": "netherlands",
+          "shortName": "Netherlands",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 443985,
+          "nameCode": "NED",
+          "ranking": 7,
+          "disabled": false,
+          "national": true,
+          "type": 0,
+          "id": 4705,
+          "teamColors": {
+            "primary": "#ff6600",
+            "secondary": "#281fe0",
+            "text": "#281fe0"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "هولندا",
+              "bn": "নেদারল্যান্ডস",
+              "hi": "नीदरलैंड्स",
+              "ru": "Голландия (Нидерланды)"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "appearances": 5,
+        "goals": 0,
+        "debutTimestamp": 1663804800
+      }
+    ],
+    "competitions": [
+      {
+        "tournament_id": 23,
+        "season_id": 63515,
+        "tournament_name": "Serie A",
+        "season_year": "24/25",
+        "season_name": "",
+        "statistics": {},
+        "heatmap_points": []
+      }
+    ]
+  },
+  "mapped_payload": {
+    "name": "Kenneth Taylor",
+    "club": "SS Lazio",
+    "db_id": 311,
+    "sofascore_id": 959806,
+    "source": "playwright_v9",
+    "extracted": {
+      "profile": {
+        "sofascore_id": 959806,
+        "height_cm": 182,
+        "weight_kg": null,
+        "preferred_foot": "Left",
+        "jersey_number": "24",
+        "contract_until": "2030-06-30",
+        "market_value": 21.0,
+        "nationality": "Netherlands",
+        "date_of_birth": "2002-05-16",
+        "position": "M",
+        "position_detail": "MC",
+        "gender": "M",
+        "slug": "kenneth-taylor",
+        "short_name": "K. Taylor",
+        "club": "Lazio",
+        "club_id": 2699
+      },
+      "attributes": {
+        "attr_attacking": 58,
+        "attr_technical": 58,
+        "attr_tactical": 45,
+        "attr_defending": 43,
+        "attr_creativity": 55,
+        "attr_position": "M",
+        "attr_yearShift": 3,
+        "attr_id": 131380
+      },
+      "competitions": [
+        {
+          "tournament_id": 23,
+          "season_id": 63515,
+          "tournament_name": "Serie A",
+          "season_year": "24/25",
+          "season_name": "",
+          "statistics": {
+            "rating": null,
+            "total_rating": null,
+            "count_rating": null,
+            "appearances": null,
+            "matches_started": null,
+            "minutes_played": null,
+            "goals": null,
+            "assists": null,
+            "goals_assists_sum": null,
+            "shots_total": null,
+            "shots_on_target": null,
+            "shots_off_target": null,
+            "shots_inside_box": null,
+            "shots_outside_box": null,
+            "big_chances_created": null,
+            "big_chances_missed": null,
+            "goal_conversion_pct": null,
+            "headed_goals": null,
+            "left_foot_goals": null,
+            "right_foot_goals": null,
+            "goals_inside_box": null,
+            "goals_outside_box": null,
+            "free_kick_goals": null,
+            "penalty_goals": null,
+            "penalty_taken": null,
+            "penalty_won": null,
+            "penalty_conceded": null,
+            "own_goals": null,
+            "hit_woodwork": null,
+            "scoring_frequency": null,
+            "totw_appearances": null,
+            "set_piece_conversion": null,
+            "shot_from_set_piece": null,
+            "xg": null,
+            "xa": null,
+            "accurate_passes": null,
+            "inaccurate_passes": null,
+            "total_passes": null,
+            "pass_accuracy_pct": null,
+            "accurate_own_half_passes": null,
+            "accurate_opp_half_passes": null,
+            "total_own_half_passes": null,
+            "total_opp_half_passes": null,
+            "accurate_final_third_passes": null,
+            "accurate_long_balls": null,
+            "long_ball_accuracy_pct": null,
+            "total_long_balls": null,
+            "accurate_crosses": null,
+            "cross_accuracy_pct": null,
+            "total_crosses": null,
+            "key_passes": null,
+            "pass_to_assist": null,
+            "total_attempt_assist": null,
+            "accurate_chipped_passes": null,
+            "total_chipped_passes": null,
+            "successful_dribbles": null,
+            "dribble_success_pct": null,
+            "dribbled_past": null,
+            "dispossessed": null,
+            "ground_duels_won": null,
+            "ground_duels_won_pct": null,
+            "aerial_duels_won": null,
+            "aerial_duels_lost": null,
+            "aerial_duels_won_pct": null,
+            "total_duels_won": null,
+            "total_duels_won_pct": null,
+            "duel_lost": null,
+            "total_contest": null,
+            "tackles": null,
+            "tackles_won": null,
+            "tackles_won_pct": null,
+            "interceptions": null,
+            "clearances": null,
+            "blocked_shots": null,
+            "errors_led_to_goal": null,
+            "errors_led_to_shot": null,
+            "ball_recovery": null,
+            "possession_won_att_third": null,
+            "touches": null,
+            "possession_lost": null,
+            "yellow_cards": null,
+            "yellow_red_cards": null,
+            "red_cards": null,
+            "direct_red_cards": null,
+            "fouls_committed": null,
+            "fouls_won": null,
+            "offsides": null,
+            "saves": null,
+            "saves_caught": null,
+            "saves_parried": null,
+            "goals_conceded": null,
+            "goals_conceded_inside_box": null,
+            "goals_conceded_outside_box": null,
+            "clean_sheets": null,
+            "penalty_saved": null,
+            "penalty_faced": null,
+            "high_claims": null,
+            "punches": null,
+            "runs_out": null,
+            "successful_runs_out": null,
+            "saved_shots_inside_box": null,
+            "saved_shots_outside_box": null,
+            "goal_kicks": null,
+            "crosses_not_claimed": null,
+            "penalty_attempt_miss": null,
+            "penalty_attempt_post": null,
+            "penalty_attempt_target": null
+          },
+          "heatmap_points": []
+        }
+      ],
+      "matches": [],
+      "career": [
+        {
+          "transfer_id": 2675944,
+          "from_team": "AFC Ajax",
+          "to_team": "Lazio",
+          "from_team_id": 2953,
+          "to_team_id": 2699,
+          "transfer_date": "2026-01-09T00:00:00+00:00",
+          "fee": 16850000,
+          "fee_description": "16.9M €",
+          "transfer_type": "Free",
+          "type_code": 3
+        },
+        {
+          "transfer_id": 1105187,
+          "from_team": "Jong Ajax",
+          "to_team": "AFC Ajax",
+          "from_team_id": 46160,
+          "to_team_id": 2953,
+          "transfer_date": "2020-11-10T00:00:00+00:00",
+          "fee": 0,
+          "fee_description": "-",
+          "transfer_type": "Free",
+          "type_code": 3
+        },
+        {
+          "transfer_id": 849738,
+          "from_team": "Ajax U19",
+          "to_team": "Jong Ajax",
+          "from_team_id": 90118,
+          "to_team_id": 46160,
+          "transfer_date": "2019-07-01T00:00:00+00:00",
+          "fee": 0,
+          "fee_description": "-",
+          "transfer_type": "Free",
+          "type_code": 3
+        },
+        {
+          "transfer_id": 746525,
+          "from_team": "Foresters Yth.",
+          "to_team": "Ajax Youth ",
+          "from_team_id": null,
+          "to_team_id": null,
+          "transfer_date": "2010-07-01T00:00:00+00:00",
+          "fee": 0,
+          "fee_description": "Free",
+          "transfer_type": "Free",
+          "type_code": 3
+        }
+      ],
+      "national": [
+        {
+          "national_team": "Netherlands",
+          "national_team_id": 4705,
+          "appearances": 5,
+          "goals": null,
+          "assists": null,
+          "minutes": null,
+          "rating": null,
+          "yellow_cards": null,
+          "red_cards": null,
+          "debut_date": "2022-09-22"
+        }
+      ]
+    },
+    "extracted_at": "2026-04-04T04:11:58.918759"
+  }
+}

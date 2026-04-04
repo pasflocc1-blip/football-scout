@@ -91,6 +91,7 @@ class MyPlayer(Base):
     age            = Column(Integer)
     preferred_foot = Column(String(10))
     rating         = Column(Float)
+    season = Column(String(20), nullable=True)  # es. "2024-25"
 
     team = relationship("MyTeam", back_populates="players")
 
@@ -130,6 +131,7 @@ class ScoutingPlayer(Base):
     # ── Valori economici ─────────────────────────────────────────
     market_value     = Column(Float)      # in milioni €
     contract_until   = Column(Date,  nullable=True)
+    season_club = Column(String(20), nullable=True)  # stagione corrente del club es. "2024-25"
 
     # ── Cache ultimo rating (denormalizzata per la UI) ───────────
     # Fonte di verità: PlayerSeasonStats.sofascore_rating
@@ -141,6 +143,7 @@ class ScoutingPlayer(Base):
     #         attr_defending, attr_creativity, attr_position,
     #         attr_avg_* (opzionali, se SofaScore usa struttura a gruppi)
     sofascore_attributes_raw = Column(JSON, nullable=True)
+    sofascore_attributes_avg_raw = Column(JSON, nullable=True)
 
     # ── Score oggettivi 0-100 (calcolati da scoring.py) ──────────
     finishing_score      = Column(Float)
@@ -672,6 +675,7 @@ class PlayerNationalStats(Base):
     player_id     = Column(Integer, ForeignKey("scouting_players.id", ondelete="CASCADE"),
                            nullable=False, index=True)
     national_team = Column(String(100), nullable=True)
+    season = Column(String(10), nullable=True)  # es. "2024-25"
 
     appearances   = Column(Integer)
     minutes       = Column(Integer)
@@ -691,6 +695,7 @@ class PlayerNationalStats(Base):
     player = relationship("ScoutingPlayer", back_populates="national_stats")
 
     __table_args__ = (
-        UniqueConstraint('player_id', 'national_team', 'source',
-                         name='uq_national_player_team'),
+        # Include season nel constraint: permette di tenere più stagioni per stessa nazionale
+        UniqueConstraint('player_id', 'national_team', 'season', 'source',
+                         name='uq_national_player_team_season'),
     )

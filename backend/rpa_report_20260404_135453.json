@@ -1,0 +1,25 @@
+{
+  "report": {
+    "total": 1,
+    "done": 1,
+    "failed": 0,
+    "skipped": 0,
+    "duration_minutes": 1.2,
+    "avg_sec_player": 72.9
+  },
+  "players": [
+    {
+      "name": "Leonardo Spinazzola",
+      "sofascore_id": 148899,
+      "league": "serie_a",
+      "status": "done",
+      "error": "",
+      "competitions": 5,
+      "matches": 30,
+      "transfers": 16,
+      "attributes": 8,
+      "started_at": "2026-04-04T13:53:41.153059",
+      "completed_at": "2026-04-04T13:54:52.803095"
+    }
+  ]
+}

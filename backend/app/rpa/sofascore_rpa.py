@@ -22,7 +22,8 @@ OTTIMIZZAZIONE TEMPI rispetto a v9.0:
     - Fase 3: sleep(5)+sleep(3)+sleep(6) → wait_for_capture('attribute-overviews', timeout=10)
     - Fase 4: sleep(5)+sleep(4)+loop_scroll+sleep(2) → wait_for_capture('heatmap', timeout=9)
               Lo scroll loop 5×1s è ridotto a 3 scroll con 0.4s tra l'uno e l'altro
-    - Fase 7 heatmap nav: sleep(3)+sleep(3) → wait_for_capture per tid/sid, timeout=5
+    - Fase 7 heatmap nav: eliminata navigazione browser (timeout 7s sempre) →
+      JS fetch diretto (<200ms), risparmio ~7s per competizione
     - Sleep tra competizioni: da random(0.7,1.3) a random(0.3,0.7)
     - Sleep post-fase 7: da 2s a 1s
     - Sleep tra endpoint Fase 5: da random(0.6,1.2) a random(0.3,0.6)
@@ -134,27 +135,6 @@ async def wait_for_capture(
     return False
 
 
-async def wait_for_heatmap_capture(
-    captured: dict,
-    tid: str,
-    sid: str,
-    timeout: float = 7.0,
-    poll_interval: float = 0.3,
-) -> bool:
-    """
-    Versione specializzata per la heatmap: controlla anche tid e sid.
-    """
-    elapsed = 0.0
-    while elapsed < timeout:
-        for url in captured:
-            if 'heatmap' in url and f'/{tid}/' in url and f'/{sid}' in url:
-                pts = captured[url].get('points', captured[url].get('heatmap', []))
-                if pts:
-                    return True
-        await asyncio.sleep(poll_interval)
-        elapsed += poll_interval
-    return False
-
 
 # ══════════════════════════════════════════════════════════════════
 # DATACLASS
@@ -260,31 +240,45 @@ def extract_competitions_from_matches(matches: list) -> list:
 
 
 def _map_attributes(raw: list) -> dict:
-    result = {}
+    """
+    Versione corretta che separa player attrs da average attrs.
+    Ritorna: {"player": {...}, "average": {...}}
+    """
+    result_player = {}
+    result_avg = {}
+
     if not isinstance(raw, list) or not raw:
-        return result
+        return {"player": {}, "average": {}}
+
     first = raw[0] if raw else {}
+
+    # Struttura PIATTA: [player_attrs, average_attrs, ...]
+    # Il primo elemento è il giocatore, il secondo (se c'è) è la media della posizione
     if isinstance(first, dict) and 'attributes' not in first and 'title' not in first:
-        for item in raw:
+        for idx, item in enumerate(raw):
+            target = result_player if idx == 0 else result_avg
             for k, v in item.items():
                 if k != 'position' and v is not None:
-                    result[f'attr_{k}'] = v
+                    target[f'attr_{k}'] = v
                 elif k == 'position':
-                    result['attr_position'] = v
-        return result
+                    target['attr_position'] = v
+        return {"player": result_player, "average": result_avg}
+
+    # Struttura A GRUPPI: [{title, averageAttributeValue, attributes:[{key, value}]}]
     for group in raw:
         group_title = group.get('title', 'unknown').replace(' ', '_')
         avg = group.get('averageAttributeValue')
         if avg is not None:
-            result[f'attr_avg_{group_title}'] = avg
+            result_avg[f'attr_avg_{group_title}'] = avg
         for attr in group.get('attributes', []):
             key = attr.get('key', '')
             value = attr.get('value')
             title = attr.get('title', '')
             if key:
-                result[f'attr_{key}'] = value
-                result[f'attr_title_{key}'] = title
-    return result
+                result_player[f'attr_{key}'] = value
+                result_player[f'attr_title_{key}'] = title
+
+    return {"player": result_player, "average": result_avg}
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -573,8 +567,11 @@ class SofaPlaywrightClient:
                             or captured_data.get('playerAttributes')
                             or (captured_data if isinstance(captured_data, list) else [])
                         )
-                        result['attributes'] = _map_attributes(attrs_raw)
+                        mapped = _map_attributes(attrs_raw)
+                        result['attributes'] = mapped['player']
+                        result['attributes_avg'] = mapped.get('average', {})
                         log.info(f'  [PW] ✅ Attributi: {len(result["attributes"])} valori')
+                        log.info(f'  [PW] ✅ Attributi AVG: {len(result["attributes_avg"])} valori')
                     continue
 
                 log.info(f'  [PW-JS] Forcing fetch: {ep.split("/")[-1]}')
@@ -598,8 +595,11 @@ class SofaPlaywrightClient:
                                 or data.get('playerAttributes')
                                 or (data if isinstance(data, list) else [])
                             )
-                            result['attributes'] = _map_attributes(attrs_raw)
+                            mapped = _map_attributes(attrs_raw)
+                            result['attributes'] = mapped['player']  # ✅
+                            result['attributes_avg'] = mapped.get('average', {})  # ✅
                             log.info(f'  [PW-JS] ✅ Attributi via JS: {len(result["attributes"])} valori')
+                            log.info(f'  [PW-JS] ✅ Attributi AVG via JS: {len(result["attributes_avg"])} valori')
                         log.info(f'  [PW-JS] OK: {ep.split("/")[-1]}')
                     else:
                         log.warning(f'  [PW-JS] Fallito: {ep.split("/")[-1]}')
@@ -622,9 +622,11 @@ class SofaPlaywrightClient:
                         or data.get('playerAttributes')
                         or (data if isinstance(data, list) else [])
                     )
-                    result['attributes'] = _map_attributes(attrs_raw)
+                    mapped = _map_attributes(attrs_raw)
+                    result['attributes'] = mapped['player']  # ✅
+                    result['attributes_avg'] = mapped.get('average', {})  # ✅
                     log.info(f'  [PW] Attributi da captured: {len(result["attributes"])} valori')
-
+                    log.info(f'  [PW] Attributi AVG da captured: {len(result["attributes_avg"])} valori')
                 elif re.search(r'/events/', url):
                     result['matches'] = data.get('events', [])
                     log.info(f'  [PW] Partite: {len(result["matches"])}')
@@ -684,34 +686,9 @@ class SofaPlaywrightClient:
                             break
 
                 if not entry['heatmap_points']:
-                    # OTTIMIZZATO: naviga e usa wait_for_heatmap_capture invece di sleep(3)+sleep(3)
-                    heat_page_url = (
-                        f'{SOFA_BASE}/player/{slug}/{player_id}/statistics'
-                        f'?uniqueTournamentId={tid}&seasonId={sid}'
-                    )
-                    log.info(f'      Navigazione heatmap: tid={tid} sid={sid}')
-                    try:
-                        await page.goto(heat_page_url, wait_until='commit', timeout=PAGE_TIMEOUT_MS)
-                        await page.evaluate("window.scrollTo(0, 800)")
-
-                        # Attesa condizionale: esce appena heatmap per tid/sid appare in captured
-                        found = await wait_for_heatmap_capture(captured, tid, sid, timeout=7.0)
-                        if found:
-                            log.info(f'      ✅ Heatmap intercettata (wait_for_capture)')
-                        else:
-                            log.info(f'      ⏱ Timeout heatmap — provo JS fetch')
-
-                        for cap_url, cap_data in captured.items():
-                            if 'heatmap' in cap_url and f'/{tid}/' in cap_url and f'/{sid}' in cap_url:
-                                pts = cap_data.get('points', cap_data.get('heatmap', []))
-                                if pts:
-                                    entry['heatmap_points'] = pts
-                                    log.info(f'      ✅ Heatmap post-nav: {len(pts)} punti')
-                                    break
-                    except Exception as e:
-                        log.warning(f'      Navigazione heatmap errore: {e}')
-
-                if not entry['heatmap_points']:
+                    # La navigazione browser per la heatmap va sempre in timeout (7s)
+                    # perché SofaScore chiama l'endpoint lato client dopo il render.
+                    # Il JS fetch funziona sempre in <200ms — andiamo diretto.
                     log.info(f'      Heatmap JS fetch: {heat_ep[-50:]}')
                     heat_referer = f'{SOFA_BASE}/player/{slug}/{player_id}'
                     heat_data = await self._js_fetch(page, heat_ep, referer=heat_referer)
@@ -1052,7 +1029,13 @@ def build_payload(job: PlayerJob, data: dict) -> dict:
     matches_mapped = _map_matches(data.get('matches', []))
     transfers_mapped = _map_transfers(data.get('transfers', []))
     national_mapped = _map_national(data.get('national_stats', []))
-
+    attrs = data.get('attributes', {})
+    if isinstance(attrs, dict) and 'player' in attrs:
+        payload_attributes = attrs['player']
+        payload_attributes_avg = attrs.get('average', {})
+    else:
+        payload_attributes = attrs
+        payload_attributes_avg = data.get('attributes_avg', {})  # ✅
     return {
         'name': job.name,
         'club': job.club,
@@ -1061,7 +1044,8 @@ def build_payload(job: PlayerJob, data: dict) -> dict:
         'source': 'playwright_v9',
         'extracted': {
             'profile': profile_mapped,
-            'attributes': data.get('attributes', {}),
+            'attributes': payload_attributes,
+            'attributes_avg': payload_attributes_avg,  # NUOVO
             'competitions': competitions_mapped,
             'matches': matches_mapped,
             'career': transfers_mapped,

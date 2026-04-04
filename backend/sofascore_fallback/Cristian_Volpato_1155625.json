@@ -3,13 +3,13 @@
     "name": "Cristian Volpato",
     "sofascore_id": 1155625,
     "league": "serie_a",
-    "saved_at": "2026-04-03T22:43:06.793659",
+    "saved_at": "2026-04-04T00:37:16.167413",
     "rpa_version": "v9.5-fast"
   },
   "raw_data": {
     "player_id": 1155625,
     "league_key": "serie_a",
-    "fetched_at": "2026-04-03T22:41:56.926907",
+    "fetched_at": "2026-04-04T00:36:12.386361",
     "profile": {
       "name": "Cristian Volpato",
       "firstName": "",
@@ -20141,6 +20141,6 @@
       ],
       "national": []
     },
-    "extracted_at": "2026-04-03T22:43:06.543691"
+    "extracted_at": "2026-04-04T00:37:15.962897"
   }
 }

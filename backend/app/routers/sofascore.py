@@ -30,6 +30,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import insert
 
 from app.database import get_db
 from app.models.models import (
@@ -46,7 +47,7 @@ log = logging.getLogger(__name__)
 router = APIRouter(prefix='/ingest/sofascore', tags=['ingest-sofascore'])
 
 _stats_counter = {'received': 0, 'matched': 0, 'unmatched': 0, 'errors': 0}
-CURRENT_SEASON = '2024-25'
+CURRENT_SEASON = '2025-26'
 
 
 # ── Modelli Pydantic ──────────────────────────────────────────────
@@ -132,17 +133,21 @@ async def ingest_ocr(payload: OCRPayload, db: Session = Depends(get_db)):
         updated_sections.append('profile')
 
     # 1b. Attributi SofaScore → sofascore_attributes_raw
-    # L'RPA v9 manda extracted.attributes come dict piatto:
-    # {"attr_attacking": 72, "attr_technical": 68, ...}
-    # Lo salviamo direttamente — player_detail.py lo trasforma per il Vue.
+    # L'RPA v9 manda sempre il set completo — sostituzione diretta, no merge.
+    # Il merge causava contaminazione tra attributi giocatore e media di posizione
+    # nel caso in cui run precedenti avessero scritto dati errati nella colonna.
     attributes = ex.get('attributes', {})
     if attributes and hasattr(player, 'sofascore_attributes_raw'):
-        # Merge con eventuali dati già presenti (non sovrascrivere con dict vuoto)
-        existing = player.sofascore_attributes_raw or {}
-        existing.update({k: v for k, v in attributes.items() if v is not None})
-        player.sofascore_attributes_raw = existing
-        n_attrs = len([v for v in existing.values() if v is not None])
+        player.sofascore_attributes_raw = {k: v for k, v in attributes.items() if v is not None}
+        n_attrs = len(player.sofascore_attributes_raw)
         updated_sections.append(f'attributes({n_attrs})')
+
+    # 1c. Media attributi posizione → sofascore_attributes_avg_raw
+    # Stessa logica: sostituzione diretta, l'RPA manda sempre il set completo.
+    attributes_avg = ex.get('attributes_avg', {})
+    if attributes_avg and hasattr(player, 'sofascore_attributes_avg_raw'):
+        player.sofascore_attributes_avg_raw = {k: v for k, v in attributes_avg.items() if v is not None}
+        updated_sections.append(f'attributes_avg({len(player.sofascore_attributes_avg_raw)})')
 
     # 2. Competitions → player_season_stats + player_heatmap (v8)
     competitions = ex.get('competitions', [])
@@ -255,8 +260,14 @@ async def status():
 # ══════════════════════════════════════════════════════════════════
 # HELPERS — v8 (multi-competizione)
 # ══════════════════════════════════════════════════════════════════
+def _find_player_for_ocr(db, payload):
+    season = None
+    profile = payload.extracted.get('profile', {})
+    # La season viene dalla prima competition del payload
+    competitions = payload.extracted.get('competitions', [])
+    if competitions:
+        season = _format_season(competitions[0].get('season_year', ''))
 
-def _find_player_for_ocr(db: Session, payload: OCRPayload) -> Optional[ScoutingPlayer]:
     if payload.db_id:
         p = db.query(ScoutingPlayer).filter(ScoutingPlayer.id == payload.db_id).first()
         if p: return p
@@ -265,7 +276,7 @@ def _find_player_for_ocr(db: Session, payload: OCRPayload) -> Optional[ScoutingP
             ScoutingPlayer.sofascore_id == str(payload.sofascore_id)
         ).first()
         if p: return p
-    return find_player_in_db(db, payload.name, payload.club)
+    return find_player_in_db(db, payload.name, payload.club, season=season)
 
 
 def _apply_profile(player: ScoutingPlayer, profile: dict, sofascore_id: Optional[int]):
@@ -311,46 +322,60 @@ def _apply_profile(player: ScoutingPlayer, profile: dict, sofascore_id: Optional
 
 
 def _upsert_season_stats_v8(db, player_id, season, league, source,
-                             stats: dict, tournament_id, season_id, fetched_at):
+                            stats: dict, tournament_id, season_id, fetched_at):
     """
-    Crea o aggiorna player_season_stats con i dati da _map_stats() dell'RPA v8.
-    I nomi dei campi in `stats` corrispondono DIRETTAMENTE alle colonne del modello.
+    Versione ATOMICA (PostgreSQL Upsert) per evitare errori UniqueViolation.
     """
-    row = db.query(PlayerSeasonStats).filter_by(
-        player_id=player_id, season=season, league=league, source=source
-    ).first()
-    if not row:
-        row = PlayerSeasonStats(
-            player_id=player_id, season=season, league=league, source=source
-        )
-        db.add(row)
+    # Prepariamo il dizionario con i dati base
+    data_to_insert = {
+        "player_id": player_id,
+        "season": season,
+        "league": league,
+        "source": source,
+        "tournament_id": tournament_id,
+        "season_id": season_id,
+        "fetched_at": fetched_at,
+        "updated_at": fetched_at
+    }
 
-    # Tutti i campi hanno lo stesso nome nel dict e nella colonna — loop diretto
+    # Mappiamo i campi degli stats nel dizionario, convertendo i tipi
     for field, value in stats.items():
         if value is None:
             continue
-        if not hasattr(row, field):
-            continue  # campo extra non ancora in DB (es. total_rating) — ignora silenziosamente
-        # Determina tipo dalla colonna SQLAlchemy
+
+        # Verifica se la colonna esiste nel modello
         col = PlayerSeasonStats.__table__.c.get(field)
         if col is None:
             continue
-        col_type = str(col.type)
+
+        col_type = str(col.type).upper()
         try:
-            if 'INTEGER' in col_type or 'INT' in col_type:
-                setattr(row, field, _i(value))
-            elif 'FLOAT' in col_type or 'REAL' in col_type or 'NUMERIC' in col_type:
-                setattr(row, field, _f(value))
+            if 'INT' in col_type:
+                data_to_insert[field] = _i(value)
+            elif any(t in col_type for t in ['FLOAT', 'REAL', 'NUMERIC']):
+                data_to_insert[field] = _f(value)
             else:
-                setattr(row, field, value)
-        except Exception:
-            pass
+                data_to_insert[field] = value
+        except:
+            continue
 
-    _s(row, 'tournament_id', tournament_id)
-    _s(row, 'season_id',     season_id)
-    row.fetched_at = fetched_at
-    row.updated_at = fetched_at
+    # Costruiamo lo statement di UPSERT
+    stmt = insert(PlayerSeasonStats).values(data_to_insert)
 
+    # Definiamo cosa aggiornare in caso di conflitto (tutto tranne le chiavi della JOIN)
+    update_cols = {
+        k: v for k, v in data_to_insert.items()
+        if k not in ['player_id', 'season', 'league', 'source']
+    }
+
+    # Se c'è conflitto sulla constraint uq_player_season_league_source, fai l'UPDATE
+    stmt = stmt.on_conflict_do_update(
+        constraint="uq_player_season_league_source",
+        set_=update_cols
+    )
+
+    # Eseguiamo direttamente
+    db.execute(stmt)
 
 def _upsert_heatmap_v8(db, player_id, season, league, points, position, fetched_at):
     """Crea o aggiorna player_heatmap per (player_id, season, league)."""
@@ -437,26 +462,34 @@ def _save_matches_v8(db, player_id, matches, source, fetched_at):
 
 def _save_career_v8(db, player_id, transfers, source, fetched_at):
     """
-    Salva i trasferimenti con i campi estesi dell'RPA v8.
-    Campi nuovi: transfer_id, from/to_team_id, fee_description, type_code.
-    Deduplicazione: per transfer_id se disponibile, altrimenti per (to_team, transfer_type).
+    Salva i trasferimenti con season.
+    La season viene derivata dalla transfer_date quando disponibile,
+    altrimenti dalla chiave 'season' nel payload (mappata dall'RPA).
     """
+    from app.models.models import PlayerCareer
+
+    def _i(v):
+        if v is None: return None
+        try:
+            return int(float(str(v).replace(',', '.')))
+        except:
+            return None
+
+    def _f(v):
+        if v is None: return None
+        try:
+            return round(float(str(v).replace(',', '.')), 4)
+        except:
+            return None
+
+    def _s(obj, attr, val):
+        if val is not None and hasattr(obj, attr):
+            setattr(obj, attr, val)
+
     for t in transfers:
         from_str = t.get('from_team', '')
-        to_str   = t.get('to_team', '')
+        to_str = t.get('to_team', '')
         type_str = t.get('transfer_type', str(t.get('type_code', '')))
-
-        # Deduplicazione primaria per transfer_id (più affidabile)
-        existing = None
-        if t.get('transfer_id'):
-            # Non c'è una colonna transfer_id nel modello — dedup per to_team + type
-            existing = db.query(PlayerCareer).filter_by(
-                player_id=player_id, to_team=to_str, transfer_type=type_str
-            ).first()
-        if not existing:
-            existing = db.query(PlayerCareer).filter_by(
-                player_id=player_id, to_team=to_str, transfer_type=type_str
-            ).first()
 
         # Converti data
         transfer_date = None
@@ -470,56 +503,94 @@ def _save_career_v8(db, player_id, transfers, source, fetched_at):
             except Exception:
                 pass
 
+        # Deriva season dalla data del trasferimento
+        # Convenzione: trasferimento estate (Jun-Aug) → stagione che inizia quell'anno
+        # Es: trasferimento Ago 2024 → season "2024-25"
+        season_str = t.get('season', '')  # l'RPA può mandarlo esplicitamente
+        if not season_str and transfer_date:
+            yr = transfer_date.year
+            mo = transfer_date.month
+            if mo >= 6:
+                season_str = f'{yr}-{str(yr + 1)[-2:]}'
+            else:
+                season_str = f'{yr - 1}-{str(yr)[-2:]}'
+
         fee = t.get('fee')
-        # SofaScore restituisce fee in EUR (intero) — converti in milioni se > 10000
         if fee and isinstance(fee, (int, float)) and fee > 10000:
             fee = round(fee / 1_000_000, 2)
 
+        # Deduplicazione: (player_id, to_team, transfer_type, season)
+        existing = db.query(PlayerCareer).filter_by(
+            player_id=player_id, to_team=to_str, transfer_type=type_str
+        ).first()
+
         if existing:
-            existing.from_team     = from_str
+            existing.from_team = from_str
             existing.transfer_date = transfer_date
-            existing.fee           = fee
-            existing.fetched_at    = fetched_at
+            existing.fee = fee
+            existing.fetched_at = fetched_at
+            if season_str:
+                existing.season = season_str
         else:
-            db.add(PlayerCareer(
+            row = PlayerCareer(
                 player_id=player_id,
                 from_team=from_str,
                 to_team=to_str,
                 transfer_date=transfer_date,
                 fee=fee,
                 transfer_type=type_str,
+                season=season_str or None,
                 source=source,
                 fetched_at=fetched_at,
-            ))
+            )
+            db.add(row)
+
+
+from sqlalchemy.dialects.postgresql import insert  # Assicurati che questo import sia presente in alto
 
 
 def _upsert_national_v8(db, player_id, entry: dict, source, fetched_at):
     """
-    Salva una voce di statistiche nazionali.
-    entry ha: national_team, national_team_id, appearances, goals, assists,
-              minutes, rating, yellow_cards, red_cards, debut_date.
+    Versione ATOMICA per evitare UniqueViolation su player_national_stats.
+    Constraint: uq_national_player_team (player_id, national_team, source)
     """
-    national_team = entry.get('national_team', '')
-    row = db.query(PlayerNationalStats).filter_by(
-        player_id=player_id, national_team=national_team, source=source
-    ).first()
-    if not row:
-        row = PlayerNationalStats(
-            player_id=player_id, national_team=national_team, source=source
-        )
-        db.add(row)
+    national_team = entry.get('national_team')
+    if not national_team:
+        return
 
-    _s(row, 'appearances',   _i(entry.get('appearances')))
-    _s(row, 'goals',         _i(entry.get('goals')))
-    _s(row, 'assists',       _i(entry.get('assists')))
-    _s(row, 'minutes',       _i(entry.get('minutes')))
-    _s(row, 'rating',        _f(entry.get('rating')))
-    _s(row, 'yellow_cards',  _i(entry.get('yellow_cards')))
-    _s(row, 'red_cards',     _i(entry.get('red_cards')))
-    row.raw_data   = entry
-    row.fetched_at = fetched_at
-    row.updated_at = fetched_at
+    # Prepariamo i dati per l'inserimento/aggiornamento
+    base_values = {
+        "player_id": player_id,
+        "national_team": national_team,
+        "season": entry.get('season_year', '2025-26'),  # Default se manca
+        "appearances": _i(entry.get('appearances')),
+        "goals": _i(entry.get('goals')),
+        "assists": _i(entry.get('assists')),
+        "minutes": _i(entry.get('minutes')),
+        "rating": _f(entry.get('rating')),
+        "yellow_cards": _i(entry.get('yellow_cards')),
+        "red_cards": _i(entry.get('red_cards')),
+        "raw_data": json.dumps(entry),
+        "source": source,
+        "fetched_at": fetched_at,
+        "updated_at": fetched_at
+    }
 
+    # Costruiamo lo statement di UPSERT
+    stmt = insert(PlayerNationalStats).values(base_values)
+
+    # In caso di conflitto su (player_id, national_team, source), aggiorna i dati
+    update_cols = {
+        k: v for k, v in base_values.items()
+        if k not in ['player_id', 'national_team', 'source']
+    }
+
+    stmt = stmt.on_conflict_do_update(
+        constraint="uq_national_player_team",
+        set_=update_cols
+    )
+
+    db.execute(stmt)
 
 # ── Retrocompatibilità v7 ─────────────────────────────────────────
 

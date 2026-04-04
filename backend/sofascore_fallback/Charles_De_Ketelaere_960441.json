@@ -3,13 +3,13 @@
     "name": "Charles De Ketelaere",
     "sofascore_id": 960441,
     "league": "serie_a",
-    "saved_at": "2026-04-03T22:38:41.207083",
+    "saved_at": "2026-04-04T00:20:54.920693",
     "rpa_version": "v9.5-fast"
   },
   "raw_data": {
     "player_id": 960441,
     "league_key": "serie_a",
-    "fetched_at": "2026-04-03T22:37:24.296099",
+    "fetched_at": "2026-04-04T00:19:42.818108",
     "profile": {
       "name": "Charles De Ketelaere",
       "firstName": "",
@@ -28728,6 +28728,6 @@
         }
       ]
     },
-    "extracted_at": "2026-04-03T22:38:41.004872"
+    "extracted_at": "2026-04-04T00:20:54.736274"
   }
 }

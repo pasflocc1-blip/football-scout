@@ -129,3 +129,36 @@ def db_stats(db: Session = Depends(get_db)):
         "teams":             db.query(MyTeam).count(),
         "roster_players":    db.query(MyPlayer).count(),
     }
+
+
+@router.get("/data-sources/last-update")
+def get_last_updates(db: Session = Depends(get_db)):
+    from sqlalchemy import text, func
+    from app.models.models import PlayerSeasonStats, ScoutingPlayer, PlayerHeatmap
+
+    rows = db.query(
+        PlayerSeasonStats.source,
+        func.max(PlayerSeasonStats.fetched_at).label('last_download'),
+        func.count(PlayerSeasonStats.player_id.distinct()).label('players_updated'),
+    ).group_by(PlayerSeasonStats.source).all()
+
+    result = [
+        {
+            "source": r.source,
+            "last_download": r.last_download.isoformat() if r.last_download else None,
+            "players_updated": r.players_updated,
+        }
+        for r in rows
+    ]
+
+    # Aggiunge SofaScore da scouting_players.last_updated_sofascore
+    sofa_last = db.query(func.max(ScoutingPlayer.last_updated_sofascore)).scalar()
+    result.append({
+        "source": "sofascore_rpa",
+        "last_download": sofa_last.isoformat() if sofa_last else None,
+        "players_updated": db.query(ScoutingPlayer).filter(
+            ScoutingPlayer.last_updated_sofascore.isnot(None)
+        ).count(),
+    })
+
+    return result

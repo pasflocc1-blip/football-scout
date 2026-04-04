@@ -1,241 +1,330 @@
 """
-services/scoring.py — Fase 2 + Fase 3 pipeline oggettivo
----------------------------------------------------------
+services/scoring.py — v3.1
+---------------------------
+MODIFICHE v3.0 → v3.1:
 
-FASE 2 — Normalizzazione per 90 min
-    Tutti i valori raw stagionali vengono divisi per (minuti / 90).
-    Questo elimina il bias da minutaggio: un giocatore con 30 partite
-    non sembra automaticamente migliore di uno con 10.
+  FIX 4 — defending score consapevole del ruolo CB/fullback:
+    Il vecchio defending usava solo duels_won_pct + aerial_won_pct + tackles_p90.
+    Per un CB (Gatti) questo dava score bassissimo perché i CB fanno pochi tackles
+    ma molte respinte, intercetti e recuperi — dati presenti in SofaScore ma ignorati.
 
-    Convenzione di naming:
-        _p90(raw_value, minutes)  →  raw_value / (minutes / 90)
+    Nuovo _compute_defending():
+      Livello A (formula storica): duelli + tackles — buono per CM/DM
+      Livello B (formula CB):      clearances + interceptions + ball_recovery +
+                                   duelli aerei — buono per CB/fullback
+      Risultato: max(A, B) — il giocatore prende sempre la formula più favorevole.
 
-    I valori per90 già presenti nel modello (xg_per90, xa_per90, npxg_per90,
-    xgchain_per90, xgbuildup_per90) sono già normalizzati dalle sorgenti
-    (Understat, StatsBomb) — non vanno ricalcolati qui.
+    Nuove metriche aggiunte a _merge_season_rows:
+      clearances, interceptions, ball_recovery, tackles_won_pct
 
-    Valori raw che normalizziamo qui:
-        goals_season         → goals_p90
-        shots_season         → shots_p90
-        key_passes_season    → key_passes_p90
-        progressive_passes   → prog_passes_p90
-        progressive_carries  → prog_carries_p90
-        touches_att_pen      → touches_att_pen_p90
-        pressures_season     → pressures_p90
-        pressure_regains     → regains_p90
-        tackles_season       → tackles_p90
+    Nuovi _REF calibrati (95° percentile CB):
+      clearances_p90=5.0, interceptions_p90=1.5, ball_recovery_p90=4.5,
+      tackles_won_pct=70.0
 
-FASE 3 — Score dimensionali 0-100
-    Sei score compositi calcolati da valori per-90:
-
-        finishing_score  = npxG/90 · 0.5 + tiri/90 · 0.3 + conversione gol/xG · 0.2
-        creativity_score = xA/90   · 0.4 + PrgP/90 · 0.35 + key_passes/90 · 0.25
-        pressing_score   = pressioni/90 · 0.5 + regains/90 · 0.5
-        carrying_score   = PrgC/90 · 0.6 + tocchi_area/90 · 0.4
-        defending_score  = duelli_vinti% · 0.4 + aerei_vinti% · 0.35 + tackle/90 · 0.25
-        buildup_score    = xGChain/90 · 0.6 + xGBuildup/90 · 0.4
-
-    Ogni score viene scalato su 0-100 rispetto a soglie di riferimento
-    calibrate su Serie A / Premier League (puoi aggiustarle).
-
-    Score legacy (heading_score, build_up_score, defensive_score)
-    vengono mappati agli score oggettivi per compatibilità UI:
-        heading_score   ← defending_obj_score (con peso aereo)
-        build_up_score  ← buildup_obj_score
-        defensive_score ← defending_obj_score
-
-Come aggiornare dopo ogni importazione:
-    POST /admin/recalculate-scores
-    oppure da shell: python -m app.services.scoring
+  Invariato rispetto a v3.0:
+    FIX 1 — _merge_season_rows con priorità per fonte
+    FIX 2 — soglie _REF ricalibrate
+    FIX 3 — fallback onesti (pressing=0 se pressures=NULL)
 """
 
 from __future__ import annotations
-from app.models.models import ScoutingPlayer
+from app.models.models import ScoutingPlayer, PlayerSeasonStats
 
 
-# ─────────────────────────────────────────────────────────────────
-# SOGLIE DI RIFERIMENTO PER SCALATURA 0-100
-# Rappresentano il valore "eccellente" (≈ top 5% Serie A / PL).
-# Un giocatore che raggiunge la soglia ottiene ~100; chi è a metà ~50.
-# ─────────────────────────────────────────────────────────────────
 _REF = {
-    # Finishing
-    "npxg_p90":         0.60,   # ~top attaccanti PL/Serie A
-    "shots_p90":        5.0,    # tiri per 90 (top finisher)
-    "goal_conversion":  0.25,   # gol / xG (25% = eccellente finisher)
-
-    # Creativity
-    "xa_p90":           0.40,
-    "prog_passes_p90":  8.0,    # passaggi progressivi / 90
-    "key_passes_p90":   2.5,
-
-    # Pressing
-    "pressures_p90":    20.0,   # pressioni / 90 (top pressers)
-    "regains_p90":      3.0,    # recuperi da pressing / 90
-
-    # Carrying
-    "prog_carries_p90": 5.0,    # conduzioni progressive / 90
-    "touches_att_p90":  4.0,    # tocchi in area avv. / 90
-
-    # Defending
-    "duels_won_pct":    65.0,   # % duelli vinti (0-100)
-    "aerial_won_pct":   65.0,   # % duelli aerei vinti (0-100)
-    "tackles_p90":      3.0,    # tackle / 90
-
-    # Build-up
-    "xgchain_p90":      0.80,
-    "xgbuildup_p90":    0.50,
+    "npxg_p90":           0.55,
+    "shots_p90":          4.5,
+    "goal_conversion":    0.30,
+    "xa_p90":             0.35,
+    "prog_passes_p90":    10.0,
+    "key_passes_p90":     2.8,
+    "pressures_p90":      30.0,
+    "regains_p90":        4.0,
+    "prog_carries_p90":   8.0,
+    "dribbles_p90":       3.5,
+    "touches_att_p90":    5.0,
+    "duels_won_pct":      68.0,
+    "aerial_won_pct":     68.0,
+    "tackles_p90":        3.5,
+    "tackles_won_pct":    70.0,   # % tackle vinti — 70% è buono per un difensore
+    "clearances_p90":     5.0,    # 95° pct CB: ~5 respinte/90
+    "interceptions_p90":  1.5,    # 95° pct CB: ~1.5 intercetti/90
+    "ball_recovery_p90":  4.5,    # 95° pct: ~4.5 recuperi/90
+    "xgchain_p90":        1.00,
+    "xgbuildup_p90":      0.65,
 }
 
 
-# ─────────────────────────────────────────────────────────────────
-# HELPERS
-# ─────────────────────────────────────────────────────────────────
-
 def _safe(val, default: float = 0.0) -> float:
-    """Restituisce float(val) se non è None, altrimenti default."""
     return float(val) if val is not None else default
 
 
-def _p90(raw: float | None, minutes: float | None) -> float:
-    """
-    Normalizza un valore raw per 90 minuti.
-    Restituisce 0 se raw o minutes sono None/0.
-    Usa max(minutes, 1) per evitare divisione per zero.
-    """
+def _p90(raw, minutes) -> float:
     if raw is None or not minutes:
         return 0.0
     return float(raw) / (max(float(minutes), 1.0) / 90.0)
 
 
 def _scale(value: float, ref: float) -> float:
-    """
-    Scala un valore su 0-100 rispetto a una soglia di riferimento.
-    - value = 0          → score 0
-    - value = ref        → score 100
-    - value > ref        → score cappato a 100
-    Usa scalatura lineare (semplice e interpretabile).
-    """
     if ref <= 0:
         return 0.0
     return min(round((value / ref) * 100.0, 1), 100.0)
 
 
-# ─────────────────────────────────────────────────────────────────
-# FASE 2 — NORMALIZZAZIONE PER 90 MIN
-# ─────────────────────────────────────────────────────────────────
+# Priorità fonte per ogni tipo di dato (numero più basso = più prioritario)
+_SOURCE_PRIORITY = {
+    'understat':     1,
+    'fbref':         2,
+    'sofascore':     3,
+    'playwright_v9': 4,
+    'playwright_v8': 5,
+    'api_football':  6,
+}
+
+_FBREF_FIELDS = {
+    'progressive_passes', 'progressive_carries', 'touches_att_pen',
+    'pressures', 'pressure_regains', 'npxg_per90', 'xgchain_per90', 'xgbuildup_per90',
+}
+_UNDERSTAT_FIELDS = {'xg', 'xg_per90', 'xa', 'xa_per90'}
+
+
+def _merge_season_rows(p: ScoutingPlayer) -> dict:
+    """
+    Aggrega le righe PlayerSeasonStats della stagione più recente.
+    Per ogni campo prende il valore non-null dalla fonte con priorità più alta.
+    """
+    try:
+        from sqlalchemy.orm import object_session
+        from collections import defaultdict
+        session = object_session(p)
+        if not session:
+            return {}
+
+        rows = (
+            session.query(PlayerSeasonStats)
+            .filter(PlayerSeasonStats.player_id == p.id)
+            .order_by(
+                PlayerSeasonStats.season.desc(),
+                PlayerSeasonStats.minutes_played.desc(),
+            )
+            .all()
+        )
+        if not rows:
+            return {}
+
+        # Prende la stagione più recente con più minuti
+        best_season = rows[0].season
+        # Tra tutte le leghe di quella stagione, prende quella con più minuti
+        season_rows = [r for r in rows if r.season == best_season]
+        best_league = max(
+            set(r.league for r in season_rows),
+            key=lambda lg: max(
+                _safe(r.minutes_played) for r in season_rows if r.league == lg
+            )
+        )
+        target_rows = [r for r in season_rows if r.league == best_league]
+
+        def best_val(field, prefer_fbref=False, prefer_understat=False):
+            if prefer_understat and field in _UNDERSTAT_FIELDS:
+                priority_fn = lambda r: (
+                    0 if 'understat' in (r.source or '') else
+                    1 if 'fbref'     in (r.source or '') else
+                    _SOURCE_PRIORITY.get(r.source, 99)
+                )
+            elif prefer_fbref or field in _FBREF_FIELDS:
+                priority_fn = lambda r: (
+                    0 if 'fbref'     in (r.source or '') else
+                    _SOURCE_PRIORITY.get(r.source, 99)
+                )
+            else:
+                priority_fn = lambda r: _SOURCE_PRIORITY.get(r.source, 99)
+
+            for row in sorted(target_rows, key=priority_fn):
+                val = getattr(row, field, None)
+                if val is not None:
+                    return val
+            return None
+
+        m = best_val('minutes_played') or 0
+
+        return {
+            'minutes_played':       m,
+            'shots_total':          best_val('shots_total'),
+            'xg':                   best_val('xg', prefer_understat=True),
+            'xg_per90':             best_val('xg_per90', prefer_understat=True),
+            'xa':                   best_val('xa', prefer_understat=True),
+            'xa_per90':             best_val('xa_per90', prefer_understat=True),
+            'npxg_per90':           best_val('npxg_per90', prefer_fbref=True),
+            'goals':                best_val('goals'),
+            'key_passes':           best_val('key_passes'),
+            'progressive_passes':   best_val('progressive_passes', prefer_fbref=True),
+            'progressive_carries':  best_val('progressive_carries', prefer_fbref=True),
+            'touches_att_pen':      best_val('touches_att_pen', prefer_fbref=True),
+            'pressures':            best_val('pressures', prefer_fbref=True),
+            'pressure_regains':     best_val('pressure_regains', prefer_fbref=True),
+            'tackles':              best_val('tackles'),
+            'tackles_won_pct':      best_val('tackles_won_pct'),
+            'total_duels_won_pct':  best_val('total_duels_won_pct'),
+            'aerial_duels_won_pct': best_val('aerial_duels_won_pct'),
+            'clearances':           best_val('clearances'),
+            'interceptions':        best_val('interceptions'),
+            'ball_recovery':        best_val('ball_recovery'),
+            'successful_dribbles':  best_val('successful_dribbles'),
+            'xgchain_per90':        best_val('xgchain_per90', prefer_fbref=True),
+            'xgbuildup_per90':      best_val('xgbuildup_per90', prefer_fbref=True),
+        }
+
+    except Exception:
+        return {}
+
 
 def normalize_per90(p: ScoutingPlayer) -> dict:
-    """
-    Calcola tutti i valori normalizzati per 90 min a partire dai raw.
-    NON scrive sul DB — restituisce un dizionario di valori intermedi
-    usato da compute_objective_scores().
+    merged = _merge_season_rows(p)
 
-    I valori xg_per90, xa_per90, npxg_per90, xgchain_per90, xgbuildup_per90
-    sono già per-90 (calcolati dalle sorgenti) — vengono riusati direttamente.
-    """
-    m = _safe(p.minutes_season)
+    if not merged:
+        m = _safe(p.minutes_season)
+        return {k: 0.0 for k in [
+            "npxg_p90", "xg_p90", "xa_p90", "xgchain_p90", "xgbuildup_p90",
+            "shots_p90", "key_passes_p90", "prog_passes_p90", "prog_carries_p90",
+            "dribbles_p90", "touches_att_p90", "pressures_p90", "regains_p90",
+            "tackles_p90", "tackles_won_pct", "clearances_p90", "interceptions_p90",
+            "ball_recovery_p90", "duels_won_pct", "aerial_won_pct", "goal_conversion",
+        ]} | {"minutes": m}
+
+    m = _safe(merged.get('minutes_played'))
+
+    npxg_p90_val = (
+        _safe(merged.get('npxg_per90'))
+        or _safe(merged.get('xg_per90'))
+        or _p90(merged.get('xg'), m)
+    )
+    xg_p90_val = _safe(merged.get('xg_per90')) or _p90(merged.get('xg'), m)
+
+    xa_per90_raw = _safe(merged.get('xa_per90'))
+    xa_total = _safe(merged.get('xa'))
+    if xa_per90_raw > 1.5 and m > 0:
+        xa_p90_val = _p90(xa_total if xa_total else xa_per90_raw, m)
+    else:
+        xa_p90_val = xa_per90_raw or _p90(xa_total, m)
+
+    goals_val = _safe(merged.get('goals'))
+    xg_total  = _safe(merged.get('xg'))
+    goal_conversion_val = (goals_val / xg_total) if xg_total > 0.01 else 0.0
 
     return {
-        # già per-90 dalle sorgenti
-        "npxg_p90":         _safe(p.npxg_per90)      or _safe(p.xg_per90),
-        "xg_p90":           _safe(p.xg_per90),
-        "xa_p90":           _safe(p.xa_per90),
-        "xgchain_p90":      _safe(p.xgchain_per90),
-        "xgbuildup_p90":    _safe(p.xgbuildup_per90),
-
-        # normalizzati da raw stagionali
-        "goals_p90":        _p90(p.goals_season,              m),
-        "shots_p90":        _p90(p.shots_season,              m),
-        "key_passes_p90":   _p90(p.key_passes_season,         m),
-        "prog_passes_p90":  _p90(p.progressive_passes,        m),
-        "prog_carries_p90": _p90(p.progressive_carries,       m),
-        "touches_att_p90":  _p90(p.touches_att_pen_season,    m),
-        "pressures_p90":    _p90(p.pressures_season,          m),
-        "regains_p90":      _p90(p.pressure_regains_season,   m),
-        "tackles_p90":      _p90(p.tackles_season,            m),
-
-        # già percentuali (non vanno divise per minuti)
-        "duels_won_pct":    _safe(p.duels_won_pct),
-        "aerial_won_pct":   _safe(p.aerial_duels_won_pct),
-        "pass_acc_pct":     _safe(p.pass_accuracy_pct),
-
-        # conversione gol/xG (efficienza realizzativa)
-        # rapporto tra gol reali e xG — >1 = overperforming
-        "goal_conversion":  (
-            _safe(p.goals_season) / max(_safe(p.xg_per90) * (m / 90.0), 0.01)
-            if p.minutes_season and p.minutes_season > 0 and p.xg_per90
-            else 0.0
-        ),
-
-        # minuti (utile per debug / percentili)
-        "minutes": m,
+        "npxg_p90":         npxg_p90_val,
+        "xg_p90":           xg_p90_val,
+        "xa_p90":           xa_p90_val,
+        "xgchain_p90":      _safe(merged.get('xgchain_per90')),
+        "xgbuildup_p90":    _safe(merged.get('xgbuildup_per90')),
+        "shots_p90":        _p90(merged.get('shots_total'), m),
+        "key_passes_p90":   _p90(merged.get('key_passes'), m),
+        "prog_passes_p90":  _p90(merged.get('progressive_passes'), m),
+        "prog_carries_p90": _p90(merged.get('progressive_carries'), m),
+        "dribbles_p90":     _p90(merged.get('successful_dribbles'), m),
+        "touches_att_p90":  _p90(merged.get('touches_att_pen'), m),
+        "pressures_p90":    _p90(merged.get('pressures'), m),
+        "regains_p90":      _p90(merged.get('pressure_regains'), m),
+        "tackles_p90":      _p90(merged.get('tackles'), m),
+        "tackles_won_pct":  _safe(merged.get('tackles_won_pct')),
+        "clearances_p90":   _p90(merged.get('clearances'), m),
+        "interceptions_p90":_p90(merged.get('interceptions'), m),
+        "ball_recovery_p90":_p90(merged.get('ball_recovery'), m),
+        "duels_won_pct":    _safe(merged.get('total_duels_won_pct')),
+        "aerial_won_pct":   _safe(merged.get('aerial_duels_won_pct')),
+        "goal_conversion":  goal_conversion_val,
+        "minutes":          m,
     }
 
 
-# ─────────────────────────────────────────────────────────────────
-# FASE 3 — SCORE DIMENSIONALI 0-100
-# ─────────────────────────────────────────────────────────────────
+def _compute_defending(v: dict) -> float:
+    """
+    Calcola il defending score con due livelli di dati:
+
+    Livello A — dati FBref (pressures, regains): formula completa
+    Livello B — solo dati SofaScore (clearances, interceptions, ball_recovery):
+                formula alternativa pensata per CB e fullback che fanno
+                pochi tackle ma molte respinte/intercetti/recuperi.
+
+    Se entrambi i livelli hanno dati, prende il massimo tra i due
+    (un giocatore non deve essere penalizzato per avere dati più ricchi).
+    """
+    # Livello A: formula storica con duelli + tackles (funziona per CM/DM)
+    score_a = (
+        _scale(v["duels_won_pct"],  _REF["duels_won_pct"])  * 0.40 +
+        _scale(v["aerial_won_pct"], _REF["aerial_won_pct"]) * 0.35 +
+        _scale(v["tackles_p90"],    _REF["tackles_p90"])     * 0.25
+    )
+
+    # Livello B: formula CB/fullback con clearances, interceptions, ball_recovery
+    # Disponibili da SofaScore — proxy solido per difensori puri
+    has_cb_data = (
+        v.get("clearances_p90", 0) > 0 or
+        v.get("interceptions_p90", 0) > 0 or
+        v.get("ball_recovery_p90", 0) > 0
+    )
+    if has_cb_data:
+        score_b = (
+            _scale(v["duels_won_pct"],      _REF["duels_won_pct"])      * 0.20 +
+            _scale(v["aerial_won_pct"],     _REF["aerial_won_pct"])     * 0.20 +
+            _scale(v["clearances_p90"],     _REF["clearances_p90"])     * 0.25 +
+            _scale(v["interceptions_p90"],  _REF["interceptions_p90"])  * 0.20 +
+            _scale(v["ball_recovery_p90"],  _REF["ball_recovery_p90"])  * 0.15
+        )
+        # Bonus tackles_won_pct se disponibile (qualità del tackle, non volume)
+        if v.get("tackles_won_pct", 0) > 0:
+            score_b = score_b * 0.90 + _scale(v["tackles_won_pct"], _REF["tackles_won_pct"]) * 0.10
+        return max(score_a, score_b)
+
+    return score_a
+
 
 def compute_objective_scores(p: ScoutingPlayer) -> dict:
-    """
-    Calcola i sei score dimensionali oggettivi (0-100) + i tre legacy.
-
-    Pipeline:
-        raw stagionali  →  normalizzazione p90  →  score composito  →  scalatura 0-100
-
-    Ritorna un dizionario con tutti i campi da salvare nel DB.
-    """
     v = normalize_per90(p)
 
-    # ── Finishing Score ──────────────────────────────────────────
-    # Misura la pericolosità realizzativa: qualità e quantità del tiro
     finishing = (
-        _scale(v["npxg_p90"],       _REF["npxg_p90"])       * 0.50 +
-        _scale(v["shots_p90"],      _REF["shots_p90"])       * 0.30 +
-        _scale(v["goal_conversion"],_REF["goal_conversion"]) * 0.20
+        _scale(v["npxg_p90"],        _REF["npxg_p90"])        * 0.50 +
+        _scale(v["shots_p90"],       _REF["shots_p90"])        * 0.30 +
+        _scale(v["goal_conversion"], _REF["goal_conversion"])  * 0.20
     )
-
-    # ── Creativity Score ─────────────────────────────────────────
-    # Misura la capacità di creare occasioni per i compagni
     creativity = (
-        _scale(v["xa_p90"],         _REF["xa_p90"])          * 0.40 +
-        _scale(v["prog_passes_p90"],_REF["prog_passes_p90"]) * 0.35 +
-        _scale(v["key_passes_p90"], _REF["key_passes_p90"])  * 0.25
+        _scale(v["xa_p90"],          _REF["xa_p90"])           * 0.40 +
+        _scale(v["prog_passes_p90"], _REF["prog_passes_p90"])  * 0.35 +
+        _scale(v["key_passes_p90"],  _REF["key_passes_p90"])   * 0.25
     )
-
-    # ── Pressing Score ───────────────────────────────────────────
-    # Misura l'intensità e l'efficacia del pressing
+    # Pressing: 0 se pressures NULL — nessun proxy inventato
     pressing = (
-        _scale(v["pressures_p90"],  _REF["pressures_p90"])   * 0.50 +
-        _scale(v["regains_p90"],    _REF["regains_p90"])      * 0.50
+        _scale(v["pressures_p90"],   _REF["pressures_p90"])    * 0.50 +
+        _scale(v["regains_p90"],     _REF["regains_p90"])       * 0.50
     )
+    # Carrying: fallback su dribbles se carries mancano
+    if v["prog_carries_p90"] > 0:
+        carrying = (
+            _scale(v["prog_carries_p90"], _REF["prog_carries_p90"]) * 0.60 +
+            _scale(v["touches_att_p90"],  _REF["touches_att_p90"])  * 0.40
+        )
+    elif v["dribbles_p90"] > 0:
+        carrying = (
+            _scale(v["dribbles_p90"],    _REF["dribbles_p90"])      * 0.60 +
+            _scale(v["touches_att_p90"], _REF["touches_att_p90"])   * 0.40
+        )
+    else:
+        carrying = 0.0
 
-    # ── Carrying Score ───────────────────────────────────────────
-    # Misura la capacità di portare la palla in avanti con continuità
-    carrying = (
-        _scale(v["prog_carries_p90"],_REF["prog_carries_p90"])* 0.60 +
-        _scale(v["touches_att_p90"], _REF["touches_att_p90"]) * 0.40
-    )
+    defending = _compute_defending(v)
+    # Buildup: proxy xa+prog_passes se xgchain NULL (penalizzato -25%)
+    if v["xgchain_p90"] > 0 or v["xgbuildup_p90"] > 0:
+        buildup = (
+            _scale(v["xgchain_p90"],    _REF["xgchain_p90"])    * 0.60 +
+            _scale(v["xgbuildup_p90"],  _REF["xgbuildup_p90"])  * 0.40
+        )
+    else:
+        buildup = (
+            _scale(v["xa_p90"],          _REF["xa_p90"])          * 0.50 +
+            _scale(v["prog_passes_p90"], _REF["prog_passes_p90"]) * 0.50
+        ) * 0.75
 
-    # ── Defending Score ──────────────────────────────────────────
-    # Misura l'efficacia difensiva su duelli, aerei e contrasti
-    defending = (
-        _scale(v["duels_won_pct"],  _REF["duels_won_pct"])   * 0.40 +
-        _scale(v["aerial_won_pct"], _REF["aerial_won_pct"])   * 0.35 +
-        _scale(v["tackles_p90"],    _REF["tackles_p90"])      * 0.25
-    )
-
-    # ── Build-up Score ───────────────────────────────────────────
-    # Misura il contributo al gioco di costruzione (xGChain / xGBuildup)
-    buildup = (
-        _scale(v["xgchain_p90"],    _REF["xgchain_p90"])      * 0.60 +
-        _scale(v["xgbuildup_p90"],  _REF["xgbuildup_p90"])    * 0.40
-    )
-
-    # Clamp finale 0-100 su tutti
-    def clamp(x):
-        return min(round(x, 1), 100.0)
+    def clamp(x): return min(round(x, 1), 100.0)
 
     finishing_s  = clamp(finishing)
     creativity_s = clamp(creativity)
@@ -243,78 +332,45 @@ def compute_objective_scores(p: ScoutingPlayer) -> dict:
     carrying_s   = clamp(carrying)
     defending_s  = clamp(defending)
     buildup_s    = clamp(buildup)
-
-    # ── Score legacy — mappati agli oggettivi per compatibilità UI ─
-    # heading_score   → defending con peso speciale per i duelli aerei
-    heading_s = clamp(
+    heading_s    = clamp(
         _scale(v["aerial_won_pct"], _REF["aerial_won_pct"]) * 0.60 +
         defending_s                                          * 0.40
     )
 
     return {
-        # Score oggettivi (Fase 3)
         "finishing_score":     finishing_s,
         "creativity_score":    creativity_s,
         "pressing_score":      pressing_s,
         "carrying_score":      carrying_s,
         "defending_obj_score": defending_s,
         "buildup_obj_score":   buildup_s,
-
-        # Score legacy (compatibilità UI / ricerca semantica)
-        "heading_score":   heading_s,
-        "build_up_score":  buildup_s,
-        "defensive_score": defending_s,
+        "heading_score":       heading_s,
+        "build_up_score":      buildup_s,
+        "defensive_score":     defending_s,
     }
 
 
-# ─────────────────────────────────────────────────────────────────
-# ENTRY POINT: recalculate_all
-# ─────────────────────────────────────────────────────────────────
-
 def compute_scores(p: ScoutingPlayer) -> dict:
-    """
-    Alias pubblico usato da admin.py e dai test.
-    Chiama compute_objective_scores() (Fase 2 + 3).
-    """
     return compute_objective_scores(p)
 
 
 def recalculate_all(db, progress_cb=None) -> int:
-    """
-    Ricalcola tutti gli score per ogni giocatore nel DB.
-    Chiama: POST /admin/recalculate-scores
-
-    Args:
-        db:          SQLAlchemy Session
-        progress_cb: callable(done, total) opzionale per UI progress
-
-    Returns:
-        Numero di giocatori aggiornati.
-    """
     players = db.query(ScoutingPlayer).all()
     total   = len(players)
     updated = 0
-
     for i, p in enumerate(players):
         scores = compute_objective_scores(p)
         for key, val in scores.items():
-            # Scrive solo se la colonna esiste nel modello
-            # (protezione se migration non ancora applicata)
             if hasattr(p, key):
                 setattr(p, key, val)
         updated += 1
-
         if progress_cb and i % 100 == 0:
             progress_cb(i + 1, total)
-
     db.commit()
     print(f"  → scoring: {updated} giocatori aggiornati su {total}")
     return updated
 
 
-# ─────────────────────────────────────────────────────────────────
-# RUN DIRETTO  (python -m app.services.scoring)
-# ─────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     from app.database import SessionLocal
     db = SessionLocal()

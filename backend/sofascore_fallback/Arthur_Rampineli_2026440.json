@@ -1,0 +1,1521 @@
+{
+  "meta": {
+    "name": "Arthur Rampineli",
+    "sofascore_id": 2026440,
+    "league": "serie_a",
+    "saved_at": "2026-04-03T23:57:08.639094",
+    "rpa_version": "v9.5-fast"
+  },
+  "raw_data": {
+    "player_id": 2026440,
+    "league_key": "serie_a",
+    "fetched_at": "2026-04-03T23:56:22.812952",
+    "profile": {
+      "name": "Arthur Rampineli Borghi",
+      "firstName": "Arthur",
+      "lastName": "Rampineli Borghi",
+      "slug": "arthur-rampineli-borghi",
+      "shortName": "A. R. Borghi",
+      "team": {
+        "name": "Hellas Verona",
+        "slug": "hellas-verona",
+        "shortName": "Verona",
+        "gender": "M",
+        "sport": {
+          "name": "Football",
+          "slug": "football",
+          "id": 1
+        },
+        "tournament": {
+          "name": "Serie A",
+          "slug": "serie-a",
+          "category": {
+            "name": "Italy",
+            "slug": "italy",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 7,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 31,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "hi": "इटली",
+                "ar": "إيطاليا",
+                "bn": "ইতালি",
+                "ru": "Италия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "Serie A",
+            "slug": "serie-a",
+            "primaryColorHex": "#09519e",
+            "secondaryColorHex": "#008fd7",
+            "category": {
+              "name": "Italy",
+              "slug": "italy",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 7,
+              "country": {
+                "alpha2": "IT",
+                "alpha3": "ITA",
+                "name": "Italy",
+                "slug": "italy"
+              },
+              "id": 31,
+              "flag": "italy",
+              "alpha2": "IT",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "hi": "इटली",
+                  "ar": "إيطاليا",
+                  "bn": "ইতালি",
+                  "ru": "Италия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 631654,
+            "country": {},
+            "id": 23,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "الدوري الإيطالي",
+                "hi": "सीरी ए",
+                "bn": "সিরি আ"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 700,
+          "isLive": false,
+          "id": 33,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "hi": "सीरी ए",
+              "ar": "الدوري الإيطالي",
+              "bn": "সিরি আ"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "primaryUniqueTournament": {
+          "name": "Serie A",
+          "slug": "serie-a",
+          "primaryColorHex": "#09519e",
+          "secondaryColorHex": "#008fd7",
+          "category": {
+            "name": "Italy",
+            "slug": "italy",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 7,
+            "country": {
+              "alpha2": "IT",
+              "alpha3": "ITA",
+              "name": "Italy",
+              "slug": "italy"
+            },
+            "id": 31,
+            "flag": "italy",
+            "alpha2": "IT",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "hi": "इटली",
+                "ar": "إيطاليا",
+                "bn": "ইতালি",
+                "ru": "Италия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "userCount": 631654,
+          "country": {},
+          "id": 23,
+          "displayInverseHomeAwayTeams": false,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "الدوري الإيطالي",
+              "hi": "सीरी ए",
+              "bn": "সিরি আ"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "userCount": 103135,
+        "nameCode": "VER",
+        "disabled": false,
+        "national": false,
+        "type": 0,
+        "country": {
+          "alpha2": "IT",
+          "alpha3": "ITA",
+          "name": "Italy",
+          "slug": "italy"
+        },
+        "id": 2701,
+        "teamColors": {
+          "primary": "#071d7e",
+          "secondary": "#ffcc00",
+          "text": "#ffcc00"
+        },
+        "fieldTranslations": {
+          "nameTranslation": {
+            "ar": "هيلاس فيرونا",
+            "hi": "हेल्लास वेरोना",
+            "ru": "Верона"
+          },
+          "shortNameTranslation": {
+            "ar": "فيرونا",
+            "bn": "ভেরোনা",
+            "hi": "वेरोना"
+          }
+        }
+      },
+      "position": "G",
+      "jerseyNumber": "47",
+      "height": 194,
+      "dateOfBirth": "2007-07-27T00:00:00+00:00",
+      "userCount": 42,
+      "gender": "M",
+      "country": {
+        "alpha2": "BR",
+        "alpha3": "BRA",
+        "name": "Brazil",
+        "slug": "brazil"
+      },
+      "id": 2026440,
+      "shirtNumber": 47,
+      "dateOfBirthTimestamp": 1185494400,
+      "contractUntilTimestamp": 1877472000,
+      "proposedMarketValue": 52000,
+      "proposedMarketValueRaw": {
+        "value": 52000,
+        "currency": "EUR"
+      },
+      "fieldTranslations": {
+        "nameTranslation": {
+          "ar": "أرثر رامبينيللي بورغي"
+        },
+        "shortNameTranslation": {
+          "ar": "أ. بورغي"
+        }
+      }
+    },
+    "attributes": {},
+    "matches": [
+      {
+        "eventState": {},
+        "tournament": {
+          "name": "Copinha - Grupo 27",
+          "slug": "copinha-grupo-27",
+          "category": {
+            "name": "Brazil",
+            "slug": "brazil",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 0,
+            "country": {
+              "alpha2": "BR",
+              "alpha3": "BRA",
+              "name": "Brazil",
+              "slug": "brazil"
+            },
+            "id": 13,
+            "flag": "brazil",
+            "alpha2": "BR",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "البرازيل",
+                "ru": "Бразилия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "Copinha",
+            "slug": "copinha",
+            "primaryColorHex": "#961415",
+            "secondaryColorHex": "#c6af30",
+            "category": {
+              "name": "Brazil",
+              "slug": "brazil",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 0,
+              "country": {
+                "alpha2": "BR",
+                "alpha3": "BRA",
+                "name": "Brazil",
+                "slug": "brazil"
+              },
+              "id": 13,
+              "flag": "brazil",
+              "alpha2": "BR",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "ar": "البرازيل",
+                  "ru": "Бразилия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 24853,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 10772,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "كأس ساو باولو للشباب",
+                "bn": "কোপিনহা",
+                "hi": "कोपिन्हा"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 0,
+          "isGroup": true,
+          "groupName": "Grupo 27",
+          "isLive": false,
+          "id": 70729,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كأس ساو باولو للشباب، المجموعة 27",
+              "bn": "কপিনহা - গ্রুপ 27",
+              "hi": "कोपिन्हा - ग्रुपो 27"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "season": {
+          "name": "U20 Copa Sao Paulo de Juniores 2025",
+          "year": "2025",
+          "editor": false,
+          "id": 70017
+        },
+        "roundInfo": {
+          "round": 1
+        },
+        "customId": "qPDsLNId",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Corinthians U20",
+          "slug": "corinthians-u20",
+          "shortName": "Corinthians U20",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 23682,
+          "nameCode": "COR",
+          "disabled": false,
+          "national": false,
+          "parentTeam": {
+            "name": "Corinthians",
+            "slug": "corinthians",
+            "shortName": "Corinthians",
+            "gender": "M",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "userCount": 568258,
+            "nameCode": "COR",
+            "disabled": false,
+            "national": false,
+            "type": 0,
+            "country": {
+              "alpha2": "BR",
+              "alpha3": "BRA",
+              "name": "Brazil",
+              "slug": "brazil"
+            },
+            "id": 1957,
+            "subTeams": [],
+            "teamColors": {
+              "primary": "#ffffff",
+              "secondary": "#000000",
+              "text": "#000000"
+            },
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "كورينثيانز",
+                "ru": "Коринтианс"
+              },
+              "shortNameTranslation": {
+                "ar": "كورينثيانز"
+              }
+            }
+          },
+          "type": 0,
+          "country": {
+            "alpha2": "BR",
+            "alpha3": "BRA",
+            "name": "Brazil",
+            "slug": "brazil"
+          },
+          "id": 72016,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كورينثيانز تحت 20",
+              "ru": "ФК Коринтианс"
+            },
+            "shortNameTranslation": {
+              "ar": "كورينثيانز تحت 20"
+            }
+          }
+        },
+        "awayTeam": {
+          "name": "Gazin Porto Velho U20",
+          "slug": "gazin-porto-velho-u20",
+          "shortName": "Porto Velho U20",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 160,
+          "nameCode": "PVE",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "BR",
+            "alpha3": "BRA",
+            "name": "Brazil",
+            "slug": "brazil"
+          },
+          "id": 459436,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#374df5",
+            "secondary": "#374df5",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "جازين بورتو فيليو تحت 20"
+            },
+            "shortNameTranslation": {
+              "ar": "بورتو فيليو تحت 20"
+            }
+          }
+        },
+        "homeScore": {
+          "current": 3,
+          "display": 3,
+          "period1": 1,
+          "period2": 2,
+          "normaltime": 3
+        },
+        "awayScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0,
+          "period2": 0,
+          "normaltime": 0
+        },
+        "time": {
+          "currentPeriodStartTimestamp": 1736041020
+        },
+        "changes": {
+          "changes": [
+            "status.code",
+            "status.description",
+            "status.type",
+            "homeScore.period2",
+            "homeScore.normaltime"
+          ],
+          "changeTimestamp": 1736044001
+        },
+        "hasGlobalHighlights": false,
+        "hasXg": true,
+        "hasEventPlayerStatistics": true,
+        "hasEventPlayerHeatMap": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 13246203,
+        "slug": "gazin-porto-velho-u20-corinthians-u20",
+        "startTimestamp": 1736037000,
+        "finalResultOnly": false,
+        "feedLocked": true,
+        "isEditor": false
+      },
+      {
+        "eventState": {},
+        "tournament": {
+          "name": "Copinha - Grupo 27",
+          "slug": "copinha-grupo-27",
+          "category": {
+            "name": "Brazil",
+            "slug": "brazil",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 0,
+            "country": {
+              "alpha2": "BR",
+              "alpha3": "BRA",
+              "name": "Brazil",
+              "slug": "brazil"
+            },
+            "id": 13,
+            "flag": "brazil",
+            "alpha2": "BR",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "البرازيل",
+                "ru": "Бразилия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "Copinha",
+            "slug": "copinha",
+            "primaryColorHex": "#961415",
+            "secondaryColorHex": "#c6af30",
+            "category": {
+              "name": "Brazil",
+              "slug": "brazil",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 0,
+              "country": {
+                "alpha2": "BR",
+                "alpha3": "BRA",
+                "name": "Brazil",
+                "slug": "brazil"
+              },
+              "id": 13,
+              "flag": "brazil",
+              "alpha2": "BR",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "ar": "البرازيل",
+                  "ru": "Бразилия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 24853,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 10772,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "كأس ساو باولو للشباب",
+                "bn": "কোপিনহা",
+                "hi": "कोपिन्हा"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 0,
+          "isGroup": true,
+          "groupName": "Grupo 27",
+          "isLive": false,
+          "id": 70729,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كأس ساو باولو للشباب، المجموعة 27",
+              "bn": "কপিনহা - গ্রুপ 27",
+              "hi": "कोपिन्हा - ग्रुपो 27"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "season": {
+          "name": "U20 Copa Sao Paulo de Juniores 2025",
+          "year": "2025",
+          "editor": false,
+          "id": 70017
+        },
+        "roundInfo": {
+          "round": 3
+        },
+        "customId": "qPDsFrOb",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 1,
+        "homeTeam": {
+          "name": "Santo André U20",
+          "slug": "santo-andre-u20",
+          "shortName": "Santo André U20",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 585,
+          "nameCode": "SAA",
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "BR",
+            "alpha3": "BRA",
+            "name": "Brazil",
+            "slug": "brazil"
+          },
+          "id": 223380,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#000080",
+            "text": "#000080"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "سانتو أندريه تحت 20"
+            },
+            "shortNameTranslation": {
+              "ar": "سانتو أندريه تحت 20"
+            }
+          }
+        },
+        "awayTeam": {
+          "name": "Corinthians U20",
+          "slug": "corinthians-u20",
+          "shortName": "Corinthians U20",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 23682,
+          "nameCode": "COR",
+          "disabled": false,
+          "national": false,
+          "parentTeam": {
+            "name": "Corinthians",
+            "slug": "corinthians",
+            "shortName": "Corinthians",
+            "gender": "M",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "userCount": 568258,
+            "nameCode": "COR",
+            "disabled": false,
+            "national": false,
+            "type": 0,
+            "country": {
+              "alpha2": "BR",
+              "alpha3": "BRA",
+              "name": "Brazil",
+              "slug": "brazil"
+            },
+            "id": 1957,
+            "subTeams": [],
+            "teamColors": {
+              "primary": "#ffffff",
+              "secondary": "#000000",
+              "text": "#000000"
+            },
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "كورينثيانز",
+                "ru": "Коринтианс"
+              },
+              "shortNameTranslation": {
+                "ar": "كورينثيانز"
+              }
+            }
+          },
+          "type": 0,
+          "country": {
+            "alpha2": "BR",
+            "alpha3": "BRA",
+            "name": "Brazil",
+            "slug": "brazil"
+          },
+          "id": 72016,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كورينثيانز تحت 20",
+              "ru": "ФК Коринтианс"
+            },
+            "shortNameTranslation": {
+              "ar": "كورينثيانز تحت 20"
+            }
+          }
+        },
+        "homeScore": {
+          "current": 2,
+          "display": 2,
+          "period1": 0,
+          "period2": 2,
+          "normaltime": 2
+        },
+        "awayScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0,
+          "period2": 0,
+          "normaltime": 0
+        },
+        "time": {
+          "currentPeriodStartTimestamp": 1736543100
+        },
+        "changes": {
+          "changes": [
+            "status.code",
+            "status.description",
+            "status.type",
+            "homeScore.period2",
+            "homeScore.normaltime"
+          ],
+          "changeTimestamp": 1736546104
+        },
+        "hasGlobalHighlights": false,
+        "hasXg": true,
+        "hasEventPlayerStatistics": true,
+        "hasEventPlayerHeatMap": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 13246334,
+        "slug": "santo-andre-u20-corinthians-u20",
+        "startTimestamp": 1736539200,
+        "finalResultOnly": false,
+        "feedLocked": true,
+        "isEditor": false
+      },
+      {
+        "eventState": {},
+        "tournament": {
+          "name": "U20 Paulista, Grupo 2",
+          "slug": "u20-paulista-1st-division-group-2",
+          "category": {
+            "name": "Brazil",
+            "slug": "brazil",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "priority": 0,
+            "country": {
+              "alpha2": "BR",
+              "alpha3": "BRA",
+              "name": "Brazil",
+              "slug": "brazil"
+            },
+            "id": 13,
+            "flag": "brazil",
+            "alpha2": "BR",
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "البرازيل",
+                "ru": "Бразилия"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "uniqueTournament": {
+            "name": "U20 Paulista",
+            "slug": "u20-paulista",
+            "primaryColorHex": "#01008c",
+            "secondaryColorHex": "#0001fc",
+            "category": {
+              "name": "Brazil",
+              "slug": "brazil",
+              "sport": {
+                "name": "Football",
+                "slug": "football",
+                "id": 1
+              },
+              "priority": 0,
+              "country": {
+                "alpha2": "BR",
+                "alpha3": "BRA",
+                "name": "Brazil",
+                "slug": "brazil"
+              },
+              "id": 13,
+              "flag": "brazil",
+              "alpha2": "BR",
+              "fieldTranslations": {
+                "nameTranslation": {
+                  "ar": "البرازيل",
+                  "ru": "Бразилия"
+                },
+                "shortNameTranslation": {}
+              }
+            },
+            "userCount": 1591,
+            "hasPerformanceGraphFeature": false,
+            "country": {},
+            "id": 10308,
+            "hasEventPlayerStatistics": false,
+            "displayInverseHomeAwayTeams": false,
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "بطولة تحت 20 باوليستا"
+              },
+              "shortNameTranslation": {}
+            }
+          },
+          "priority": 0,
+          "isGroup": true,
+          "groupName": "Grupo  2",
+          "isLive": false,
+          "id": 89696,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "بطولة تحت 20 باوليستا، المجموعة 2"
+            },
+            "shortNameTranslation": {}
+          }
+        },
+        "season": {
+          "name": "U20 Paulista 2025",
+          "year": "2025",
+          "editor": false,
+          "id": 74466
+        },
+        "roundInfo": {
+          "round": 7
+        },
+        "customId": "qPDsCdPb",
+        "status": {
+          "code": 100,
+          "description": "Ended",
+          "type": "finished"
+        },
+        "winnerCode": 2,
+        "homeTeam": {
+          "name": "Rio Claro U20",
+          "slug": "rio-claro-u20",
+          "shortName": "Rio Claro U20",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 458,
+          "nameCode": "RCL",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "country": {
+            "alpha2": "BR",
+            "alpha3": "BRA",
+            "name": "Brazil",
+            "slug": "brazil"
+          },
+          "id": 225177,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#1f1063",
+            "secondary": "#ffffff",
+            "text": "#ffffff"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "ريو كلارو تحت 20"
+            },
+            "shortNameTranslation": {
+              "ar": "ريو كلارو تحت 20"
+            }
+          }
+        },
+        "awayTeam": {
+          "name": "Corinthians U20",
+          "slug": "corinthians-u20",
+          "shortName": "Corinthians U20",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 23682,
+          "nameCode": "COR",
+          "disabled": false,
+          "national": false,
+          "parentTeam": {
+            "name": "Corinthians",
+            "slug": "corinthians",
+            "shortName": "Corinthians",
+            "gender": "M",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "userCount": 568258,
+            "nameCode": "COR",
+            "disabled": false,
+            "national": false,
+            "type": 0,
+            "country": {
+              "alpha2": "BR",
+              "alpha3": "BRA",
+              "name": "Brazil",
+              "slug": "brazil"
+            },
+            "id": 1957,
+            "subTeams": [],
+            "teamColors": {
+              "primary": "#ffffff",
+              "secondary": "#000000",
+              "text": "#000000"
+            },
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "كورينثيانز",
+                "ru": "Коринтианс"
+              },
+              "shortNameTranslation": {
+                "ar": "كورينثيانز"
+              }
+            }
+          },
+          "type": 0,
+          "country": {
+            "alpha2": "BR",
+            "alpha3": "BRA",
+            "name": "Brazil",
+            "slug": "brazil"
+          },
+          "id": 72016,
+          "subTeams": [],
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كورينثيانز تحت 20",
+              "ru": "ФК Коринтианс"
+            },
+            "shortNameTranslation": {
+              "ar": "كورينثيانز تحت 20"
+            }
+          }
+        },
+        "homeScore": {
+          "current": 0,
+          "display": 0,
+          "period1": 0,
+          "period2": 0,
+          "normaltime": 0
+        },
+        "awayScore": {
+          "current": 2,
+          "display": 2,
+          "period1": 2,
+          "period2": 0,
+          "normaltime": 2
+        },
+        "time": {
+          "periodLength": 2700,
+          "overtimeLength": 900,
+          "totalPeriodCount": 2,
+          "currentPeriodStartTimestamp": 1749323385
+        },
+        "changes": {
+          "changes": [
+            "status.code",
+            "status.description",
+            "status.type",
+            "homeScore.normaltime",
+            "awayScore.normaltime"
+          ],
+          "changeTimestamp": 1749326148
+        },
+        "hasGlobalHighlights": false,
+        "hasXg": true,
+        "hasEventPlayerStatistics": true,
+        "hasEventPlayerHeatMap": true,
+        "crowdsourcingDataDisplayEnabled": false,
+        "id": 13744003,
+        "slug": "rio-claro-u20-corinthians-u20",
+        "startTimestamp": 1749319200,
+        "finalResultOnly": false,
+        "feedLocked": true,
+        "isEditor": false
+      }
+    ],
+    "transfers": [
+      {
+        "player": {
+          "name": "Arthur Rampineli Borghi",
+          "firstName": "Arthur",
+          "lastName": "Rampineli Borghi",
+          "slug": "arthur-rampineli-borghi",
+          "shortName": "A. R. Borghi",
+          "position": "G",
+          "jerseyNumber": "47",
+          "userCount": 42,
+          "gender": "M",
+          "id": 2026440,
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "أرثر رامبينيللي بورغي"
+            },
+            "shortNameTranslation": {
+              "ar": "أ. بورغي"
+            }
+          }
+        },
+        "transferFrom": {
+          "name": "Corinthians U20",
+          "slug": "corinthians-u20",
+          "shortName": "Corinthians U20",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 23682,
+          "nameCode": "COR",
+          "disabled": false,
+          "national": false,
+          "parentTeam": {
+            "name": "Corinthians",
+            "slug": "corinthians",
+            "shortName": "Corinthians",
+            "gender": "M",
+            "sport": {
+              "name": "Football",
+              "slug": "football",
+              "id": 1
+            },
+            "userCount": 568258,
+            "nameCode": "COR",
+            "disabled": false,
+            "national": false,
+            "type": 0,
+            "id": 1957,
+            "teamColors": {
+              "primary": "#ffffff",
+              "secondary": "#000000",
+              "text": "#000000"
+            },
+            "fieldTranslations": {
+              "nameTranslation": {
+                "ar": "كورينثيانز",
+                "ru": "Коринтианс"
+              },
+              "shortNameTranslation": {
+                "ar": "كورينثيانز"
+              }
+            }
+          },
+          "type": 0,
+          "id": 72016,
+          "teamColors": {
+            "primary": "#ffffff",
+            "secondary": "#000000",
+            "text": "#000000"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "كورينثيانز تحت 20",
+              "ru": "ФК Коринтианс"
+            },
+            "shortNameTranslation": {
+              "ar": "كورينثيانز تحت 20"
+            }
+          }
+        },
+        "transferTo": {
+          "name": "Hellas Verona",
+          "slug": "hellas-verona",
+          "shortName": "Verona",
+          "gender": "M",
+          "sport": {
+            "name": "Football",
+            "slug": "football",
+            "id": 1
+          },
+          "userCount": 103135,
+          "nameCode": "VER",
+          "disabled": false,
+          "national": false,
+          "type": 0,
+          "id": 2701,
+          "teamColors": {
+            "primary": "#071d7e",
+            "secondary": "#ffcc00",
+            "text": "#ffcc00"
+          },
+          "fieldTranslations": {
+            "nameTranslation": {
+              "ar": "هيلاس فيرونا",
+              "hi": "हेल्लास वेरोना",
+              "ru": "Верона"
+            },
+            "shortNameTranslation": {
+              "ar": "فيرونا",
+              "bn": "ভেরোনা",
+              "hi": "वेरोना"
+            }
+          }
+        },
+        "fromTeamName": "Corinthians U20",
+        "toTeamName": "Hellas Verona",
+        "type": 3,
+        "transferFee": 0,
+        "transferFeeDescription": "Free",
+        "id": 2675508,
+        "transferDateTimestamp": 1767398400,
+        "transferFeeRaw": {
+          "value": 0,
+          "currency": "EUR"
+        }
+      }
+    ],
+    "national_stats": [],
+    "competitions": [
+      {
+        "tournament_id": 10772,
+        "season_id": 70017,
+        "tournament_name": "Copinha",
+        "season_year": "2025",
+        "season_name": "U20 Copa Sao Paulo de Juniores 2025",
+        "statistics": {},
+        "heatmap_points": []
+      },
+      {
+        "tournament_id": 10308,
+        "season_id": 74466,
+        "tournament_name": "U20 Paulista",
+        "season_year": "2025",
+        "season_name": "U20 Paulista 2025",
+        "statistics": {},
+        "heatmap_points": []
+      }
+    ]
+  },
+  "mapped_payload": {
+    "name": "Arthur Rampineli",
+    "club": "Hellas Verona FC",
+    "db_id": 431,
+    "sofascore_id": 2026440,
+    "source": "playwright_v9",
+    "extracted": {
+      "profile": {
+        "sofascore_id": 2026440,
+        "height_cm": 194,
+        "weight_kg": null,
+        "preferred_foot": null,
+        "jersey_number": "47",
+        "contract_until": "2029-06-30",
+        "market_value": 0.05,
+        "nationality": "Brazil",
+        "date_of_birth": "2007-07-27",
+        "position": "G",
+        "position_detail": "",
+        "gender": "M",
+        "slug": "arthur-rampineli-borghi",
+        "short_name": "A. R. Borghi",
+        "club": "Hellas Verona",
+        "club_id": 2701
+      },
+      "attributes": {},
+      "competitions": [
+        {
+          "tournament_id": 10772,
+          "season_id": 70017,
+          "tournament_name": "Copinha",
+          "season_year": "2025",
+          "season_name": "U20 Copa Sao Paulo de Juniores 2025",
+          "statistics": {
+            "rating": null,
+            "total_rating": null,
+            "count_rating": null,
+            "appearances": null,
+            "matches_started": null,
+            "minutes_played": null,
+            "goals": null,
+            "assists": null,
+            "goals_assists_sum": null,
+            "shots_total": null,
+            "shots_on_target": null,
+            "shots_off_target": null,
+            "shots_inside_box": null,
+            "shots_outside_box": null,
+            "big_chances_created": null,
+            "big_chances_missed": null,
+            "goal_conversion_pct": null,
+            "headed_goals": null,
+            "left_foot_goals": null,
+            "right_foot_goals": null,
+            "goals_inside_box": null,
+            "goals_outside_box": null,
+            "free_kick_goals": null,
+            "penalty_goals": null,
+            "penalty_taken": null,
+            "penalty_won": null,
+            "penalty_conceded": null,
+            "own_goals": null,
+            "hit_woodwork": null,
+            "scoring_frequency": null,
+            "totw_appearances": null,
+            "set_piece_conversion": null,
+            "shot_from_set_piece": null,
+            "xg": null,
+            "xa": null,
+            "accurate_passes": null,
+            "inaccurate_passes": null,
+            "total_passes": null,
+            "pass_accuracy_pct": null,
+            "accurate_own_half_passes": null,
+            "accurate_opp_half_passes": null,
+            "total_own_half_passes": null,
+            "total_opp_half_passes": null,
+            "accurate_final_third_passes": null,
+            "accurate_long_balls": null,
+            "long_ball_accuracy_pct": null,
+            "total_long_balls": null,
+            "accurate_crosses": null,
+            "cross_accuracy_pct": null,
+            "total_crosses": null,
+            "key_passes": null,
+            "pass_to_assist": null,
+            "total_attempt_assist": null,
+            "accurate_chipped_passes": null,
+            "total_chipped_passes": null,
+            "successful_dribbles": null,
+            "dribble_success_pct": null,
+            "dribbled_past": null,
+            "dispossessed": null,
+            "ground_duels_won": null,
+            "ground_duels_won_pct": null,
+            "aerial_duels_won": null,
+            "aerial_duels_lost": null,
+            "aerial_duels_won_pct": null,
+            "total_duels_won": null,
+            "total_duels_won_pct": null,
+            "duel_lost": null,
+            "total_contest": null,
+            "tackles": null,
+            "tackles_won": null,
+            "tackles_won_pct": null,
+            "interceptions": null,
+            "clearances": null,
+            "blocked_shots": null,
+            "errors_led_to_goal": null,
+            "errors_led_to_shot": null,
+            "ball_recovery": null,
+            "possession_won_att_third": null,
+            "touches": null,
+            "possession_lost": null,
+            "yellow_cards": null,
+            "yellow_red_cards": null,
+            "red_cards": null,
+            "direct_red_cards": null,
+            "fouls_committed": null,
+            "fouls_won": null,
+            "offsides": null,
+            "saves": null,
+            "saves_caught": null,
+            "saves_parried": null,
+            "goals_conceded": null,
+            "goals_conceded_inside_box": null,
+            "goals_conceded_outside_box": null,
+            "clean_sheets": null,
+            "penalty_saved": null,
+            "penalty_faced": null,
+            "high_claims": null,
+            "punches": null,
+            "runs_out": null,
+            "successful_runs_out": null,
+            "saved_shots_inside_box": null,
+            "saved_shots_outside_box": null,
+            "goal_kicks": null,
+            "crosses_not_claimed": null,
+            "penalty_attempt_miss": null,
+            "penalty_attempt_post": null,
+            "penalty_attempt_target": null
+          },
+          "heatmap_points": []
+        },
+        {
+          "tournament_id": 10308,
+          "season_id": 74466,
+          "tournament_name": "U20 Paulista",
+          "season_year": "2025",
+          "season_name": "U20 Paulista 2025",
+          "statistics": {
+            "rating": null,
+            "total_rating": null,
+            "count_rating": null,
+            "appearances": null,
+            "matches_started": null,
+            "minutes_played": null,
+            "goals": null,
+            "assists": null,
+            "goals_assists_sum": null,
+            "shots_total": null,
+            "shots_on_target": null,
+            "shots_off_target": null,
+            "shots_inside_box": null,
+            "shots_outside_box": null,
+            "big_chances_created": null,
+            "big_chances_missed": null,
+            "goal_conversion_pct": null,
+            "headed_goals": null,
+            "left_foot_goals": null,
+            "right_foot_goals": null,
+            "goals_inside_box": null,
+            "goals_outside_box": null,
+            "free_kick_goals": null,
+            "penalty_goals": null,
+            "penalty_taken": null,
+            "penalty_won": null,
+            "penalty_conceded": null,
+            "own_goals": null,
+            "hit_woodwork": null,
+            "scoring_frequency": null,
+            "totw_appearances": null,
+            "set_piece_conversion": null,
+            "shot_from_set_piece": null,
+            "xg": null,
+            "xa": null,
+            "accurate_passes": null,
+            "inaccurate_passes": null,
+            "total_passes": null,
+            "pass_accuracy_pct": null,
+            "accurate_own_half_passes": null,
+            "accurate_opp_half_passes": null,
+            "total_own_half_passes": null,
+            "total_opp_half_passes": null,
+            "accurate_final_third_passes": null,
+            "accurate_long_balls": null,
+            "long_ball_accuracy_pct": null,
+            "total_long_balls": null,
+            "accurate_crosses": null,
+            "cross_accuracy_pct": null,
+            "total_crosses": null,
+            "key_passes": null,
+            "pass_to_assist": null,
+            "total_attempt_assist": null,
+            "accurate_chipped_passes": null,
+            "total_chipped_passes": null,
+            "successful_dribbles": null,
+            "dribble_success_pct": null,
+            "dribbled_past": null,
+            "dispossessed": null,
+            "ground_duels_won": null,
+            "ground_duels_won_pct": null,
+            "aerial_duels_won": null,
+            "aerial_duels_lost": null,
+            "aerial_duels_won_pct": null,
+            "total_duels_won": null,
+            "total_duels_won_pct": null,
+            "duel_lost": null,
+            "total_contest": null,
+            "tackles": null,
+            "tackles_won": null,
+            "tackles_won_pct": null,
+            "interceptions": null,
+            "clearances": null,
+            "blocked_shots": null,
+            "errors_led_to_goal": null,
+            "errors_led_to_shot": null,
+            "ball_recovery": null,
+            "possession_won_att_third": null,
+            "touches": null,
+            "possession_lost": null,
+            "yellow_cards": null,
+            "yellow_red_cards": null,
+            "red_cards": null,
+            "direct_red_cards": null,
+            "fouls_committed": null,
+            "fouls_won": null,
+            "offsides": null,
+            "saves": null,
+            "saves_caught": null,
+            "saves_parried": null,
+            "goals_conceded": null,
+            "goals_conceded_inside_box": null,
+            "goals_conceded_outside_box": null,
+            "clean_sheets": null,
+            "penalty_saved": null,
+            "penalty_faced": null,
+            "high_claims": null,
+            "punches": null,
+            "runs_out": null,
+            "successful_runs_out": null,
+            "saved_shots_inside_box": null,
+            "saved_shots_outside_box": null,
+            "goal_kicks": null,
+            "crosses_not_claimed": null,
+            "penalty_attempt_miss": null,
+            "penalty_attempt_post": null,
+            "penalty_attempt_target": null
+          },
+          "heatmap_points": []
+        }
+      ],
+      "matches": [
+        {
+          "event_id": 13246203,
+          "sofascore_slug": "gazin-porto-velho-u20-corinthians-u20",
+          "date": "2025-01-05T00:30:00+00:00",
+          "tournament_name": "Copinha",
+          "tournament_id": 10772,
+          "season_name": "U20 Copa Sao Paulo de Juniores 2025",
+          "season_year": "2025",
+          "season_id": 70017,
+          "round": 1,
+          "home_team": "Corinthians U20",
+          "home_team_id": 72016,
+          "away_team": "Gazin Porto Velho U20",
+          "away_team_id": 459436,
+          "home_score": 3,
+          "away_score": 0,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": true,
+          "has_player_stats": true,
+          "has_heatmap": true,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 13246334,
+          "sofascore_slug": "santo-andre-u20-corinthians-u20",
+          "date": "2025-01-10T20:00:00+00:00",
+          "tournament_name": "Copinha",
+          "tournament_id": 10772,
+          "season_name": "U20 Copa Sao Paulo de Juniores 2025",
+          "season_year": "2025",
+          "season_id": 70017,
+          "round": 3,
+          "home_team": "Santo André U20",
+          "home_team_id": 223380,
+          "away_team": "Corinthians U20",
+          "away_team_id": 72016,
+          "home_score": 2,
+          "away_score": 0,
+          "winner_code": 1,
+          "status": "finished",
+          "has_xg": true,
+          "has_player_stats": true,
+          "has_heatmap": true,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        },
+        {
+          "event_id": 13744003,
+          "sofascore_slug": "rio-claro-u20-corinthians-u20",
+          "date": "2025-06-07T18:00:00+00:00",
+          "tournament_name": "U20 Paulista",
+          "tournament_id": 10308,
+          "season_name": "U20 Paulista 2025",
+          "season_year": "2025",
+          "season_id": 74466,
+          "round": 7,
+          "home_team": "Rio Claro U20",
+          "home_team_id": 225177,
+          "away_team": "Corinthians U20",
+          "away_team_id": 72016,
+          "home_score": 0,
+          "away_score": 2,
+          "winner_code": 2,
+          "status": "finished",
+          "has_xg": true,
+          "has_player_stats": true,
+          "has_heatmap": true,
+          "rating": null,
+          "minutes_played": null,
+          "goals": 0,
+          "assists": 0,
+          "yellow_card": false,
+          "red_card": false
+        }
+      ],
+      "career": [
+        {
+          "transfer_id": 2675508,
+          "from_team": "Corinthians U20",
+          "to_team": "Hellas Verona",
+          "from_team_id": 72016,
+          "to_team_id": 2701,
+          "transfer_date": "2026-01-03T00:00:00+00:00",
+          "fee": 0,
+          "fee_description": "Free",
+          "transfer_type": "Free",
+          "type_code": 3
+        }
+      ],
+      "national": []
+    },
+    "extracted_at": "2026-04-03T23:57:08.529651"
+  }
+}

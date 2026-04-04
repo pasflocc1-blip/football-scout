@@ -3,13 +3,13 @@
     "name": "Carlo Pinsoglio",
     "sofascore_id": 46420,
     "league": "serie_a",
-    "saved_at": "2026-04-03T22:36:50.939052",
+    "saved_at": "2026-04-04T00:18:24.353090",
     "rpa_version": "v9.5-fast"
   },
   "raw_data": {
     "player_id": 46420,
     "league_key": "serie_a",
-    "fetched_at": "2026-04-03T22:35:35.584266",
+    "fetched_at": "2026-04-04T00:17:14.424966",
     "profile": {
       "name": "Carlo Pinsoglio",
       "slug": "carlo-pinsoglio",
@@ -10644,6 +10644,6 @@
       ],
       "national": []
     },
-    "extracted_at": "2026-04-03T22:36:50.638255"
+    "extracted_at": "2026-04-04T00:18:24.249589"
   }
 }

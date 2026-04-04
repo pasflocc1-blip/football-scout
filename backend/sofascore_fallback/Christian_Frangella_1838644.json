@@ -3,13 +3,13 @@
     "name": "Christian Frangella",
     "sofascore_id": 1838644,
     "league": "serie_a",
-    "saved_at": "2026-04-03T22:39:58.341240",
+    "saved_at": "2026-04-04T00:26:39.118156",
     "rpa_version": "v9.5-fast"
   },
   "raw_data": {
     "player_id": 1838644,
     "league_key": "serie_a",
-    "fetched_at": "2026-04-03T22:39:00.971825",
+    "fetched_at": "2026-04-04T00:25:44.004080",
     "profile": {
       "name": "Christian Frangella",
       "slug": "christian-frangella",
@@ -23252,6 +23252,6 @@
       "career": [],
       "national": []
     },
-    "extracted_at": "2026-04-03T22:39:58.011264"
+    "extracted_at": "2026-04-04T00:26:38.941079"
   }
 }
