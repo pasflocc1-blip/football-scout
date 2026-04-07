@@ -70,6 +70,7 @@ logs/
 # ─── Dataset CSV (troppo grandi per git) ─────────────────────────
 data/*.csv
 data/*.json
+**/data/**/*.json
 !data/.gitkeep
 "backend/sofascore_fallback/" 
 backend/app/rpa/playwright_profile/
