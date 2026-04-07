@@ -7,11 +7,21 @@ import logging
 from datetime import datetime
 from playwright.async_api import async_playwright
 
-# --- CONFIGURAZIONE LOGGING ---
-LOG_DIR = r"D:\Progetti\football-scout\backend\app\rpa\log"
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
+# --- GESTIONE PERCORSI RELATIVI (Cross-Platform) ---
+# Ottiene la cartella dove si trova questo script (backend/app/rpa)
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Costruisce il percorso verso backend/app/data/fbref
+# .os.path.join gestisce correttamente \ (Windows) e / (Mac)
+DATA_DIR = os.path.normpath(os.path.join(CURRENT_DIR, '..', 'data', 'fbref'))
+LOG_DIR = os.path.normpath(os.path.join(CURRENT_DIR, 'log'))
+
+# Crea le cartelle se non esistono
+for path in [DATA_DIR, LOG_DIR]:
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+# --- CONFIGURAZIONE LOGGING ---
 log_filename = f"fbref_scout_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 log_path = os.path.join(LOG_DIR, log_filename)
 
@@ -28,9 +38,8 @@ log = logging.getLogger("FBRefScraper")
 
 class FBRefFullScraper:
     def __init__(self):
-        self.output_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data')
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
+        # Usiamo il percorso dinamico calcolato sopra
+        self.output_dir = DATA_DIR
 
     async def get_player_id_and_slug(self, page, player_name):
         log.info(f"🔍 Ricerca automatica ID per: {player_name}...")
@@ -58,6 +67,7 @@ class FBRefFullScraper:
         return None, None
 
     async def extract_deep_data(self, page):
+        """Estrae tabelle dai commenti e match logs via JS injection."""
         return await page.evaluate('''() => {
             const getRowData = (id) => {
                 let t = document.getElementById(id);
@@ -109,9 +119,9 @@ class FBRefFullScraper:
     async def run(self, player_name, counter_info, manual_id=None):
         async with async_playwright() as p:
             try:
-                # LOG RICHIESTO: Caricamento [x/Tot]
                 log.info(f"⏳ {counter_info} | Elaborazione calciatore: {player_name}")
 
+                # Connessione al browser di debug
                 browser = await p.chromium.connect_over_cdp("http://127.0.0.1:9222")
                 context = browser.contexts[0]
                 page = await context.new_page()
@@ -151,7 +161,7 @@ class FBRefFullScraper:
                 with open(save_path, 'w', encoding='utf-8') as f:
                     json.dump(final_data, f, indent=4, ensure_ascii=False)
 
-                log.info(f"✅ {counter_info} | Dati salvati con successo per {player_name}")
+                log.info(f"✅ {counter_info} | Dati salvati in: {filename}")
 
             except Exception as e:
                 log.error(f"❌ {counter_info} | Errore critico per {player_name}: {e}")
