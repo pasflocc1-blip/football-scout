@@ -63,9 +63,16 @@ ehthumbs_vista.db
 # ─── Log ─────────────────────────────────────────────────────────
 *.log
 logs/
+# Blocca file pesanti e log
+*.txt
+*.log
 
 # ─── Dataset CSV (troppo grandi per git) ─────────────────────────
 data/*.csv
 data/*.json
 !data/.gitkeep
 "backend/sofascore_fallback/" 
+backend/app/rpa/playwright_profile/
+chrome_profile/
+.web_session/
+backend/data/*.json

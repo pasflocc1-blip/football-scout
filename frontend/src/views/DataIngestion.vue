@@ -332,7 +332,11 @@
 
     <!-- Griglia sorgenti -->
     <div class="sources-grid">
-
+      <div v-for="src in dataSources" :key="src.source" class="source-row">
+        <span class="source-name">{{ src.source }}</span>
+        <span class="source-date">{{ src.last_download ? formatDate(src.last_download) : 'Mai' }}</span>
+        <span class="source-count">{{ src.players_updated }} giocatori</span>
+      </div>
       <!-- Kaggle -->
       <div class="source-card card" :class="statusClass('kaggle')">
         <div class="source-header">
