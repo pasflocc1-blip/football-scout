@@ -1,12 +1,13 @@
 import os
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
-from alembic import context
+from alembic import context # noqa: F401
 
 # Importa i modelli per permettere ad Alembic di rilevare le tabelle
 from app.database import Base
-from app.models import models  # noqa: F401 — necessario per registrare i modelli
-
+# Carica ENTRAMBI i file dei modelli
+from app.models import models        # Carica le tabelle base
+from app.models import fbref_models  # Carica le nuove tabelle FBRef
 config = context.config
 
 # Legge DATABASE_URL dall'ambiente (sovrascrive alembic.ini in produzione)

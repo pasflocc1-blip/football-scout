@@ -388,7 +388,10 @@ class ScoutingPlayer(Base):
                                   cascade="all, delete-orphan")
     # Questo ti permette di fare: player.club_relation.league_key
     club_relation = relationship("Club", back_populates="players")
-
+    fbref_stats      = relationship("PlayerFbrefStats",    back_populates="player", cascade="all, delete-orphan")
+    fbref_match_logs = relationship("PlayerFbrefMatchLog", back_populates="player", cascade="all, delete-orphan")
+    scouting_index   = relationship("PlayerScoutingIndex", back_populates="player", uselist=False, cascade="all, delete-orphan")
+    sofascore_stats = relationship("PlayerSofascoreStats", back_populates="player", cascade="all, delete-orphan", )
 
 class Club(Base):
     __tablename__ = "clubs"

@@ -42,6 +42,7 @@ from app.models.models import (
     PlayerNationalStats,
 )
 from app.services.player_matcher import find_player_in_db
+from app.services.sources.sofascore_source import _upsert_sofascore_stats
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix='/ingest/sofascore', tags=['ingest-sofascore'])
@@ -161,9 +162,15 @@ async def ingest_ocr(payload: OCRPayload, db: Session = Depends(get_db)):
             sid        = comp.get('season_id')
 
             if stats:
-                _upsert_season_stats_v8(
-                    db, player.id, season_str, league_str, payload.source,
-                    stats, tid, sid, fetched_at
+                _upsert_sofascore_stats(
+                    db,
+                    player_id=player.id,
+                    season=season_str,
+                    league=league_str,
+                    tournament_id=tid,
+                    season_id=sid,
+                    stats=stats,
+                    fetched_at=fetched_at
                 )
                 # Cache rating su scouting_players (per la UI)
                 if stats.get('rating') and not player.sofascore_rating:
@@ -185,8 +192,16 @@ async def ingest_ocr(payload: OCRPayload, db: Session = Depends(get_db)):
     if season_data and not competitions:
         season_str = _detect_season_legacy(ex)
         league_str = ex.get('_raw_meta', {}).get('league', 'unknown')
-        _upsert_season_stats_legacy(db, player.id, season_str, league_str,
-                                    payload.source, season_data, ex, fetched_at)
+        _upsert_sofascore_stats(
+            db,
+            player_id=player.id,
+            season=season_str,
+            league=league_str,
+            tournament_id=None,  # Non presente in v7
+            season_id=None,  # Non presente in v7
+            stats=season_data,
+            fetched_at=fetched_at
+        )
         if season_data.get('rating') and not player.sofascore_rating:
             player.sofascore_rating = _f(season_data.get('rating'))
         updated_sections.append('season(legacy_v7)')
@@ -594,49 +609,49 @@ def _upsert_national_v8(db, player_id, entry: dict, source, fetched_at):
 
 # ── Retrocompatibilità v7 ─────────────────────────────────────────
 
-def _upsert_season_stats_legacy(db, player_id, season, league, source,
-                                 season_data, extracted, fetched_at):
-    """Gestisce il vecchio formato extracted.season dell'RPA v7."""
-    row = db.query(PlayerSeasonStats).filter_by(
-        player_id=player_id, season=season, league=league, source=source
-    ).first()
-    if not row:
-        row = PlayerSeasonStats(
-            player_id=player_id, season=season, league=league, source=source
-        )
-        db.add(row)
-    s = season_data
-    # Mapping v7 (nomi diversi da v8)
-    _s(row, 'sofascore_rating', _f(s.get('rating')))
-    _s(row, 'appearances',      _i(s.get('appearances')))
-    _s(row, 'matches_started',  _i(s.get('matches_started')))
-    _s(row, 'minutes_played',   _i(s.get('minutes_played')))
-    _s(row, 'goals',            _i(s.get('goals')))
-    _s(row, 'assists',          _i(s.get('assists')))
-    _s(row, 'shots_on_target',  _i(s.get('shots')))
-    _s(row, 'big_chances_created', _i(s.get('big_chances_created')))
-    _s(row, 'key_passes',       _i(s.get('key_passes')))
-    _s(row, 'tackles',          _i(s.get('tackles')))
-    _s(row, 'interceptions',    _i(s.get('interceptions')))
-    _s(row, 'pass_accuracy_pct',_f(s.get('pass_accuracy_pct')))
-    _s(row, 'yellow_cards',     _i(s.get('yellow_cards')))
-    _s(row, 'red_cards',        _i(s.get('red_cards')))
-    _s(row, 'xg',               _f(s.get('xg')))
-    _s(row, 'xa',               _f(s.get('xa')))
-    _s(row, 'aerial_duels_won', _i(s.get('aerial_duels_won')))
-    _s(row, 'successful_dribbles', _i(s.get('dribbles_won')))
-    _s(row, 'accurate_long_balls', _i(s.get('long_balls_accurate')))
-    _s(row, 'accurate_crosses',    _i(s.get('crosses_accurate')))
-    _s(row, 'fouls_committed',     _i(s.get('fouls_committed')))
-    _s(row, 'saves',               _i(s.get('saves')))
-    _s(row, 'goals_conceded',      _i(s.get('goals_conceded')))
-    _s(row, 'clean_sheets',        _i(s.get('clean_sheets')))
-    meta = extracted.get('_raw_meta', {})
-    _s(row, 'tournament_id', meta.get('tournament_id'))
-    _s(row, 'season_id',     meta.get('season_id'))
-    row.fetched_at = fetched_at
-    row.updated_at = fetched_at
-
+# def _upsert_season_stats_legacy(db, player_id, season, league, source,
+#                                  season_data, extracted, fetched_at):
+#     """Gestisce il vecchio formato extracted.season dell'RPA v7."""
+#     row = db.query(PlayerSeasonStats).filter_by(
+#         player_id=player_id, season=season, league=league, source=source
+#     ).first()
+#     if not row:
+#         row = PlayerSeasonStats(
+#             player_id=player_id, season=season, league=league, source=source
+#         )
+#         db.add(row)
+#     s = season_data
+#     # Mapping v7 (nomi diversi da v8)
+#     _s(row, 'sofascore_rating', _f(s.get('rating')))
+#     _s(row, 'appearances',      _i(s.get('appearances')))
+#     _s(row, 'matches_started',  _i(s.get('matches_started')))
+#     _s(row, 'minutes_played',   _i(s.get('minutes_played')))
+#     _s(row, 'goals',            _i(s.get('goals')))
+#     _s(row, 'assists',          _i(s.get('assists')))
+#     _s(row, 'shots_on_target',  _i(s.get('shots')))
+#     _s(row, 'big_chances_created', _i(s.get('big_chances_created')))
+#     _s(row, 'key_passes',       _i(s.get('key_passes')))
+#     _s(row, 'tackles',          _i(s.get('tackles')))
+#     _s(row, 'interceptions',    _i(s.get('interceptions')))
+#     _s(row, 'pass_accuracy_pct',_f(s.get('pass_accuracy_pct')))
+#     _s(row, 'yellow_cards',     _i(s.get('yellow_cards')))
+#     _s(row, 'red_cards',        _i(s.get('red_cards')))
+#     _s(row, 'xg',               _f(s.get('xg')))
+#     _s(row, 'xa',               _f(s.get('xa')))
+#     _s(row, 'aerial_duels_won', _i(s.get('aerial_duels_won')))
+#     _s(row, 'successful_dribbles', _i(s.get('dribbles_won')))
+#     _s(row, 'accurate_long_balls', _i(s.get('long_balls_accurate')))
+#     _s(row, 'accurate_crosses',    _i(s.get('crosses_accurate')))
+#     _s(row, 'fouls_committed',     _i(s.get('fouls_committed')))
+#     _s(row, 'saves',               _i(s.get('saves')))
+#     _s(row, 'goals_conceded',      _i(s.get('goals_conceded')))
+#     _s(row, 'clean_sheets',        _i(s.get('clean_sheets')))
+#     meta = extracted.get('_raw_meta', {})
+#     _s(row, 'tournament_id', meta.get('tournament_id'))
+#     _s(row, 'season_id',     meta.get('season_id'))
+#     row.fetched_at = fetched_at
+#     row.updated_at = fetched_at
+#
 
 # ══════════════════════════════════════════════════════════════════
 # HANDLERS per /raw  (estensione Chrome — invariati)
