@@ -3,13 +3,13 @@
     "name": "Federico Gatti",
     "sofascore_id": 1128063,
     "league": "serie_a",
-    "saved_at": "2026-04-08T14:08:52.499721",
+    "saved_at": "2026-04-10T23:29:22.064027",
     "rpa_version": "v9.5-fast"
   },
   "raw_data": {
     "player_id": 1128063,
     "league_key": "serie_a",
-    "fetched_at": "2026-04-08T14:08:23.819305",
+    "fetched_at": "2026-04-10T23:28:49.775705",
     "profile": {
       "name": "Federico Gatti",
       "firstName": "Federico Gatti",
@@ -90,7 +90,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "country": {},
             "id": 23,
             "displayInverseHomeAwayTeams": false,
@@ -148,7 +148,7 @@
               "shortNameTranslation": {}
             }
           },
-          "userCount": 634301,
+          "userCount": 634779,
           "country": {},
           "id": 23,
           "displayInverseHomeAwayTeams": false,
@@ -161,7 +161,7 @@
             "shortNameTranslation": {}
           }
         },
-        "userCount": 1578696,
+        "userCount": 1579971,
         "nameCode": "JUV",
         "disabled": false,
         "national": false,
@@ -198,7 +198,7 @@
       "dateOfBirth": "1998-06-24T00:00:00+00:00",
       "preferredFoot": "Right",
       "retired": false,
-      "userCount": 5260,
+      "userCount": 5262,
       "gender": "M",
       "sofascoreId": "FedericoGatti",
       "country": {
@@ -296,7 +296,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 1249615,
+            "userCount": 1255521,
             "hasPerformanceGraphFeature": false,
             "country": {},
             "id": 7,
@@ -348,7 +348,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 446078,
+          "userCount": 446299,
           "nameCode": "VIL",
           "disabled": false,
           "national": false,
@@ -386,7 +386,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -453,7 +453,59 @@
         "startTimestamp": 1759345200,
         "finalResultOnly": false,
         "feedLocked": true,
-        "isEditor": false
+        "isEditor": false,
+        "playerStatistics": {
+          "totalPass": 49,
+          "accuratePass": 45,
+          "totalLongBalls": 3,
+          "accurateLongBalls": 1,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 31,
+          "totalOwnHalfPasses": 33,
+          "accurateOppositionHalfPasses": 14,
+          "totalOppositionHalfPasses": 16,
+          "aerialWon": 1,
+          "duelLost": 1,
+          "duelWon": 3,
+          "totalContest": 1,
+          "onTargetScoringAttempt": 1,
+          "goals": 1,
+          "totalClearance": 5,
+          "outfielderBlock": 3,
+          "interceptionWon": 3,
+          "ballRecovery": 9,
+          "totalTackle": 2,
+          "wonTackle": 1,
+          "unsuccessfulTouch": 1,
+          "minutesPlayed": 90,
+          "touches": 67,
+          "rating": 8.2,
+          "possessionLostCtrl": 6,
+          "expectedGoals": 0.1487,
+          "expectedGoalsOnTarget": 0.3042,
+          "expectedAssists": 0.0111508,
+          "topSpeed": 28.62,
+          "kilometersCovered": 10.37184,
+          "numberOfSprints": 7,
+          "ratingVersions": {
+            "original": 8.2,
+            "alternative": 7.8
+          },
+          "totalShots": 1,
+          "shotValueNormalized": 0.52,
+          "passValueNormalized": 0.19,
+          "dribbleValueNormalized": 0.17,
+          "defensiveValueNormalized": 0.29,
+          "metersCoveredWalkingKm": 3.13,
+          "metersCoveredJoggingKm": 5.15,
+          "metersCoveredRunningKm": 1.41,
+          "metersCoveredHighSpeedRunningKm": 0.53,
+          "metersCoveredSprintingKm": 0.15,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
+        }
       },
       {
         "eventState": {},
@@ -523,7 +575,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -577,7 +629,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -615,7 +667,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1664347,
+          "userCount": 1666385,
           "nameCode": "ACM",
           "disabled": false,
           "national": false,
@@ -681,7 +733,51 @@
         "startTimestamp": 1759689900,
         "finalResultOnly": false,
         "feedLocked": true,
-        "isEditor": false
+        "isEditor": false,
+        "playerStatistics": {
+          "totalPass": 55,
+          "accuratePass": 48,
+          "totalLongBalls": 4,
+          "accurateLongBalls": 1,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 28,
+          "totalOwnHalfPasses": 29,
+          "accurateOppositionHalfPasses": 20,
+          "totalOppositionHalfPasses": 26,
+          "aerialWon": 2,
+          "duelLost": 4,
+          "duelWon": 4,
+          "challengeLost": 1,
+          "bigChanceMissed": 1,
+          "shotOffTarget": 1,
+          "onTargetScoringAttempt": 2,
+          "blockedScoringAttempt": 1,
+          "ballRecovery": 4,
+          "totalTackle": 2,
+          "wonTackle": 2,
+          "unsuccessfulTouch": 1,
+          "fouls": 3,
+          "minutesPlayed": 90,
+          "touches": 63,
+          "rating": 6.5,
+          "possessionLostCtrl": 8,
+          "expectedGoals": 0.7528,
+          "expectedGoalsOnTarget": 0.8335,
+          "expectedAssists": 0.012904,
+          "ratingVersions": {
+            "original": 6.5,
+            "alternative": 7.2
+          },
+          "totalShots": 4,
+          "shotValueNormalized": 0.08,
+          "passValueNormalized": 0.08,
+          "dribbleValueNormalized": 0.08,
+          "defensiveValueNormalized": -0.01,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
+        }
       },
       {
         "eventState": {},
@@ -751,7 +847,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -805,7 +901,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 238629,
+          "userCount": 239698,
           "nameCode": "COM",
           "disabled": false,
           "national": false,
@@ -840,7 +936,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -906,7 +1002,14 @@
         "startTimestamp": 1760869800,
         "finalResultOnly": false,
         "feedLocked": true,
-        "isEditor": false
+        "isEditor": false,
+        "playerStatistics": {
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
+        }
       },
       {
         "eventState": {},
@@ -964,7 +1067,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 1249615,
+            "userCount": 1255521,
             "hasPerformanceGraphFeature": false,
             "country": {},
             "id": 7,
@@ -1016,7 +1119,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 7199028,
+          "userCount": 7219359,
           "nameCode": "RMA",
           "disabled": false,
           "national": false,
@@ -1054,7 +1157,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -1121,7 +1224,58 @@
         "startTimestamp": 1761159600,
         "finalResultOnly": false,
         "feedLocked": true,
-        "isEditor": false
+        "isEditor": false,
+        "playerStatistics": {
+          "totalPass": 28,
+          "accuratePass": 25,
+          "totalLongBalls": 3,
+          "accurateLongBalls": 2,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 18,
+          "totalOwnHalfPasses": 19,
+          "accurateOppositionHalfPasses": 7,
+          "totalOppositionHalfPasses": 9,
+          "aerialWon": 2,
+          "duelLost": 2,
+          "duelWon": 3,
+          "dispossessed": 1,
+          "onTargetScoringAttempt": 1,
+          "totalClearance": 6,
+          "clearanceOffLine": 1,
+          "outfielderBlock": 5,
+          "interceptionWon": 2,
+          "ballRecovery": 6,
+          "wasFouled": 1,
+          "fouls": 1,
+          "minutesPlayed": 90,
+          "touches": 47,
+          "rating": 8,
+          "possessionLostCtrl": 4,
+          "expectedGoals": 0.0262,
+          "expectedGoalsOnTarget": 0.0361,
+          "expectedAssists": 0.20791,
+          "topSpeed": 29.232,
+          "kilometersCovered": 10.21526,
+          "numberOfSprints": 10,
+          "ratingVersions": {
+            "original": 8,
+            "alternative": 8.2
+          },
+          "totalShots": 1,
+          "shotValueNormalized": -0.05,
+          "passValueNormalized": 0.1,
+          "dribbleValueNormalized": 0.09,
+          "defensiveValueNormalized": 0.82,
+          "metersCoveredWalkingKm": 3.2,
+          "metersCoveredJoggingKm": 4.73,
+          "metersCoveredRunningKm": 1.52,
+          "metersCoveredHighSpeedRunningKm": 0.56,
+          "metersCoveredSprintingKm": 0.2,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
+        }
       },
       {
         "eventState": {},
@@ -1191,7 +1345,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -1245,7 +1399,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 378869,
+          "userCount": 378775,
           "nameCode": "LAZ",
           "disabled": false,
           "national": false,
@@ -1283,7 +1437,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -1349,7 +1503,45 @@
         "startTimestamp": 1761507900,
         "finalResultOnly": false,
         "feedLocked": true,
-        "isEditor": false
+        "isEditor": false,
+        "playerStatistics": {
+          "totalPass": 77,
+          "accuratePass": 70,
+          "totalLongBalls": 5,
+          "accurateLongBalls": 3,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 44,
+          "totalOwnHalfPasses": 45,
+          "accurateOppositionHalfPasses": 26,
+          "totalOppositionHalfPasses": 32,
+          "aerialLost": 1,
+          "aerialWon": 1,
+          "duelLost": 1,
+          "duelWon": 3,
+          "totalClearance": 3,
+          "interceptionWon": 1,
+          "ballRecovery": 4,
+          "totalTackle": 2,
+          "wonTackle": 2,
+          "unsuccessfulTouch": 1,
+          "minutesPlayed": 86,
+          "touches": 89,
+          "rating": 6.9,
+          "possessionLostCtrl": 9,
+          "expectedAssists": 0.0111027,
+          "ratingVersions": {
+            "original": 6.9,
+            "alternative": 7
+          },
+          "totalShots": 0,
+          "passValueNormalized": 0.15,
+          "dribbleValueNormalized": 0.13,
+          "defensiveValueNormalized": -0.05,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
+        }
       },
       {
         "eventState": {},
@@ -1419,7 +1611,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -1473,7 +1665,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -1511,7 +1703,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 121969,
+          "userCount": 121913,
           "nameCode": "UDI",
           "disabled": false,
           "national": false,
@@ -1577,7 +1769,50 @@
         "startTimestamp": 1761759000,
         "finalResultOnly": false,
         "feedLocked": true,
-        "isEditor": false
+        "isEditor": false,
+        "playerStatistics": {
+          "totalPass": 35,
+          "accuratePass": 34,
+          "totalLongBalls": 5,
+          "accurateLongBalls": 4,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 22,
+          "totalOwnHalfPasses": 23,
+          "accurateOppositionHalfPasses": 12,
+          "totalOppositionHalfPasses": 12,
+          "aerialLost": 1,
+          "duelLost": 2,
+          "duelWon": 2,
+          "onTargetScoringAttempt": 1,
+          "goals": 1,
+          "totalClearance": 7,
+          "interceptionWon": 1,
+          "ballRecovery": 3,
+          "totalTackle": 2,
+          "wonTackle": 1,
+          "fouls": 2,
+          "minutesPlayed": 90,
+          "touches": 48,
+          "rating": 7.7,
+          "possessionLostCtrl": 1,
+          "expectedGoals": 0.1438,
+          "expectedGoalsOnTarget": 0.6666,
+          "expectedAssists": 0.0029702,
+          "keyPass": 1,
+          "ratingVersions": {
+            "original": 7.7,
+            "alternative": 7.7
+          },
+          "totalShots": 1,
+          "shotValueNormalized": 0.51,
+          "passValueNormalized": 0.11,
+          "dribbleValueNormalized": 0.07,
+          "defensiveValueNormalized": -0.08,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
+        }
       },
       {
         "eventState": {},
@@ -1647,7 +1882,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -1701,7 +1936,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 63547,
+          "userCount": 63502,
           "nameCode": "CRE",
           "disabled": false,
           "national": false,
@@ -1739,7 +1974,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -1805,7 +2040,45 @@
         "startTimestamp": 1762026300,
         "finalResultOnly": false,
         "feedLocked": true,
-        "isEditor": false
+        "isEditor": false,
+        "playerStatistics": {
+          "totalPass": 36,
+          "accuratePass": 33,
+          "totalLongBalls": 5,
+          "accurateLongBalls": 4,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 27,
+          "totalOwnHalfPasses": 28,
+          "accurateOppositionHalfPasses": 6,
+          "totalOppositionHalfPasses": 8,
+          "aerialLost": 1,
+          "aerialWon": 1,
+          "duelLost": 1,
+          "duelWon": 2,
+          "totalClearance": 7,
+          "outfielderBlock": 1,
+          "interceptionWon": 1,
+          "ballRecovery": 3,
+          "errorLeadToAGoal": 1,
+          "wasFouled": 1,
+          "minutesPlayed": 90,
+          "touches": 46,
+          "rating": 6.4,
+          "possessionLostCtrl": 3,
+          "expectedAssists": 0.00474805,
+          "ratingVersions": {
+            "original": 6.4,
+            "alternative": 6.5
+          },
+          "totalShots": 0,
+          "passValueNormalized": 0.08,
+          "dribbleValueNormalized": 0.03,
+          "defensiveValueNormalized": -0.28,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
+        }
       },
       {
         "eventState": {},
@@ -1863,7 +2136,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 1249615,
+            "userCount": 1255521,
             "hasPerformanceGraphFeature": false,
             "country": {},
             "id": 7,
@@ -1915,7 +2188,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -1953,7 +2226,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 744103,
+          "userCount": 746948,
           "nameCode": "SCP",
           "disabled": false,
           "national": false,
@@ -2020,7 +2293,51 @@
         "startTimestamp": 1762286400,
         "finalResultOnly": false,
         "feedLocked": true,
-        "isEditor": false
+        "isEditor": false,
+        "playerStatistics": {
+          "totalPass": 46,
+          "accuratePass": 40,
+          "totalLongBalls": 1,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 31,
+          "totalOwnHalfPasses": 35,
+          "accurateOppositionHalfPasses": 9,
+          "totalOppositionHalfPasses": 11,
+          "aerialWon": 2,
+          "duelLost": 2,
+          "duelWon": 3,
+          "totalClearance": 2,
+          "ballRecovery": 3,
+          "totalTackle": 1,
+          "wonTackle": 1,
+          "unsuccessfulTouch": 1,
+          "fouls": 2,
+          "minutesPlayed": 90,
+          "touches": 52,
+          "rating": 6.3,
+          "possessionLostCtrl": 7,
+          "expectedAssists": 0.00388403,
+          "topSpeed": 28.872,
+          "kilometersCovered": 10.48045,
+          "numberOfSprints": 6,
+          "ratingVersions": {
+            "original": 6.3,
+            "alternative": 6.5
+          },
+          "totalShots": 0,
+          "passValueNormalized": -0.1,
+          "dribbleValueNormalized": 0.05,
+          "defensiveValueNormalized": -0.18,
+          "metersCoveredWalkingKm": 3.03,
+          "metersCoveredJoggingKm": 5.4,
+          "metersCoveredRunningKm": 1.43,
+          "metersCoveredHighSpeedRunningKm": 0.48,
+          "metersCoveredSprintingKm": 0.14,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
+        }
       },
       {
         "eventState": {},
@@ -2090,7 +2407,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -2144,7 +2461,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -2182,7 +2499,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 138483,
+          "userCount": 138445,
           "nameCode": "TOR",
           "disabled": false,
           "national": false,
@@ -2248,7 +2565,45 @@
         "startTimestamp": 1762621200,
         "finalResultOnly": false,
         "feedLocked": true,
-        "isEditor": false
+        "isEditor": false,
+        "playerStatistics": {
+          "totalPass": 29,
+          "accuratePass": 28,
+          "totalLongBalls": 4,
+          "accurateLongBalls": 4,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 17,
+          "totalOwnHalfPasses": 17,
+          "accurateOppositionHalfPasses": 11,
+          "totalOppositionHalfPasses": 12,
+          "aerialLost": 1,
+          "aerialWon": 4,
+          "duelLost": 2,
+          "duelWon": 4,
+          "challengeLost": 1,
+          "shotOffTarget": 1,
+          "totalClearance": 5,
+          "ballRecovery": 2,
+          "minutesPlayed": 45,
+          "touches": 36,
+          "rating": 7.2,
+          "possessionLostCtrl": 1,
+          "expectedGoals": 0.0339,
+          "expectedAssists": 0.00398437,
+          "ratingVersions": {
+            "original": 7.2,
+            "alternative": 7
+          },
+          "totalShots": 1,
+          "shotValueNormalized": -0.08,
+          "passValueNormalized": 0.12,
+          "dribbleValueNormalized": 0.04,
+          "defensiveValueNormalized": 0.18,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
+        }
       },
       {
         "eventState": {},
@@ -2318,7 +2673,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -2372,7 +2727,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 303254,
+          "userCount": 304231,
           "nameCode": "FIO",
           "disabled": false,
           "national": false,
@@ -2412,7 +2767,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -2478,7 +2833,14 @@
         "startTimestamp": 1763830800,
         "finalResultOnly": false,
         "feedLocked": true,
-        "isEditor": false
+        "isEditor": false,
+        "playerStatistics": {
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
+        }
       },
       {
         "eventState": {},
@@ -2548,7 +2910,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -2602,7 +2964,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -2640,7 +3002,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 110689,
+          "userCount": 110641,
           "nameCode": "CAG",
           "disabled": false,
           "national": false,
@@ -2706,7 +3068,14 @@
         "startTimestamp": 1764435600,
         "finalResultOnly": false,
         "feedLocked": true,
-        "isEditor": false
+        "isEditor": false,
+        "playerStatistics": {
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
+        }
       },
       {
         "eventState": {},
@@ -2776,7 +3145,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 102945,
+            "userCount": 102980,
             "hasPerformanceGraphFeature": false,
             "country": {},
             "id": 328,
@@ -2833,7 +3202,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -2871,7 +3240,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 121969,
+          "userCount": 121913,
           "nameCode": "UDI",
           "disabled": false,
           "national": false,
@@ -2949,6 +3318,45 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalPass": 39,
+          "accuratePass": 37,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 22,
+          "totalOwnHalfPasses": 23,
+          "accurateOppositionHalfPasses": 15,
+          "totalOppositionHalfPasses": 16,
+          "aerialLost": 1,
+          "aerialWon": 1,
+          "duelLost": 4,
+          "duelWon": 2,
+          "dispossessed": 1,
+          "interceptionWon": 2,
+          "ballRecovery": 2,
+          "totalTackle": 1,
+          "wonTackle": 1,
+          "fouls": 2,
+          "minutesPlayed": 56,
+          "touches": 46,
+          "rating": 6.7,
+          "possessionLostCtrl": 3,
+          "totalBallCarriesDistance": 152.20765425376,
+          "ballCarriesCount": 20,
+          "totalProgression": 90.09,
+          "bestBallCarryProgression": 11.655,
+          "ratingVersions": {
+            "original": 6.7,
+            "alternative": 6.8
+          },
+          "totalShots": 0,
+          "passValueNormalized": 0.02,
+          "dribbleValueNormalized": 0.07,
+          "defensiveValueNormalized": 0.15,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -3019,7 +3427,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -3073,7 +3481,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 110689,
+          "userCount": 110641,
           "nameCode": "CAG",
           "disabled": false,
           "national": false,
@@ -3111,7 +3519,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -3189,6 +3597,13 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -3247,7 +3662,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 1249615,
+            "userCount": 1255521,
             "hasPerformanceGraphFeature": false,
             "country": {},
             "id": 7,
@@ -3299,7 +3714,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -3337,7 +3752,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 862551,
+          "userCount": 863003,
           "nameCode": "SLB",
           "disabled": false,
           "national": false,
@@ -3416,6 +3831,13 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -3486,7 +3908,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -3540,7 +3962,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -3578,7 +4000,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1100660,
+          "userCount": 1101255,
           "nameCode": "NAP",
           "disabled": false,
           "national": false,
@@ -3656,6 +4078,25 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalPass": 4,
+          "accuratePass": 4,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 4,
+          "totalOwnHalfPasses": 4,
+          "minutesPlayed": 3,
+          "touches": 4,
+          "expectedAssists": 5.816e-05,
+          "totalBallCarriesDistance": 16.06223320431,
+          "ballCarriesCount": 2,
+          "totalProgression": 8.505,
+          "bestBallCarryProgression": 8.61,
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -3714,7 +4155,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 1249615,
+            "userCount": 1255521,
             "hasPerformanceGraphFeature": false,
             "country": {},
             "id": 7,
@@ -3766,7 +4207,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 506665,
+          "userCount": 506952,
           "nameCode": "ASM",
           "disabled": false,
           "national": false,
@@ -3806,7 +4247,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -3885,6 +4326,13 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -3955,7 +4403,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -4009,7 +4457,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 100279,
+          "userCount": 100222,
           "nameCode": "PAR",
           "disabled": false,
           "national": false,
@@ -4047,7 +4495,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -4125,6 +4573,44 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalPass": 17,
+          "accuratePass": 17,
+          "totalLongBalls": 1,
+          "accurateLongBalls": 1,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 10,
+          "totalOwnHalfPasses": 10,
+          "accurateOppositionHalfPasses": 7,
+          "totalOppositionHalfPasses": 7,
+          "duelWon": 1,
+          "interceptionWon": 2,
+          "ballRecovery": 1,
+          "totalTackle": 1,
+          "wonTackle": 1,
+          "unsuccessfulTouch": 1,
+          "minutesPlayed": 25,
+          "touches": 22,
+          "rating": 6.9,
+          "possessionLostCtrl": 1,
+          "expectedAssists": 0.00164013,
+          "totalBallCarriesDistance": 51.107601654445,
+          "ballCarriesCount": 7,
+          "totalProgression": 30.513730601833,
+          "keyPass": 1,
+          "ratingVersions": {
+            "original": 6.9,
+            "alternative": 6.9
+          },
+          "totalShots": 0,
+          "passValueNormalized": 0.09,
+          "dribbleValueNormalized": 0.08,
+          "defensiveValueNormalized": 0.14,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -4195,7 +4681,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 102945,
+            "userCount": 102980,
             "hasPerformanceGraphFeature": false,
             "country": {},
             "id": 328,
@@ -4252,7 +4738,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 641093,
+          "userCount": 640945,
           "nameCode": "ATA",
           "disabled": false,
           "national": false,
@@ -4292,7 +4778,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -4370,6 +4856,47 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalPass": 29,
+          "accuratePass": 25,
+          "totalLongBalls": 2,
+          "accurateLongBalls": 1,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 17,
+          "totalOwnHalfPasses": 18,
+          "accurateOppositionHalfPasses": 8,
+          "totalOppositionHalfPasses": 11,
+          "aerialLost": 1,
+          "duelLost": 1,
+          "duelWon": 4,
+          "blockedScoringAttempt": 1,
+          "totalClearance": 1,
+          "interceptionWon": 1,
+          "ballRecovery": 3,
+          "totalTackle": 4,
+          "wonTackle": 2,
+          "unsuccessfulTouch": 1,
+          "minutesPlayed": 64,
+          "touches": 38,
+          "rating": 6.5,
+          "possessionLostCtrl": 5,
+          "totalBallCarriesDistance": 73.659894273112,
+          "ballCarriesCount": 10,
+          "totalProgression": -0.056664441904019,
+          "ratingVersions": {
+            "original": 6.5,
+            "alternative": 6.8
+          },
+          "totalShots": 1,
+          "shotValueNormalized": -0.19,
+          "passValueNormalized": -0.06,
+          "dribbleValueNormalized": -0.12,
+          "defensiveValueNormalized": -0.12,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -4440,7 +4967,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -4494,7 +5021,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -4532,7 +5059,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 378869,
+          "userCount": 378775,
           "nameCode": "LAZ",
           "disabled": false,
           "national": false,
@@ -4611,6 +5138,13 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -4681,7 +5215,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -4735,7 +5269,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1897660,
+          "userCount": 1900357,
           "nameCode": "INT",
           "disabled": false,
           "national": false,
@@ -4773,7 +5307,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -4852,6 +5386,13 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -4910,7 +5451,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 1249615,
+            "userCount": 1255521,
             "hasPerformanceGraphFeature": false,
             "country": {},
             "id": 7,
@@ -4967,7 +5508,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 951742,
+          "userCount": 956800,
           "nameCode": "GAL",
           "disabled": false,
           "national": false,
@@ -5005,7 +5546,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -5086,6 +5627,52 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalPass": 9,
+          "accuratePass": 7,
+          "totalLongBalls": 2,
+          "accurateLongBalls": 1,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 6,
+          "totalOwnHalfPasses": 7,
+          "accurateOppositionHalfPasses": 1,
+          "totalOppositionHalfPasses": 2,
+          "duelLost": 1,
+          "totalClearance": 2,
+          "outfielderBlock": 2,
+          "interceptionWon": 1,
+          "ballRecovery": 1,
+          "fouls": 1,
+          "minutesPlayed": 56,
+          "touches": 14,
+          "rating": 5.7,
+          "possessionLostCtrl": 2,
+          "expectedAssists": 0.00079459,
+          "topSpeed": 31.86,
+          "kilometersCovered": 6.04763,
+          "numberOfSprints": 4,
+          "totalBallCarriesDistance": 16.730608413454,
+          "ballCarriesCount": 3,
+          "totalProgression": 1.9466863942446,
+          "progressiveBallCarriesCount": 0,
+          "ratingVersions": {
+            "original": 5.7,
+            "alternative": 6.2
+          },
+          "totalShots": 0,
+          "passValueNormalized": 0,
+          "dribbleValueNormalized": 0.03,
+          "defensiveValueNormalized": -0.57,
+          "metersCoveredWalkingKm": 1.92,
+          "metersCoveredJoggingKm": 2.86,
+          "metersCoveredRunningKm": 0.85,
+          "metersCoveredHighSpeedRunningKm": 0.34,
+          "metersCoveredSprintingKm": 0.07,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -5156,7 +5743,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -5210,7 +5797,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -5248,7 +5835,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 238629,
+          "userCount": 239698,
           "nameCode": "COM",
           "disabled": false,
           "national": false,
@@ -5323,6 +5910,45 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalPass": 48,
+          "accuratePass": 44,
+          "totalLongBalls": 2,
+          "accurateLongBalls": 2,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 27,
+          "totalOwnHalfPasses": 28,
+          "accurateOppositionHalfPasses": 17,
+          "totalOppositionHalfPasses": 20,
+          "totalCross": 1,
+          "totalClearance": 1,
+          "outfielderBlock": 1,
+          "interceptionWon": 1,
+          "ballRecovery": 3,
+          "minutesPlayed": 90,
+          "touches": 54,
+          "rating": 6.6,
+          "possessionLostCtrl": 5,
+          "expectedAssists": 0.0112296,
+          "totalBallCarriesDistance": 268.97019587294,
+          "ballCarriesCount": 23,
+          "totalProgression": 206.44873609031,
+          "bestBallCarryProgression": 35.842752985059,
+          "totalProgressiveBallCarriesDistance": 73.705148363202,
+          "progressiveBallCarriesCount": 3,
+          "ratingVersions": {
+            "original": 6.6,
+            "alternative": 6.8
+          },
+          "totalShots": 0,
+          "passValueNormalized": 0.04,
+          "dribbleValueNormalized": 0.27,
+          "defensiveValueNormalized": -0.12,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -5381,7 +6007,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 1249615,
+            "userCount": 1255521,
             "hasPerformanceGraphFeature": false,
             "country": {},
             "id": 7,
@@ -5439,7 +6065,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -5477,7 +6103,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 951742,
+          "userCount": 956800,
           "nameCode": "GAL",
           "disabled": false,
           "national": false,
@@ -5567,6 +6193,70 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalPass": 38,
+          "accuratePass": 28,
+          "totalLongBalls": 4,
+          "accurateLongBalls": 2,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 17,
+          "totalOwnHalfPasses": 22,
+          "accurateOppositionHalfPasses": 11,
+          "totalOppositionHalfPasses": 16,
+          "aerialLost": 4,
+          "aerialWon": 2,
+          "duelLost": 5,
+          "duelWon": 6,
+          "totalContest": 2,
+          "wonContest": 1,
+          "bigChanceMissed": 1,
+          "shotOffTarget": 2,
+          "onTargetScoringAttempt": 2,
+          "goals": 1,
+          "totalClearance": 7,
+          "outfielderBlock": 1,
+          "interceptionWon": 1,
+          "ballRecovery": 4,
+          "lastManTackle": 1,
+          "totalTackle": 2,
+          "wonTackle": 2,
+          "errorLeadToAShot": 1,
+          "wasFouled": 1,
+          "minutesPlayed": 120,
+          "touches": 62,
+          "rating": 7.7,
+          "possessionLostCtrl": 11,
+          "expectedGoals": 1.6402,
+          "expectedGoalsOnTarget": 1.3678,
+          "expectedAssists": 0.00692647,
+          "topSpeed": 29.124,
+          "kilometersCovered": 9.96119,
+          "numberOfSprints": 4,
+          "totalBallCarriesDistance": 133.4401763675,
+          "ballCarriesCount": 12,
+          "totalProgression": 84.267358506047,
+          "bestBallCarryProgression": 27.635505701907,
+          "totalProgressiveBallCarriesDistance": 32.462000184831,
+          "progressiveBallCarriesCount": 1,
+          "ratingVersions": {
+            "original": 7.7,
+            "alternative": 7.8
+          },
+          "totalShots": 4,
+          "shotValueNormalized": 0.42,
+          "passValueNormalized": 0.11,
+          "dribbleValueNormalized": 0.15,
+          "defensiveValueNormalized": 0.41,
+          "metersCoveredWalkingKm": 3.19,
+          "metersCoveredJoggingKm": 4.89,
+          "metersCoveredRunningKm": 1.35,
+          "metersCoveredHighSpeedRunningKm": 0.44,
+          "metersCoveredSprintingKm": 0.08,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -5640,7 +6330,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -5694,7 +6384,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 755129,
+          "userCount": 755513,
           "nameCode": "ASR",
           "disabled": false,
           "national": false,
@@ -5732,7 +6422,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -5811,6 +6501,30 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "goalAssist": 0,
+          "duelLost": 1,
+          "onTargetScoringAttempt": 1,
+          "goals": 1,
+          "outfielderBlock": 1,
+          "fouls": 1,
+          "minutesPlayed": 7,
+          "touches": 2,
+          "rating": 7.3,
+          "expectedGoals": 0.7111,
+          "expectedGoalsOnTarget": 0.8548,
+          "ratingVersions": {
+            "original": 7.3,
+            "alternative": 7.7
+          },
+          "totalShots": 1,
+          "shotValueNormalized": 0.32,
+          "defensiveValueNormalized": 0.29,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -5881,7 +6595,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -5935,7 +6649,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -5973,7 +6687,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 62508,
+          "userCount": 62550,
           "nameCode": "PIS",
           "disabled": false,
           "national": false,
@@ -6052,6 +6766,51 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalPass": 44,
+          "accuratePass": 40,
+          "totalLongBalls": 3,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 20,
+          "totalOwnHalfPasses": 23,
+          "accurateOppositionHalfPasses": 20,
+          "totalOppositionHalfPasses": 21,
+          "aerialLost": 3,
+          "aerialWon": 3,
+          "duelLost": 4,
+          "duelWon": 3,
+          "onTargetScoringAttempt": 1,
+          "totalClearance": 3,
+          "interceptionWon": 1,
+          "ballRecovery": 3,
+          "fouls": 1,
+          "minutesPlayed": 45,
+          "touches": 51,
+          "rating": 6.7,
+          "possessionLostCtrl": 4,
+          "expectedGoals": 0.0414,
+          "expectedGoalsOnTarget": 0.0471,
+          "expectedAssists": 0.00584212,
+          "totalBallCarriesDistance": 235.90283066276,
+          "ballCarriesCount": 23,
+          "totalProgression": 87.068975330843,
+          "bestBallCarryProgression": 20.458431015792,
+          "totalProgressiveBallCarriesDistance": 46.540004638657,
+          "progressiveBallCarriesCount": 2,
+          "ratingVersions": {
+            "original": 6.7,
+            "alternative": 6.9
+          },
+          "totalShots": 1,
+          "shotValueNormalized": -0.26,
+          "passValueNormalized": 0.09,
+          "dribbleValueNormalized": 0.08,
+          "defensiveValueNormalized": 0.17,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -6122,7 +6881,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -6176,7 +6935,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 121969,
+          "userCount": 121913,
           "nameCode": "UDI",
           "disabled": false,
           "national": false,
@@ -6214,7 +6973,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -6292,6 +7051,40 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalPass": 3,
+          "accuratePass": 2,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 1,
+          "totalOwnHalfPasses": 2,
+          "accurateOppositionHalfPasses": 1,
+          "totalOppositionHalfPasses": 1,
+          "interceptionWon": 1,
+          "ballRecovery": 1,
+          "minutesPlayed": 11,
+          "touches": 4,
+          "rating": 6.7,
+          "possessionLostCtrl": 1,
+          "expectedAssists": 0.00034733,
+          "totalBallCarriesDistance": 28.224021939456,
+          "ballCarriesCount": 2,
+          "totalProgression": 17.03068721587,
+          "bestBallCarryProgression": 21.619972826731,
+          "totalProgressiveBallCarriesDistance": 23.125607970386,
+          "progressiveBallCarriesCount": 1,
+          "ratingVersions": {
+            "original": 6.7,
+            "alternative": 6.6
+          },
+          "totalShots": 0,
+          "passValueNormalized": 0.01,
+          "dribbleValueNormalized": 0.03,
+          "defensiveValueNormalized": 0.13,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -6362,7 +7155,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -6416,7 +7209,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -6454,7 +7247,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 112538,
+          "userCount": 112494,
           "nameCode": "SAS",
           "disabled": false,
           "national": false,
@@ -6532,6 +7325,13 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -6590,7 +7390,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 207684,
+            "userCount": 207647,
             "hasPerformanceGraphFeature": false,
             "country": {},
             "id": 11,
@@ -6647,7 +7447,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 775223,
+          "userCount": 775212,
           "nameCode": "ITA",
           "ranking": 12,
           "disabled": false,
@@ -6686,7 +7486,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 24717,
+          "userCount": 24699,
           "nameCode": "NIR",
           "ranking": 70,
           "disabled": false,
@@ -6766,6 +7566,34 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalPass": 15,
+          "accuratePass": 15,
+          "totalLongBalls": 1,
+          "accurateLongBalls": 1,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 14,
+          "totalOwnHalfPasses": 14,
+          "accurateOppositionHalfPasses": 1,
+          "totalOppositionHalfPasses": 1,
+          "totalClearance": 1,
+          "minutesPlayed": 27,
+          "touches": 16,
+          "rating": 6.6,
+          "totalBallCarriesDistance": 71.834355031117,
+          "ballCarriesCount": 8,
+          "totalProgression": 11.428361214988,
+          "progressiveBallCarriesCount": 0,
+          "ratingVersions": {
+            "original": 6.6,
+            "alternative": 6.6
+          },
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -6824,7 +7652,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 207684,
+            "userCount": 207647,
             "hasPerformanceGraphFeature": false,
             "country": {},
             "id": 11,
@@ -6881,7 +7709,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 93289,
+          "userCount": 93349,
           "nameCode": "BIH",
           "ranking": 65,
           "disabled": false,
@@ -6920,7 +7748,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 775223,
+          "userCount": 775212,
           "nameCode": "ITA",
           "ranking": 12,
           "disabled": false,
@@ -7014,6 +7842,39 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalPass": 4,
+          "accuratePass": 2,
+          "totalLongBalls": 1,
+          "goalAssist": 0,
+          "accurateOwnHalfPasses": 2,
+          "totalOwnHalfPasses": 3,
+          "totalOppositionHalfPasses": 1,
+          "aerialLost": 3,
+          "duelLost": 4,
+          "duelWon": 2,
+          "dispossessed": 1,
+          "totalClearance": 7,
+          "outfielderBlock": 2,
+          "wasFouled": 2,
+          "minutesPlayed": 76,
+          "touches": 16,
+          "rating": 6.8,
+          "possessionLostCtrl": 3,
+          "totalBallCarriesDistance": 13.686664676209,
+          "ballCarriesCount": 2,
+          "totalProgression": -3.0848034545516,
+          "progressiveBallCarriesCount": 0,
+          "ratingVersions": {
+            "original": 6.8,
+            "alternative": 6.8
+          },
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       },
       {
@@ -7084,7 +7945,7 @@
                 "shortNameTranslation": {}
               }
             },
-            "userCount": 634301,
+            "userCount": 634779,
             "hasPerformanceGraphFeature": true,
             "country": {},
             "id": 23,
@@ -7138,7 +7999,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -7176,7 +8037,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 122717,
+          "userCount": 122619,
           "nameCode": "GEN",
           "disabled": false,
           "national": false,
@@ -7254,6 +8115,13 @@
           "gender": [
             "M"
           ]
+        },
+        "playerStatistics": {
+          "totalShots": 0,
+          "statisticsType": {
+            "sportSlug": "football",
+            "statisticsType": "player"
+          }
         }
       }
     ],
@@ -7267,7 +8135,7 @@
           "shortName": "F. Gatti",
           "position": "D",
           "jerseyNumber": "4",
-          "userCount": 5260,
+          "userCount": 5262,
           "gender": "M",
           "sofascoreId": "FedericoGatti",
           "id": 1128063,
@@ -7294,7 +8162,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 38413,
+          "userCount": 38454,
           "nameCode": "FRO",
           "disabled": false,
           "national": false,
@@ -7325,7 +8193,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -7367,7 +8235,7 @@
           "shortName": "F. Gatti",
           "position": "D",
           "jerseyNumber": "4",
-          "userCount": 5260,
+          "userCount": 5262,
           "gender": "M",
           "sofascoreId": "FedericoGatti",
           "id": 1128063,
@@ -7394,7 +8262,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -7425,7 +8293,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 38413,
+          "userCount": 38454,
           "nameCode": "FRO",
           "disabled": false,
           "national": false,
@@ -7467,7 +8335,7 @@
           "shortName": "F. Gatti",
           "position": "D",
           "jerseyNumber": "4",
-          "userCount": 5260,
+          "userCount": 5262,
           "gender": "M",
           "sofascoreId": "FedericoGatti",
           "id": 1128063,
@@ -7494,7 +8362,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 38413,
+          "userCount": 38454,
           "nameCode": "FRO",
           "disabled": false,
           "national": false,
@@ -7525,7 +8393,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 1578696,
+          "userCount": 1579971,
           "nameCode": "JUV",
           "disabled": false,
           "national": false,
@@ -7567,7 +8435,7 @@
           "shortName": "F. Gatti",
           "position": "D",
           "jerseyNumber": "4",
-          "userCount": 5260,
+          "userCount": 5262,
           "gender": "M",
           "sofascoreId": "FedericoGatti",
           "id": 1128063,
@@ -7593,7 +8461,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 2508,
+          "userCount": 2507,
           "nameCode": "APP",
           "national": false,
           "type": 0,
@@ -7621,7 +8489,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 38413,
+          "userCount": 38454,
           "nameCode": "FRO",
           "disabled": false,
           "national": false,
@@ -7663,7 +8531,7 @@
           "shortName": "F. Gatti",
           "position": "D",
           "jerseyNumber": "4",
-          "userCount": 5260,
+          "userCount": 5262,
           "gender": "M",
           "sofascoreId": "FedericoGatti",
           "id": 1128063,
@@ -7689,7 +8557,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 2508,
+          "userCount": 2507,
           "nameCode": "APP",
           "national": false,
           "type": 0,
@@ -7728,7 +8596,7 @@
           "shortName": "F. Gatti",
           "position": "D",
           "jerseyNumber": "4",
-          "userCount": 5260,
+          "userCount": 5262,
           "gender": "M",
           "sofascoreId": "FedericoGatti",
           "id": 1128063,
@@ -7766,7 +8634,7 @@
           "shortName": "F. Gatti",
           "position": "D",
           "jerseyNumber": "4",
-          "userCount": 5260,
+          "userCount": 5262,
           "gender": "M",
           "sofascoreId": "FedericoGatti",
           "id": 1128063,
@@ -7793,7 +8661,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 139,
+          "userCount": 138,
           "nameCode": "ALE",
           "disabled": false,
           "national": false,
@@ -7834,7 +8702,7 @@
           "shortName": "F. Gatti",
           "position": "D",
           "jerseyNumber": "4",
-          "userCount": 5260,
+          "userCount": 5262,
           "gender": "M",
           "sofascoreId": "FedericoGatti",
           "id": 1128063,
@@ -7861,7 +8729,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 139,
+          "userCount": 138,
           "nameCode": "ALE",
           "disabled": false,
           "national": false,
@@ -7902,7 +8770,7 @@
           "shortName": "F. Gatti",
           "position": "D",
           "jerseyNumber": "4",
-          "userCount": 5260,
+          "userCount": 5262,
           "gender": "M",
           "sofascoreId": "FedericoGatti",
           "id": 1128063,
@@ -7929,7 +8797,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 139,
+          "userCount": 138,
           "nameCode": "ALE",
           "disabled": false,
           "national": false,
@@ -7959,7 +8827,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 376,
+          "userCount": 375,
           "nameCode": "SAL",
           "disabled": false,
           "national": false,
@@ -8000,7 +8868,7 @@
           "shortName": "F. Gatti",
           "position": "D",
           "jerseyNumber": "4",
-          "userCount": 5260,
+          "userCount": 5262,
           "gender": "M",
           "sofascoreId": "FedericoGatti",
           "id": 1128063,
@@ -8042,7 +8910,7 @@
             "slug": "football",
             "id": 1
           },
-          "userCount": 775223,
+          "userCount": 775226,
           "nameCode": "ITA",
           "ranking": 12,
           "disabled": false,
@@ -14017,13 +14885,38 @@
         },
         "heatmap_points": [
           {
-            "x": 32,
-            "y": 75,
+            "x": 9,
+            "y": 55,
             "count": 1
           },
           {
-            "x": 16,
-            "y": 73,
+            "x": 9,
+            "y": 52,
+            "count": 2
+          },
+          {
+            "x": 9,
+            "y": 46,
+            "count": 1
+          },
+          {
+            "x": 49,
+            "y": 68,
+            "count": 1
+          },
+          {
+            "x": 49,
+            "y": 67,
+            "count": 1
+          },
+          {
+            "x": 12,
+            "y": 51,
+            "count": 1
+          },
+          {
+            "x": 14,
+            "y": 49,
             "count": 1
           },
           {
@@ -14032,8 +14925,73 @@
             "count": 1
           },
           {
-            "x": 14,
-            "y": 49,
+            "x": 6,
+            "y": 46,
+            "count": 2
+          },
+          {
+            "x": 4,
+            "y": 44,
+            "count": 1
+          },
+          {
+            "x": 4,
+            "y": 41,
+            "count": 1
+          },
+          {
+            "x": 4,
+            "y": 61,
+            "count": 1
+          },
+          {
+            "x": 18,
+            "y": 86,
+            "count": 1
+          },
+          {
+            "x": 8,
+            "y": 95,
+            "count": 1
+          },
+          {
+            "x": 40,
+            "y": 27,
+            "count": 1
+          },
+          {
+            "x": 40,
+            "y": 22,
+            "count": 1
+          },
+          {
+            "x": 95,
+            "y": 51,
+            "count": 1
+          },
+          {
+            "x": 88,
+            "y": 41,
+            "count": 1
+          },
+          {
+            "x": 87,
+            "y": 41,
+            "count": 1
+          },
+          {
+            "x": 51,
+            "y": 19,
+            "count": 1
+          },
+          {
+            "x": 32,
+            "y": 75,
+            "count": 1
+          },
+          {
+            "x": 16,
+            "y": 73,
             "count": 1
           },
           {
@@ -14072,16 +15030,6 @@
             "count": 1
           },
           {
-            "x": 40,
-            "y": 22,
-            "count": 1
-          },
-          {
-            "x": 40,
-            "y": 27,
-            "count": 1
-          },
-          {
             "x": 28,
             "y": 21,
             "count": 1
@@ -14097,88 +15045,8 @@
             "count": 1
           },
           {
-            "x": 4,
-            "y": 61,
-            "count": 1
-          },
-          {
-            "x": 4,
-            "y": 44,
-            "count": 1
-          },
-          {
-            "x": 4,
-            "y": 41,
-            "count": 1
-          },
-          {
             "x": 13,
             "y": 45,
-            "count": 1
-          },
-          {
-            "x": 9,
-            "y": 55,
-            "count": 1
-          },
-          {
-            "x": 9,
-            "y": 52,
-            "count": 2
-          },
-          {
-            "x": 9,
-            "y": 46,
-            "count": 1
-          },
-          {
-            "x": 49,
-            "y": 68,
-            "count": 1
-          },
-          {
-            "x": 49,
-            "y": 67,
-            "count": 1
-          },
-          {
-            "x": 12,
-            "y": 51,
-            "count": 1
-          },
-          {
-            "x": 6,
-            "y": 46,
-            "count": 2
-          },
-          {
-            "x": 18,
-            "y": 86,
-            "count": 1
-          },
-          {
-            "x": 8,
-            "y": 95,
-            "count": 1
-          },
-          {
-            "x": 95,
-            "y": 51,
-            "count": 1
-          },
-          {
-            "x": 88,
-            "y": 41,
-            "count": 1
-          },
-          {
-            "x": 87,
-            "y": 41,
-            "count": 1
-          },
-          {
-            "x": 51,
-            "y": 19,
             "count": 1
           }
         ]
@@ -20157,13 +21025,38 @@
           },
           "heatmap_points": [
             {
-              "x": 32,
-              "y": 75,
+              "x": 9,
+              "y": 55,
               "count": 1
             },
             {
-              "x": 16,
-              "y": 73,
+              "x": 9,
+              "y": 52,
+              "count": 2
+            },
+            {
+              "x": 9,
+              "y": 46,
+              "count": 1
+            },
+            {
+              "x": 49,
+              "y": 68,
+              "count": 1
+            },
+            {
+              "x": 49,
+              "y": 67,
+              "count": 1
+            },
+            {
+              "x": 12,
+              "y": 51,
+              "count": 1
+            },
+            {
+              "x": 14,
+              "y": 49,
               "count": 1
             },
             {
@@ -20172,8 +21065,73 @@
               "count": 1
             },
             {
-              "x": 14,
-              "y": 49,
+              "x": 6,
+              "y": 46,
+              "count": 2
+            },
+            {
+              "x": 4,
+              "y": 44,
+              "count": 1
+            },
+            {
+              "x": 4,
+              "y": 41,
+              "count": 1
+            },
+            {
+              "x": 4,
+              "y": 61,
+              "count": 1
+            },
+            {
+              "x": 18,
+              "y": 86,
+              "count": 1
+            },
+            {
+              "x": 8,
+              "y": 95,
+              "count": 1
+            },
+            {
+              "x": 40,
+              "y": 27,
+              "count": 1
+            },
+            {
+              "x": 40,
+              "y": 22,
+              "count": 1
+            },
+            {
+              "x": 95,
+              "y": 51,
+              "count": 1
+            },
+            {
+              "x": 88,
+              "y": 41,
+              "count": 1
+            },
+            {
+              "x": 87,
+              "y": 41,
+              "count": 1
+            },
+            {
+              "x": 51,
+              "y": 19,
+              "count": 1
+            },
+            {
+              "x": 32,
+              "y": 75,
+              "count": 1
+            },
+            {
+              "x": 16,
+              "y": 73,
               "count": 1
             },
             {
@@ -20212,16 +21170,6 @@
               "count": 1
             },
             {
-              "x": 40,
-              "y": 22,
-              "count": 1
-            },
-            {
-              "x": 40,
-              "y": 27,
-              "count": 1
-            },
-            {
               "x": 28,
               "y": 21,
               "count": 1
@@ -20237,88 +21185,8 @@
               "count": 1
             },
             {
-              "x": 4,
-              "y": 61,
-              "count": 1
-            },
-            {
-              "x": 4,
-              "y": 44,
-              "count": 1
-            },
-            {
-              "x": 4,
-              "y": 41,
-              "count": 1
-            },
-            {
               "x": 13,
               "y": 45,
-              "count": 1
-            },
-            {
-              "x": 9,
-              "y": 55,
-              "count": 1
-            },
-            {
-              "x": 9,
-              "y": 52,
-              "count": 2
-            },
-            {
-              "x": 9,
-              "y": 46,
-              "count": 1
-            },
-            {
-              "x": 49,
-              "y": 68,
-              "count": 1
-            },
-            {
-              "x": 49,
-              "y": 67,
-              "count": 1
-            },
-            {
-              "x": 12,
-              "y": 51,
-              "count": 1
-            },
-            {
-              "x": 6,
-              "y": 46,
-              "count": 2
-            },
-            {
-              "x": 18,
-              "y": 86,
-              "count": 1
-            },
-            {
-              "x": 8,
-              "y": 95,
-              "count": 1
-            },
-            {
-              "x": 95,
-              "y": 51,
-              "count": 1
-            },
-            {
-              "x": 88,
-              "y": 41,
-              "count": 1
-            },
-            {
-              "x": 87,
-              "y": 41,
-              "count": 1
-            },
-            {
-              "x": 51,
-              "y": 19,
               "count": 1
             }
           ]
@@ -20346,9 +21214,9 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
-          "goals": 0,
+          "rating": 8.2,
+          "minutes_played": 90,
+          "goals": 1,
           "assists": 0,
           "yellow_card": false,
           "red_card": false
@@ -20374,8 +21242,8 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.5,
+          "minutes_played": 90,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20430,8 +21298,8 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 8,
+          "minutes_played": 90,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20458,8 +21326,8 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.9,
+          "minutes_played": 86,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20486,9 +21354,9 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
-          "goals": 0,
+          "rating": 7.7,
+          "minutes_played": 90,
+          "goals": 1,
           "assists": 0,
           "yellow_card": false,
           "red_card": false
@@ -20514,8 +21382,8 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.4,
+          "minutes_played": 90,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20542,8 +21410,8 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.3,
+          "minutes_played": 90,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20570,8 +21438,8 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 7.2,
+          "minutes_played": 45,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20654,8 +21522,8 @@
           "has_xg": false,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.7,
+          "minutes_played": 56,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20739,7 +21607,7 @@
           "has_player_stats": true,
           "has_heatmap": true,
           "rating": null,
-          "minutes_played": null,
+          "minutes_played": 3,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20794,8 +21662,8 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.9,
+          "minutes_played": 25,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20822,8 +21690,8 @@
           "has_xg": false,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.5,
+          "minutes_played": 64,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20906,8 +21774,8 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 5.7,
+          "minutes_played": 56,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20934,8 +21802,8 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.6,
+          "minutes_played": 90,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -20962,9 +21830,9 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
-          "goals": 0,
+          "rating": 7.7,
+          "minutes_played": 120,
+          "goals": 1,
           "assists": 0,
           "yellow_card": false,
           "red_card": false
@@ -20990,9 +21858,9 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
-          "goals": 0,
+          "rating": 7.3,
+          "minutes_played": 7,
+          "goals": 1,
           "assists": 0,
           "yellow_card": false,
           "red_card": false
@@ -21018,8 +21886,8 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.7,
+          "minutes_played": 45,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -21046,8 +21914,8 @@
           "has_xg": true,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.7,
+          "minutes_played": 11,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -21102,8 +21970,8 @@
           "has_xg": false,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.6,
+          "minutes_played": 27,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -21130,8 +21998,8 @@
           "has_xg": false,
           "has_player_stats": true,
           "has_heatmap": true,
-          "rating": null,
-          "minutes_played": null,
+          "rating": 6.8,
+          "minutes_played": 76,
           "goals": 0,
           "assists": 0,
           "yellow_card": false,
@@ -21303,6 +22171,6 @@
         }
       ]
     },
-    "extracted_at": "2026-04-08T14:08:52.343238"
+    "extracted_at": "2026-04-10T23:29:21.900339"
   }
 }

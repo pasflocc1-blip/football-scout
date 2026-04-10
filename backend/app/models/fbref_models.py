@@ -1,22 +1,23 @@
 """
-app/models/fbref_models.py
+app/models/fbref_models.py — v2.0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Tre nuove tabelle dedicate ai dati FBref:
-  - PlayerFbrefStats     : statistiche stagionali aggregate (standard, shooting,
-                           passing, defense, gca, possession, misc)
-  - PlayerFbrefMatchLog  : match log partita per partita
-  - PlayerScoutingIndex  : parametri intelligenti calcolati dall'algoritmo multi-fonte
+DIFFERENZE rispetto a v1 (file allegato)
+────────────────────────────────────────
+Solo PlayerScoutingIndex è modificato.
+Aggiunte 7 colonne che erano su scouting_players:
+  + finishing_pct   — percentile finalizzazione nel gruppo-ruolo
+  + creativity_pct  — percentile creatività
+  + pressing_pct    — percentile pressing
+  + carrying_pct    — percentile conduzione
+  + defending_pct   — percentile difesa
+  + buildup_pct     — percentile costruzione
+  + heading_score   — proxy duelli aerei (ex scouting_players.heading_score)
 
-Come collegarlo a models.py esistente
-──────────────────────────────────────
-Aggiungere in ScoutingPlayer le tre relationship:
+I *_pct vengono scritti da POST /scoring/run (scoring_sofascore.py).
+I *_index continuano a essere scritti all'import (fbref/scoring.py).
 
-    fbref_stats      = relationship("PlayerFbrefStats",    back_populates="player", cascade="all, delete-orphan")
-    fbref_match_logs = relationship("PlayerFbrefMatchLog", back_populates="player", cascade="all, delete-orphan")
-    scouting_index   = relationship("PlayerScoutingIndex", back_populates="player", uselist=False, cascade="all, delete-orphan")
-
-Poi importare questo modulo in alembic/env.py o dove carichi i modelli:
-    from app.models import fbref_models  # noqa
+PlayerFbrefStats e PlayerFbrefMatchLog: IDENTICI a v1.
 """
 
 from datetime import datetime
@@ -25,14 +26,11 @@ from sqlalchemy import (
     ForeignKey, DateTime, UniqueConstraint, Index, JSON
 )
 from sqlalchemy.orm import relationship
-
 from app.database import Base
 
 
 # ══════════════════════════════════════════════════════════════════
-# PLAYER FBREF STATS
-# Una riga per (player_id, season, league).
-# I campi rispecchiano 1:1 le chiavi data-stat di FBref.
+# PLAYER FBREF STATS — invariata
 # ══════════════════════════════════════════════════════════════════
 
 class PlayerFbrefStats(Base):
@@ -41,12 +39,11 @@ class PlayerFbrefStats(Base):
     id        = Column(Integer, primary_key=True, index=True)
     player_id = Column(Integer, ForeignKey("scouting_players.id", ondelete="CASCADE"),
                        nullable=False, index=True)
-    season    = Column(String(10), nullable=False)   # es. "2025-2026"
-    league    = Column(String(80), nullable=False)   # es. "Serie A"
+    season    = Column(String(10), nullable=False)
+    league    = Column(String(80), nullable=False)
 
-    # ── Standard ─────────────────────────────────────────────────
-    appearances        = Column(Integer)    # games
-    starts             = Column(Integer)    # games_starts
+    appearances        = Column(Integer)
+    starts             = Column(Integer)
     minutes            = Column(Integer)
     goals              = Column(Integer)
     assists            = Column(Integer)
@@ -64,8 +61,6 @@ class PlayerFbrefStats(Base):
     xg_per90           = Column(Float)
     xa_per90           = Column(Float)
     npxg_per90         = Column(Float)
-
-    # ── Shooting ─────────────────────────────────────────────────
     shots              = Column(Integer)
     shots_on_target    = Column(Integer)
     shots_on_target_pct = Column(Float)
@@ -77,8 +72,6 @@ class PlayerFbrefStats(Base):
     npxg_per_shot      = Column(Float)
     xg_net             = Column(Float)
     npxg_net           = Column(Float)
-
-    # ── Passing ──────────────────────────────────────────────────
     passes_completed       = Column(Integer)
     passes_attempted       = Column(Integer)
     pass_completion_pct    = Column(Float)
@@ -95,8 +88,6 @@ class PlayerFbrefStats(Base):
     crosses_penalty_area   = Column(Integer)
     progressive_passes     = Column(Integer)
     xa_pass                = Column(Float)
-
-    # ── GCA ──────────────────────────────────────────────────────
     sca                = Column(Integer)
     sca_per90          = Column(Float)
     sca_pass_live      = Column(Integer)
@@ -107,8 +98,6 @@ class PlayerFbrefStats(Base):
     gca_per90          = Column(Float)
     gca_pass_live      = Column(Integer)
     gca_take_on        = Column(Integer)
-
-    # ── Defense ──────────────────────────────────────────────────
     tackles            = Column(Integer)
     tackles_won        = Column(Integer)
     tackles_def_3rd    = Column(Integer)
@@ -124,8 +113,6 @@ class PlayerFbrefStats(Base):
     tkl_int            = Column(Integer)
     clearances         = Column(Integer)
     errors             = Column(Integer)
-
-    # ── Possession ───────────────────────────────────────────────
     touches            = Column(Integer)
     touches_def_pen    = Column(Integer)
     touches_def_3rd    = Column(Integer)
@@ -144,8 +131,6 @@ class PlayerFbrefStats(Base):
     miscontrols        = Column(Integer)
     dispossessed       = Column(Integer)
     progressive_passes_received = Column(Integer)
-
-    # ── Misc ─────────────────────────────────────────────────────
     fouls_committed    = Column(Integer)
     fouls_drawn        = Column(Integer)
     offsides           = Column(Integer)
@@ -157,8 +142,6 @@ class PlayerFbrefStats(Base):
     aerials_won        = Column(Integer)
     aerials_lost       = Column(Integer)
     aerials_won_pct    = Column(Float)
-
-    # ── Meta ─────────────────────────────────────────────────────
     fbref_player_id    = Column(String(20), nullable=True)
     fetched_at         = Column(DateTime, default=datetime.utcnow)
     updated_at         = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -173,8 +156,7 @@ class PlayerFbrefStats(Base):
 
 
 # ══════════════════════════════════════════════════════════════════
-# PLAYER FBREF MATCH LOG
-# Una riga per partita. Rispecchia le chiavi del match log FBref.
+# PLAYER FBREF MATCH LOG — invariata
 # ══════════════════════════════════════════════════════════════════
 
 class PlayerFbrefMatchLog(Base):
@@ -183,38 +165,36 @@ class PlayerFbrefMatchLog(Base):
     id        = Column(Integer, primary_key=True, index=True)
     player_id = Column(Integer, ForeignKey("scouting_players.id", ondelete="CASCADE"),
                        nullable=False, index=True)
-    season    = Column(String(10), nullable=True)
-
-    date        = Column(String(20), nullable=True, index=True)
-    dayofweek   = Column(String(10), nullable=True)
-    comp        = Column(String(80), nullable=True)
-    round       = Column(String(40), nullable=True)
-    venue       = Column(String(10), nullable=True)
-    result      = Column(String(15), nullable=True)
-    team        = Column(String(80), nullable=True)
-    opponent    = Column(String(80), nullable=True)
-    game_started = Column(String(5), nullable=True)
-    position    = Column(String(10), nullable=True)
-    minutes     = Column(Integer, nullable=True)
-    goals       = Column(Integer, nullable=True)
-    assists     = Column(Integer, nullable=True)
-    pens_made   = Column(Integer, nullable=True)
-    pens_att    = Column(Integer, nullable=True)
-    shots       = Column(Integer, nullable=True)
-    shots_on_target = Column(Integer, nullable=True)
-    yellow_card = Column(Integer, nullable=True)
-    red_card    = Column(Integer, nullable=True)
-    fouls_committed = Column(Integer, nullable=True)
-    fouls_drawn = Column(Integer, nullable=True)
-    offsides    = Column(Integer, nullable=True)
-    crosses     = Column(Integer, nullable=True)
-    tackles_won = Column(Integer, nullable=True)
-    interceptions = Column(Integer, nullable=True)
-    own_goals   = Column(Integer, nullable=True)
-    pens_won    = Column(String(5), nullable=True)
-    pens_conceded = Column(String(5), nullable=True)
-
-    fetched_at  = Column(DateTime, default=datetime.utcnow)
+    season       = Column(String(10), nullable=True)
+    date         = Column(String(20), nullable=True, index=True)
+    dayofweek    = Column(String(10), nullable=True)
+    comp         = Column(String(80), nullable=True)
+    round        = Column(String(40), nullable=True)
+    venue        = Column(String(10), nullable=True)
+    result       = Column(String(15), nullable=True)
+    team         = Column(String(80), nullable=True)
+    opponent     = Column(String(80), nullable=True)
+    game_started    = Column(String(5),  nullable=True)
+    position        = Column(String(10), nullable=True)
+    minutes         = Column(Integer,    nullable=True)
+    goals           = Column(Integer,    nullable=True)
+    assists         = Column(Integer,    nullable=True)
+    pens_made       = Column(Integer,    nullable=True)
+    pens_att        = Column(Integer,    nullable=True)
+    shots           = Column(Integer,    nullable=True)
+    shots_on_target = Column(Integer,    nullable=True)
+    yellow_card     = Column(Integer,    nullable=True)
+    red_card        = Column(Integer,    nullable=True)
+    fouls_committed = Column(Integer,    nullable=True)
+    fouls_drawn     = Column(Integer,    nullable=True)
+    offsides        = Column(Integer,    nullable=True)
+    crosses         = Column(Integer,    nullable=True)
+    tackles_won     = Column(Integer,    nullable=True)
+    interceptions   = Column(Integer,    nullable=True)
+    own_goals       = Column(Integer,    nullable=True)
+    pens_won        = Column(String(5),  nullable=True)
+    pens_conceded   = Column(String(5),  nullable=True)
+    fetched_at      = Column(DateTime,   default=datetime.utcnow)
 
     player = relationship("ScoutingPlayer", back_populates="fbref_match_logs")
 
@@ -226,38 +206,28 @@ class PlayerFbrefMatchLog(Base):
 
 
 # ══════════════════════════════════════════════════════════════════
-# PLAYER SCOUTING INDEX
-# Parametri intelligenti calcolati dall'algoritmo multi-fonte.
-# Una riga per (player_id, season) — si ricalcola ogni importazione.
-#
-# ALGORITMO — logica dei 6 indici (0-100, percentile per ruolo):
-# ─────────────────────────────────────────────────────────────────
-# finishing_index  : goals_per_shot, shots_on_target_pct, xg_net,
-#                    npxg_per90  (FBref Shooting + Standard)
-# creativity_index : key_passes/90, xa_per90, sca_per90, gca_per90,
-#                    progressive_passes/90  (FBref Passing + GCA)
-# pressing_index   : tackles_won, interceptions/90, ball_recoveries,
-#                    fouls_drawn  (FBref Defense + Misc)
-# carrying_index   : progressive_carries/90, carries_prog_dist,
-#                    take_ons_succ_pct, touches_att_pen  (FBref Possession)
-# defending_index  : challenge_tackles_pct, interceptions/90,
-#                    clearances/90, aerials_won_pct  (FBref Defense)
-# buildup_index    : pass_completion_pct, passes_long_pct,
-#                    progressive_passes_received/90, xa  (FBref Passing)
-# overall_index    : media pesata per ruolo dei 6 indici sopra
-# ─────────────────────────────────────────────────────────────────
+# PLAYER SCOUTING INDEX — v2.0
+# Unica fonte di verità per tutti i parametri intelligenti.
 # ══════════════════════════════════════════════════════════════════
 
 class PlayerScoutingIndex(Base):
+    """
+    Parametri intelligenti calcolati dall'algoritmo multi-fonte.
+    Una riga per (player_id, season).
+
+    *_index  = valore su scala assoluta, scritto da fbref/scoring.py all'import
+    *_pct    = percentile nel gruppo-ruolo, scritto da POST /scoring/run
+    overall_index = media pesata per ruolo degli *_index
+    """
     __tablename__ = "player_scouting_index"
 
     id        = Column(Integer, primary_key=True, index=True)
     player_id = Column(Integer, ForeignKey("scouting_players.id", ondelete="CASCADE"),
                        nullable=False, index=True)
-    season    = Column(String(10), nullable=False)
-    position_group = Column(String(5), nullable=True)  # "GK"|"DEF"|"MID"|"FWD"
+    season         = Column(String(10), nullable=False)
+    position_group = Column(String(30),  nullable=True)  # "GK"|"DEF"|"MID"|"FWD"
 
-    # ── Indici 0-100 (percentile nel gruppo-ruolo) ────────────────
+    # ── Indici grezzi 0-100 (scala assoluta, aggiornati ad ogni import) ──
     finishing_index   = Column(Float, nullable=True)
     creativity_index  = Column(Float, nullable=True)
     pressing_index    = Column(Float, nullable=True)
@@ -266,7 +236,21 @@ class PlayerScoutingIndex(Base):
     buildup_index     = Column(Float, nullable=True)
     overall_index     = Column(Float, nullable=True)
 
-    # ── Valori grezzi usati nel calcolo (tracciabilità) ───────────
+    # ── NUOVO v2: percentili per ruolo ────────────────────────────────
+    # Aggiornati da POST /scoring/run su tutti i giocatori.
+    # Spostati da scouting_players.*_pct.
+    finishing_pct     = Column(Float, nullable=True)
+    creativity_pct    = Column(Float, nullable=True)
+    pressing_pct      = Column(Float, nullable=True)
+    carrying_pct      = Column(Float, nullable=True)
+    defending_pct     = Column(Float, nullable=True)
+    buildup_pct       = Column(Float, nullable=True)
+
+    # ── NUOVO v2: heading_score ───────────────────────────────────────
+    # Proxy duelli aerei. Spostato da scouting_players.heading_score.
+    heading_score     = Column(Float, nullable=True)
+
+    # ── Valori grezzi tracciabilità (invariati da v1) ─────────────────
     xg_per90                  = Column(Float, nullable=True)
     xa_per90                  = Column(Float, nullable=True)
     npxg_per90                = Column(Float, nullable=True)
@@ -283,10 +267,10 @@ class PlayerScoutingIndex(Base):
     ball_recoveries_per90     = Column(Float, nullable=True)
     crosses_per90             = Column(Float, nullable=True)
 
-    # ── Metadati calcolo ──────────────────────────────────────────
-    sources_used      = Column(JSON, nullable=True)   # ["fbref", "sofascore"]
-    data_confidence   = Column(Float, nullable=True)  # 0.0 – 1.0
-    minutes_sample    = Column(Integer, nullable=True)
+    # ── Metadati calcolo ──────────────────────────────────────────────
+    sources_used    = Column(JSON,    nullable=True)
+    data_confidence = Column(Float,   nullable=True)
+    minutes_sample  = Column(Integer, nullable=True)
 
     computed_at = Column(DateTime, default=datetime.utcnow)
     updated_at  = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -297,3 +281,7 @@ class PlayerScoutingIndex(Base):
         UniqueConstraint('player_id', 'season',
                          name='uq_scouting_index_player_season'),
     )
+
+    def __repr__(self):
+        return (f"<PlayerScoutingIndex player_id={self.player_id} "
+                f"season={self.season!r} overall={self.overall_index}>")

@@ -1,35 +1,23 @@
 """
-app/models/sofascore_models.py
+app/models/sofascore_models.py — v2.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Tabella dedicata ai dati SofaScore — GEMELLA di PlayerFbrefStats.
 
-Dopo questa migrazione la tabella scouting_players conserva SOLO:
-  ● anagrafica (name, birth_date, club, nationality, …)
-  ● identificatori provider (sofascore_id, fbref_id, …)
-  ● cache last rating (sofascore_rating) per la UI senza join
-  ● score/percentili calcolati dall'algoritmo (Fase 3)
+DIFFERENZE rispetto a v1 (file allegato)
+────────────────────────────────────────
+Aggiunte 3 colonne che erano su scouting_players:
+  + attributes_raw      (JSON)  — ex sofascore_attributes_raw
+  + attributes_avg_raw  (JSON)  — ex sofascore_attributes_avg_raw
+  + season_club         (str)   — ex season_club
 
-I dati statistici SofaScore (una riga per player+season+league)
-vanno in player_sofascore_stats.
-
-IMPORTARE in main.py / alembic/env.py:
-    from app.models import sofascore_models  # noqa
-
-AGGIUNGERE in ScoutingPlayer (models.py):
-    sofascore_stats = relationship(
-        "PlayerSofascoreStats",
-        back_populates="player",
-        cascade="all, delete-orphan"
-    )
+Tutto il resto è invariato.
 """
 
 from datetime import datetime
 from sqlalchemy import (
-    Column, Integer, String, Float,
+    Column, Integer, String, Float, JSON,
     ForeignKey, DateTime, UniqueConstraint, Index,
 )
 from sqlalchemy.orm import relationship
-
 from app.database import Base
 
 
@@ -122,32 +110,43 @@ class PlayerSofascoreStats(Base):
     possession_won_att_third = Column(Integer)
 
     # ── Possesso ────────────────────────────────────────────────────
-    touches        = Column(Integer)
+    touches         = Column(Integer)
     possession_lost = Column(Integer)
 
     # ── Disciplina ──────────────────────────────────────────────────
-    yellow_cards    = Column(Integer)
+    yellow_cards     = Column(Integer)
     yellow_red_cards = Column(Integer)
-    red_cards       = Column(Integer)
-    fouls_committed = Column(Integer)
-    fouls_won       = Column(Integer)
-    offsides        = Column(Integer)
-    hit_woodwork    = Column(Integer)
+    red_cards        = Column(Integer)
+    fouls_committed  = Column(Integer)
+    fouls_won        = Column(Integer)
+    offsides         = Column(Integer)
+    hit_woodwork     = Column(Integer)
 
     # ── Portiere ────────────────────────────────────────────────────
-    saves               = Column(Integer)
-    goals_conceded      = Column(Integer)
-    clean_sheets        = Column(Integer)
-    penalty_saved       = Column(Integer)
-    penalty_faced       = Column(Integer)
-    high_claims         = Column(Integer)
-    punches             = Column(Integer)
+    saves           = Column(Integer)
+    goals_conceded  = Column(Integer)
+    clean_sheets    = Column(Integer)
+    penalty_saved   = Column(Integer)
+    penalty_faced   = Column(Integer)
+    high_claims     = Column(Integer)
+    punches         = Column(Integer)
 
-    # ── Meta ────────────────────────────────────────────────────────
-    # tournament_id / season_id SofaScore (utili per deep-link)
+    # ── Meta SofaScore ──────────────────────────────────────────────
     tournament_id = Column(Integer, nullable=True)
     season_id     = Column(Integer, nullable=True)
 
+    # ── NUOVO v2: spostati da scouting_players ───────────────────────
+    # Club del giocatore nella stagione/lega (ex scouting_players.season_club)
+    season_club = Column(String(80), nullable=True)
+
+    # Attributi radar SofaScore (dict piatto scritto dall'RPA).
+    # Ex scouting_players.sofascore_attributes_raw / ..._avg_raw.
+    # Vengono scritti sulla riga con più minuti per il giocatore.
+    # Il frontend li legge come: player.sources.sofascore.attributes
+    attributes_raw     = Column(JSON, nullable=True)
+    attributes_avg_raw = Column(JSON, nullable=True)
+
+    # ── Timestamp ────────────────────────────────────────────────────
     fetched_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -160,3 +159,8 @@ class PlayerSofascoreStats(Base):
         ),
         Index("ix_sofascore_stats_player_season", "player_id", "season"),
     )
+
+    def __repr__(self):
+        return (f"<PlayerSofascoreStats player_id={self.player_id} "
+                f"season={self.season!r} league={self.league!r} "
+                f"mins={self.minutes_played}>")

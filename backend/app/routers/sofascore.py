@@ -21,28 +21,31 @@ MODIFICHE v2 → v3:
 
   /raw e /player-done invariati.
 """
+from __future__ import annotations
 
 import json
-import logging
-from datetime import datetime, date, timezone
-from typing import Any, Optional
-
-from fastapi import APIRouter, Depends
+from datetime import date
+from typing import Any
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
-from sqlalchemy.dialects.postgresql import insert
-
-from app.database import get_db
 from app.models.models import (
-    ScoutingPlayer,
     PlayerSeasonStats,
     PlayerMatch,
     PlayerHeatmap,
-    PlayerCareer,
     PlayerNationalStats,
 )
 from app.services.player_matcher import find_player_in_db
 from app.services.sources.sofascore_source import _upsert_sofascore_stats
+
+import logging
+from datetime import datetime, timezone
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.models.models import ScoutingPlayer
+from app.models.sofascore_models import PlayerSofascoreStats
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix='/ingest/sofascore', tags=['ingest-sofascore'])
@@ -101,170 +104,198 @@ async def ingest_raw(payload: SofaRawPayload, db: Session = Depends(get_db)):
         return {'status': 'error', 'message': str(e)}
 
 
-# ── /ocr (RPA v8 multi-competizione + retrocompatibilità v7) ──────
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ENDPOINT PRINCIPALE
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-@router.post('/ocr')
-async def ingest_ocr(payload: OCRPayload, db: Session = Depends(get_db)):
+@router.post("/ocr")
+def ingest_sofascore_ocr(
+        payload: dict,
+        db: Session = Depends(get_db),
+):
     """
-    Riceve il payload dall'RPA e salva nelle tabelle normalizzate.
+    Riceve il payload dall'RPA SofaScore e salva tutto nel DB.
 
-    Struttura attesa (v8):
-      extracted.profile       → scouting_players
-      extracted.competitions  → list[{tournament_id, season_id, tournament_name,
-                                      season_year, statistics, heatmap_points}]
-      extracted.matches       → list[PlayerMatch]  (campi estesi)
-      extracted.career        → list[PlayerCareer] (campi estesi)
-      extracted.national      → list[PlayerNationalStats]
-
-    Retrocompatibilità v7: se extracted.season esiste, lo gestisce come prima.
+    Struttura payload attesa (build_payload in sofascore_rpa.py):
+    {
+        "name": "...",
+        "club": "...",
+        "db_id": 123,
+        "sofascore_id": 148899,
+        "source": "playwright_v9",
+        "extracted": {
+            "profile": {...},
+            "attributes": {...},        ← attributi giocatore (flat dict)
+            "attributes_avg": {...},    ← media posizione (flat dict)
+            "competitions": [...],      ← lista competizioni con stats + heatmap
+            "matches": [...],
+            "career": [...],
+            "national": [...],
+        }
+    }
     """
-    player = _find_player_for_ocr(db, payload)
+    name = payload.get("name", "")
+    db_id = payload.get("db_id")
+    sofascore_id = payload.get("sofascore_id")
+    extracted = payload.get("extracted", {})
+
+    profile = extracted.get("profile", {})
+    attrs = extracted.get("attributes", {}) or {}
+    attrs_avg = extracted.get("attributes_avg", {}) or {}
+    competitions = extracted.get("competitions", [])
+    matches_raw = extracted.get("matches", [])
+    career_raw = extracted.get("career", [])
+    national_raw = extracted.get("national", [])
+
+    # ── 1. Trova o crea ScoutingPlayer ────────────────────────────────
+    player = _resolve_player(db, name, db_id, sofascore_id)
     if not player:
-        log.warning(f'OCR: giocatore non trovato: {payload.name}')
-        return {'status': 'not_found', 'player': payload.name}
+        raise HTTPException(
+            status_code=404,
+            detail=f"Giocatore '{name}' non trovato. Crea prima l'anagrafica."
+        )
 
-    updated_sections = []
-    fetched_at = datetime.utcnow()
-    ex = payload.extracted
+    # ── 2. Aggiorna anagrafica da profilo SofaScore ───────────────────
+    _update_profile(player, profile, sofascore_id)
+    player.last_updated_sofascore = datetime.now(timezone.utc)
 
-    # 1. Profile → scouting_players
-    profile = ex.get('profile', {})
-    if profile:
-        _apply_profile(player, profile, payload.sofascore_id)
-        updated_sections.append('profile')
+    # ── 3. Upsert PlayerSofascoreStats per ogni competizione ──────────
+    upserted_stats: list[PlayerSofascoreStats] = []
 
-    # 1b. Attributi SofaScore → sofascore_attributes_raw
-    # L'RPA v9 manda sempre il set completo — sostituzione diretta, no merge.
-    # Il merge causava contaminazione tra attributi giocatore e media di posizione
-    # nel caso in cui run precedenti avessero scritto dati errati nella colonna.
-    attributes = ex.get('attributes', {})
-    if attributes and hasattr(player, 'sofascore_attributes_raw'):
-        player.sofascore_attributes_raw = {k: v for k, v in attributes.items() if v is not None}
-        n_attrs = len(player.sofascore_attributes_raw)
-        updated_sections.append(f'attributes({n_attrs})')
+    for comp in competitions:
+        stats_dict = comp.get("statistics", {})
+        if not stats_dict:
+            continue
 
-    # 1c. Media attributi posizione → sofascore_attributes_avg_raw
-    # Stessa logica: sostituzione diretta, l'RPA manda sempre il set completo.
-    attributes_avg = ex.get('attributes_avg', {})
-    if attributes_avg and hasattr(player, 'sofascore_attributes_avg_raw'):
-        player.sofascore_attributes_avg_raw = {k: v for k, v in attributes_avg.items() if v is not None}
-        updated_sections.append(f'attributes_avg({len(player.sofascore_attributes_avg_raw)})')
+        season_year = comp.get("season_year", "")
+        season_name = comp.get("season_name", "")
+        league_name = _normalize_league(
+            comp.get("tournament_name", ""),
+            season_year,
+            season_name,
+        )
+        season_label = _season_label(season_year, season_name)
 
-    # 2. Competitions → player_season_stats + player_heatmap (v8)
-    competitions = ex.get('competitions', [])
-    if competitions:
-        for comp in competitions:
-            season_str = _format_season(comp.get('season_year', ''))
-            league_str = comp.get('tournament_name', 'unknown')
-            stats      = comp.get('statistics', {})
-            heatmap_pts= comp.get('heatmap_points', [])
-            tid        = comp.get('tournament_id')
-            sid        = comp.get('season_id')
-
-            if stats:
-                _upsert_sofascore_stats(
-                    db,
-                    player_id=player.id,
-                    season=season_str,
-                    league=league_str,
-                    tournament_id=tid,
-                    season_id=sid,
-                    stats=stats,
-                    fetched_at=fetched_at
-                )
-                # Cache rating su scouting_players (per la UI)
-                if stats.get('rating') and not player.sofascore_rating:
-                    player.sofascore_rating = _f(stats.get('rating'))
-
-            if heatmap_pts:
-                _upsert_heatmap_v8(
-                    db, player.id, season_str, league_str,
-                    heatmap_pts, profile.get('position'), fetched_at
-                )
-
-        n_comps = len(competitions)
-        n_with_stats = sum(1 for c in competitions if c.get('statistics'))
-        n_with_heat  = sum(1 for c in competitions if c.get('heatmap_points'))
-        updated_sections.append(f'competitions({n_comps}: {n_with_stats} stats, {n_with_heat} heatmap)')
-
-    # Retrocompatibilità v7: extracted.season
-    season_data = ex.get('season', {})
-    if season_data and not competitions:
-        season_str = _detect_season_legacy(ex)
-        league_str = ex.get('_raw_meta', {}).get('league', 'unknown')
-        _upsert_sofascore_stats(
+        row = _upsert_sofascore_stats(
             db,
             player_id=player.id,
-            season=season_str,
-            league=league_str,
-            tournament_id=None,  # Non presente in v7
-            season_id=None,  # Non presente in v7
-            stats=season_data,
-            fetched_at=fetched_at
+            season=season_label,
+            league=league_name,
+            stats_dict=stats_dict,
+            tournament_id=comp.get("tournament_id"),
+            season_id=comp.get("season_id"),
+            club=player.club,
         )
-        if season_data.get('rating') and not player.sofascore_rating:
-            player.sofascore_rating = _f(season_data.get('rating'))
-        updated_sections.append('season(legacy_v7)')
+        upserted_stats.append(row)
 
-    # 3. Matches → player_matches
-    matches_list = ex.get('matches', [])
-    # Retrocompatibilità: vecchio formato {matches: [...], average_rating: ...}
-    if isinstance(matches_list, dict):
-        matches_list = matches_list.get('matches', [])
-    if matches_list:
-        _save_matches_v8(db, player.id, matches_list, payload.source, fetched_at)
-        updated_sections.append(f'matches({len(matches_list)})')
+        # AGGIUNGI QUESTO BLOCCO ALLA FINE DEL CICLO FOR:
+        # Salviamo la heatmap che l'RPA ha gentilmente infilato qui dentro!
+        heatmap_points = comp.get("heatmap_points", [])
+        if heatmap_points:
+            _upsert_heatmap_v8(
+                db=db,
+                player_id=player.id,
+                season=season_label,
+                league=league_name,
+                points=heatmap_points,
+                position='unknown',
+                fetched_at=datetime.now(timezone.utc)
+            )
 
-    # 4. Career → player_career
-    career_list = ex.get('career', [])
-    # Retrocompatibilità: vecchio formato {transfers: [...]}
-    if isinstance(career_list, dict):
-        career_list = career_list.get('transfers', [])
-    if career_list:
-        _save_career_v8(db, player.id, career_list, payload.source, fetched_at)
-        updated_sections.append(f'career({len(career_list)})')
+    # ── 4. Salva attributi blob sulla riga con più minuti ─────────────
+    #       (ex scouting_players.sofascore_attributes_raw)
+    if attrs and upserted_stats:
+        main_row = max(
+            upserted_stats,
+            key=lambda r: r.minutes_played or 0,
+        )
+        main_row.attributes_raw = attrs if attrs else None
+        main_row.attributes_avg_raw = attrs_avg if attrs_avg else None
+        log.info(
+            f"  Attributi salvati su player_sofascore_stats "
+            f"(league={main_row.league}, mins={main_row.minutes_played})"
+        )
 
-    # 5. National → player_national_stats
-    national_list = ex.get('national', [])
-    if isinstance(national_list, dict):
-        national_list = [national_list]
-    if national_list:
-        for entry in national_list:
-            _upsert_national_v8(db, player.id, entry, payload.source, fetched_at)
-        updated_sections.append(f'national({len(national_list)})')
+    # ── 5. Salva heatmap (su PlayerSofascoreStats) ────────────────────
+    #       SofaScore non ha tabella separata per heatmap: li salviamo
+    #       come JSON nella riga della competizione corrispondente.
+    #       Se hai una tabella player_sofascore_heatmaps, adatta qui.
+    for comp in competitions:
+        heatmap_points = comp.get("heatmap_points", [])
+        if not heatmap_points:
+            continue
+        season_year = comp.get("season_year", "")
+        season_name = comp.get("season_name", "")
+        league_name = _normalize_league(
+            comp.get("tournament_name", ""),
+            season_year, season_name,
+        )
+        season_label = _season_label(season_year, season_name)
 
-    # 6. Timestamp
-    player.last_updated_sofascore = fetched_at
+        # Cerca la riga corrispondente tra quelle già upsertate
+        matching = next(
+            (r for r in upserted_stats
+             if r.league == league_name and r.season == season_label),
+            None,
+        )
+        if matching and not getattr(matching, 'heatmap_points', None):
+            # Se il modello ha il campo heatmap_points, salvalo
+            if hasattr(matching, 'heatmap_points'):
+                matching.heatmap_points = heatmap_points
+
+    # ── 6. Upsert partite ────────────────────────────────────────────
+    if matches_raw:
+        _upsert_matches(db, player.id, matches_raw)
+
+    # ── 7. Upsert carriera/trasferimenti ─────────────────────────────
+    if career_raw:
+        _upsert_career(db, player.id, career_raw)
+
+    # ── 8. Ricalcola PlayerScoutingIndex ──────────────────────────────
+    #       (identico a come fa import_json.py dopo FBref)
+    try:
+        from app.routers.fbref.scoring import compute_scouting_index
+        db.flush()
+        compute_scouting_index(db, player)
+        log.info(f"  PlayerScoutingIndex ricalcolato per {player.name}")
+    except Exception as e:
+        log.warning(f"  Scoring index skipped: {e}")
+
     db.commit()
 
-    log.info(f'OCR v3: {player.name} — {updated_sections}')
+    n_stats = len(upserted_stats)
+    n_comps = len(competitions)
+    n_match = len(matches_raw)
+    n_career = len(career_raw)
+
+    log.info(
+        f"✓ {player.name} (id={player.id}): "
+        f"{n_comps} competizioni, {n_stats} stats rows, "
+        f"{n_match} partite, {n_career} carriera"
+    )
     return {
-        'status':         'ok',
-        'player':         player.name,
-        'sections_saved': updated_sections,
-        'sofascore_id':   payload.sofascore_id,
+        "ok": True,
+        "player_id": player.id,
+        "name": player.name,
+        "competitions": n_comps,
+        "stats_rows": n_stats,
+        "matches": n_match,
+        "career": n_career,
     }
 
 
-# ── /player-done ─────────────────────────────────────────────────
+@router.post("/player-done")
+def player_done(payload: dict, db: Session = Depends(get_db)):
+    """Callback leggero dell'RPA: aggiorna last_updated_sofascore."""
+    db_id = payload.get("db_id")
+    sofascore_id = payload.get("sofascore_id")
+    name = payload.get("name", "")
 
-@router.post('/player-done')
-async def player_done(payload: PlayerDonePayload, db: Session = Depends(get_db)):
-    player = db.query(ScoutingPlayer).filter(
-        (ScoutingPlayer.sofascore_id == str(payload.sofascore_id)) |
-        (ScoutingPlayer.name == payload.name)
-    ).first()
-    if not player:
-        player = find_player_in_db(db, payload.name, payload.club)
+    player = _resolve_player(db, name, db_id, sofascore_id)
     if player:
-        if not player.sofascore_id:
-            player.sofascore_id = str(payload.sofascore_id)
-        player.last_updated_sofascore = datetime.now()
+        player.last_updated_sofascore = datetime.now(timezone.utc)
         db.commit()
-        log.info(f'player-done: {payload.name}')
-        return {'status': 'updated', 'player': payload.name, 'player_id': player.id}
-    return {'status': 'not_found', 'player': payload.name}
-
+    return {"ok": True}
 
 @router.get('/status')
 async def status():
@@ -607,52 +638,6 @@ def _upsert_national_v8(db, player_id, entry: dict, source, fetched_at):
 
     db.execute(stmt)
 
-# ── Retrocompatibilità v7 ─────────────────────────────────────────
-
-# def _upsert_season_stats_legacy(db, player_id, season, league, source,
-#                                  season_data, extracted, fetched_at):
-#     """Gestisce il vecchio formato extracted.season dell'RPA v7."""
-#     row = db.query(PlayerSeasonStats).filter_by(
-#         player_id=player_id, season=season, league=league, source=source
-#     ).first()
-#     if not row:
-#         row = PlayerSeasonStats(
-#             player_id=player_id, season=season, league=league, source=source
-#         )
-#         db.add(row)
-#     s = season_data
-#     # Mapping v7 (nomi diversi da v8)
-#     _s(row, 'sofascore_rating', _f(s.get('rating')))
-#     _s(row, 'appearances',      _i(s.get('appearances')))
-#     _s(row, 'matches_started',  _i(s.get('matches_started')))
-#     _s(row, 'minutes_played',   _i(s.get('minutes_played')))
-#     _s(row, 'goals',            _i(s.get('goals')))
-#     _s(row, 'assists',          _i(s.get('assists')))
-#     _s(row, 'shots_on_target',  _i(s.get('shots')))
-#     _s(row, 'big_chances_created', _i(s.get('big_chances_created')))
-#     _s(row, 'key_passes',       _i(s.get('key_passes')))
-#     _s(row, 'tackles',          _i(s.get('tackles')))
-#     _s(row, 'interceptions',    _i(s.get('interceptions')))
-#     _s(row, 'pass_accuracy_pct',_f(s.get('pass_accuracy_pct')))
-#     _s(row, 'yellow_cards',     _i(s.get('yellow_cards')))
-#     _s(row, 'red_cards',        _i(s.get('red_cards')))
-#     _s(row, 'xg',               _f(s.get('xg')))
-#     _s(row, 'xa',               _f(s.get('xa')))
-#     _s(row, 'aerial_duels_won', _i(s.get('aerial_duels_won')))
-#     _s(row, 'successful_dribbles', _i(s.get('dribbles_won')))
-#     _s(row, 'accurate_long_balls', _i(s.get('long_balls_accurate')))
-#     _s(row, 'accurate_crosses',    _i(s.get('crosses_accurate')))
-#     _s(row, 'fouls_committed',     _i(s.get('fouls_committed')))
-#     _s(row, 'saves',               _i(s.get('saves')))
-#     _s(row, 'goals_conceded',      _i(s.get('goals_conceded')))
-#     _s(row, 'clean_sheets',        _i(s.get('clean_sheets')))
-#     meta = extracted.get('_raw_meta', {})
-#     _s(row, 'tournament_id', meta.get('tournament_id'))
-#     _s(row, 'season_id',     meta.get('season_id'))
-#     row.fetched_at = fetched_at
-#     row.updated_at = fetched_at
-#
-
 # ══════════════════════════════════════════════════════════════════
 # HANDLERS per /raw  (estensione Chrome — invariati)
 # ══════════════════════════════════════════════════════════════════
@@ -708,34 +693,52 @@ def _handle_player_matches(db: Session, payload: SofaRawPayload) -> dict:
     events = payload.data.get('events', [])
     if not events:
         return {'matched': False, 'reason': 'no events'}
+
     player = _find_player_by_sofa_id(db, payload.ids.get('player_id'))
     if not player:
         return {'matched': False, 'reason': 'player not found'}
+
     matches = []
     for ev in events:
         t = ev.get('tournament', {})
         ut = t.get('uniqueTournament', {})
         ps = ev.get('playerStatistics', {})
+
+        # Gestione Data e Stagione (Fix per la colonna Season vuota)
+        ts = ev.get('startTimestamp')
+        from datetime import datetime
+        dt_obj = datetime.fromtimestamp(ts) if ts else None
+        season_label = ""
+        if dt_obj:
+            year = dt_obj.year
+            season_label = f"{year}/{year + 1}" if dt_obj.month >= 8 else f"{year - 1}/{year}"
+
+        # Mappiamo i dati usando i nomi esatti che il database si aspetta
         matches.append({
-            'event_id':       ev.get('id'),
-            'date':           ev.get('startTimestamp'),
-            'tournament_name': ut.get('name') or t.get('name', ''),
-            'tournament_id':  ut.get('id'),
-            'home_team':      ev.get('homeTeam', {}).get('name', ''),
-            'away_team':      ev.get('awayTeam', {}).get('name', ''),
-            'home_score':     ev.get('homeScore', {}).get('current'),
-            'away_score':     ev.get('awayScore', {}).get('current'),
-            'rating':         ps.get('rating'),
+            'event_id': str(ev.get('id')),
+            #'date': dt_obj,
+            'date': ev.get('startTimestamp'),
+            # Cambiato 'tournament_name' in 'tournament' per matchare il DB
+            'tournament': ut.get('name') or t.get('name', ''),
+            'season': season_label,
+            'home_team': ev.get('homeTeam', {}).get('name', ''),
+            'away_team': ev.get('awayTeam', {}).get('name', ''),
+            "home_score": ev.get("home_score") or ev.get("homeScore", {}).get("current"),
+            "away_score": ev.get("away_score") or ev.get("awayScore", {}).get("current"),
+            # Stats (Fix Rating e Minuti)
+            'rating': ps.get('rating'),
             'minutes_played': ps.get('minutesPlayed'),
-            'goals':          ps.get('goals', 0),
-            'assists':        ps.get('goalAssist', 0),
-            'yellow_card':    ps.get('yellowCard', False),
-            'red_card':       ps.get('redCard', False),
+            'goals': ps.get('goals', 0),
+            'assists': ps.get('goalAssist', 0),
+            'yellow_card': 1 if ps.get('yellowCard') else 0,
+            'red_card': 1 if ps.get('redCard') else 0,
         })
+
+    # Usiamo _save_matches_v8 ma con i dati puliti
     _save_matches_v8(db, player.id, matches, 'sofascore_extension', datetime.utcnow())
     db.commit()
-    return {'matched': True, 'player': player.name, 'matches': len(matches)}
 
+    return {'matched': True, 'player': player.name, 'matches': len(matches)}
 
 def _handle_transfers(db: Session, payload: SofaRawPayload) -> dict:
     transfers = payload.data.get('transferHistory', [])
@@ -865,3 +868,397 @@ def _raw_stats_to_v8_dict(raw: dict) -> dict:
         'penalty_goals': raw.get('penaltyGoals'), 'penalty_won': raw.get('penaltyWon'),
         'goal_conversion_pct': raw.get('goalConversionPercentage'),
     }
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# HELPERS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+def _resolve_player(
+        db: Session,
+        name: str,
+        db_id: Optional[int],
+        sofascore_id: Optional[int],
+) -> Optional[ScoutingPlayer]:
+    """Cerca il giocatore per db_id, poi sofascore_id, poi nome."""
+    if db_id:
+        p = db.query(ScoutingPlayer).filter_by(id=db_id).first()
+        if p:
+            return p
+    if sofascore_id:
+        p = db.query(ScoutingPlayer).filter_by(sofascore_id=str(sofascore_id)).first()
+        if p:
+            return p
+    if name:
+        p = db.query(ScoutingPlayer).filter(
+            ScoutingPlayer.name.ilike(f"%{name.split()[-1]}%")
+        ).first()
+        if p:
+            return p
+    return None
+
+
+def _update_profile(
+        player: ScoutingPlayer,
+        profile: dict,
+        sofascore_id: Optional[int],
+) -> None:
+    """
+    Aggiorna i campi anagrafici su ScoutingPlayer da profilo SofaScore.
+    Sovrascrive solo i campi vuoti (non sovrascrive dati già presenti
+    da fonti più affidabili come TransferMarkt).
+    """
+    if sofascore_id and not player.sofascore_id:
+        player.sofascore_id = sofascore_id
+
+    # Cache rating UI (sempre aggiornata)
+    if profile.get("sofascore_rating") is not None:
+        player.sofascore_rating = profile["sofascore_rating"]
+
+    # Anagrafica: aggiorna solo se vuota
+    _set_if_empty(player, "height", profile.get("height_cm"))
+    _set_if_empty(player, "weight", profile.get("weight_kg"))
+    _set_if_empty(player, "preferred_foot", profile.get("preferred_foot"))
+    _set_if_empty(player, "jersey_number", profile.get("jersey_number"))
+    _set_if_empty(player, "market_value", profile.get("market_value"))
+    _set_if_empty(player, "nationality", profile.get("nationality"))
+    _set_if_empty(player, "gender", profile.get("gender"))
+
+    # Posizione: aggiorna sempre (SS è la fonte più aggiornata)
+    if profile.get("position"):
+        player.position = profile["position"]
+    if profile.get("position_detail"):
+        player.position_detail = profile["position_detail"]
+
+    # Contract: aggiorna sempre
+    if profile.get("contract_until"):
+        try:
+            from datetime import date
+            player.contract_until = date.fromisoformat(str(profile["contract_until"])[:10])
+        except Exception:
+            pass
+
+
+def _set_if_empty(obj, attr: str, value) -> None:
+    if value is not None and getattr(obj, attr, None) is None:
+        setattr(obj, attr, value)
+
+
+def _normalize_league(tournament_name: str, season_year: str, season_name: str) -> str:
+    """Normalizza il nome torneo verso i nomi standard del DB."""
+    name = tournament_name.strip()
+    mapping = {
+        "Serie A": "Serie A",
+        "Premier League": "Premier League",
+        "La Liga": "La Liga",
+        "Bundesliga": "Bundesliga",
+        "Ligue 1": "Ligue 1",
+        "UEFA Champions League": "Champions League",
+        "Champions League": "Champions League",
+        "UEFA Europa League": "Europa League",
+        "Europa League": "Europa League",
+        "UEFA Conference League": "Conference League",
+        "Coppa Italia": "Coppa Italia",
+        "FA Cup": "FA Cup",
+        "DFB-Pokal": "DFB-Pokal",
+        "Ligue 2": "Ligue 2",
+        "Supercoppa Italiana": "Supercoppa Italiana",
+        "Super Cup": "Super Cup",
+    }
+    for key, val in mapping.items():
+        if key.lower() in name.lower():
+            return val
+    return name or "Unknown"
+
+
+def _season_label(season_year: str, season_name: str) -> str:
+    """
+    Produce un'etichetta stagione coerente con player_fbref_stats.season.
+    Esempi: "24/25" → "2024-25",  "2025/2026" → "2025-26"
+    """
+    y = (season_year or season_name or "").strip()
+    # Gestisci formati: "24/25", "2024/25", "2025/2026"
+    if "/" in y:
+        parts = y.split("/")
+        p0, p1 = parts[0].strip(), parts[1].strip()
+        if len(p0) == 2:
+            p0 = "20" + p0
+        if len(p1) == 2:
+            p1_full = p0[:2] + p1
+        else:
+            p1_full = p1[-2:]  # prendi ultime 2 cifre di "2026" → "26"
+        return f"{p0}-{p1_full}"
+    # Già formato "2025-26"
+    if "-" in y and len(y) == 7:
+        return y
+    # Fallback: stagione corrente
+    now = datetime.utcnow()
+    m = now.month
+    s = now.year if m >= 7 else now.year - 1
+    return f"{s}-{str(s + 1)[-2:]}"
+
+
+def _upsert_sofascore_stats(
+        db: Session,
+        player_id: int,
+        season: str,
+        league: str,
+        stats_dict: dict,
+        tournament_id: Optional[int],
+        season_id: Optional[int],
+        club: Optional[str],
+) -> PlayerSofascoreStats:
+    """Upsert su player_sofascore_stats. Ritorna la riga (nuova o aggiornata)."""
+    row = db.query(PlayerSofascoreStats).filter_by(
+        player_id=player_id,
+        season=season,
+        league=league,
+    ).first()
+
+    if not row:
+        row = PlayerSofascoreStats(
+            player_id=player_id,
+            season=season,
+            league=league,
+        )
+        db.add(row)
+
+    # Campi di contesto
+    row.tournament_id = tournament_id
+    row.season_id = season_id
+    row.season_club = club
+    row.updated_at = datetime.now(timezone.utc)
+
+    # Stats — mappa dal dict flat del payload ai campi ORM
+    # Usa .get() su tutti: se non c'è, non sovrascrivere il valore esistente
+    # (preferisci mantenere il dato precedente se il nuovo è None)
+    def _set(attr, key, cast=None):
+        val = stats_dict.get(key)
+        if val is not None:
+            if cast:
+                try:
+                    val = cast(val)
+                except Exception:
+                    return
+            setattr(row, attr, val)
+
+    _set("sofascore_rating", "rating", float)
+    _set("appearances", "appearances", int)
+    _set("matches_started", "matches_started", int)
+    _set("minutes_played", "minutes_played", int)
+    _set("goals", "goals", int)
+    _set("assists", "assists", int)
+    _set("goals_assists_sum", "goals_assists_sum", int)
+    _set("shots_total", "shots_total", int)
+    _set("shots_on_target", "shots_on_target", int)
+    _set("shots_off_target", "shots_off_target", int)
+    _set("big_chances_created", "big_chances_created", int)
+    _set("big_chances_missed", "big_chances_missed", int)
+    _set("goal_conversion_pct", "goal_conversion_pct", float)
+    _set("headed_goals", "headed_goals", int)
+    _set("penalty_goals", "penalty_goals", int)
+    _set("penalty_won", "penalty_won", int)
+    _set("xg", "xg", float)
+    _set("xa", "xa", float)
+    _set("accurate_passes", "accurate_passes", int)
+    _set("inaccurate_passes", "inaccurate_passes", int)
+    _set("total_passes", "total_passes", int)
+    _set("pass_accuracy_pct", "pass_accuracy_pct", float)
+    _set("accurate_long_balls", "accurate_long_balls", int)
+    _set("long_ball_accuracy_pct", "long_ball_accuracy_pct", float)
+    _set("total_long_balls", "total_long_balls", int)
+    _set("accurate_crosses", "accurate_crosses", int)
+    _set("cross_accuracy_pct", "cross_accuracy_pct", float)
+    _set("total_crosses", "total_crosses", int)
+    _set("key_passes", "key_passes", int)
+    _set("accurate_own_half_passes", "accurate_own_half_passes", int)
+    _set("accurate_opp_half_passes", "accurate_opp_half_passes", int)
+    _set("accurate_final_third_passes", "accurate_final_third_passes", int)
+    _set("successful_dribbles", "successful_dribbles", int)
+    _set("dribble_success_pct", "dribble_success_pct", float)
+    _set("dribbled_past", "dribbled_past", int)
+    _set("dispossessed", "dispossessed", int)
+    _set("ground_duels_won", "ground_duels_won", int)
+    _set("ground_duels_won_pct", "ground_duels_won_pct", float)
+    _set("aerial_duels_won", "aerial_duels_won", int)
+    _set("aerial_duels_lost", "aerial_duels_lost", int)
+    _set("aerial_duels_won_pct", "aerial_duels_won_pct", float)
+    _set("total_duels_won", "total_duels_won", int)
+    _set("total_duels_won_pct", "total_duels_won_pct", float)
+    _set("total_contest", "total_contest", int)
+    _set("tackles", "tackles", int)
+    _set("tackles_won", "tackles_won", int)
+    _set("tackles_won_pct", "tackles_won_pct", float)
+    _set("interceptions", "interceptions", int)
+    _set("clearances", "clearances", int)
+    _set("blocked_shots", "blocked_shots", int)
+    _set("errors_led_to_goal", "errors_led_to_goal", int)
+    _set("errors_led_to_shot", "errors_led_to_shot", int)
+    _set("ball_recovery", "ball_recovery", int)
+    _set("possession_won_att_third", "possession_won_att_third", int)
+    _set("touches", "touches", int)
+    _set("possession_lost", "possession_lost", int)
+    _set("yellow_cards", "yellow_cards", int)
+    _set("yellow_red_cards", "yellow_red_cards", int)
+    _set("red_cards", "red_cards", int)
+    _set("fouls_committed", "fouls_committed", int)
+    _set("fouls_won", "fouls_won", int)
+    _set("offsides", "offsides", int)
+    _set("hit_woodwork", "hit_woodwork", int)
+    _set("saves", "saves", int)
+    _set("goals_conceded", "goals_conceded", int)
+    _set("clean_sheets", "clean_sheets", int)
+    _set("penalty_saved", "penalty_saved", int)
+    _set("penalty_faced", "penalty_faced", int)
+    _set("high_claims", "high_claims", int)
+    _set("punches", "punches", int)
+
+    # xG/xA per90: calcola se minuti disponibili e xg/xa presenti
+    mins = row.minutes_played
+    if mins and mins > 0:
+        if row.xg is not None and not row.xg_per90:
+            row.xg_per90 = round(row.xg / (mins / 90.0), 4)
+        if row.xa is not None and not row.xa_per90:
+            row.xa_per90 = round(row.xa / (mins / 90.0), 4)
+
+    # Scrive immediatamente le modifiche nel DB (senza chiudere la transazione)
+    db.flush()
+
+    return row
+
+
+def _upsert_matches(db, player_id: int, matches: list) -> None:
+    """
+    Salva/aggiorna le partite nella tabella player_matches.
+
+    Il parametro `matches` è la lista già mappata da _map_matches()
+    in sofascore_rpa.py: tutti i campi sono piatti e già convertiti
+    (date è stringa ISO, home_score/away_score sono int, ecc.).
+    """
+    for m in matches:
+        # ── event_id ──────────────────────────────────────────────────
+        event_id = m.get("event_id")
+        if not event_id:
+            continue
+
+        # ── BUG 1 FIX: date e season ──────────────────────────────────
+        # _map_matches() ha già convertito startTimestamp in 'date' (stringa ISO)
+        # e season_year in 'season_year'. NON cercare "startTimestamp".
+        match_date = None
+        raw_date = m.get("date")  # es. "2024-11-03T20:00:00+00:00"
+        if raw_date:
+            try:
+                if isinstance(raw_date, str):
+                    match_date = datetime.fromisoformat(raw_date)
+                else:
+                    # legacy: timestamp int (non dovrebbe arrivare dal v9)
+                    match_date = datetime.fromtimestamp(float(raw_date), tz=timezone.utc)
+            except Exception:
+                pass
+
+        # season_year è il campo dell'RPA: "24/25" o "2024/25" ecc.
+        # Lo usiamo direttamente come stringa season (il modello accetta String(10))
+        season_val = m.get("season_year") or m.get("season_name") or ""
+
+        # ── BUG 2 FIX: rating e minutes_played ────────────────────────
+        # _map_matches() ha già spianato playerStatistics al livello root:
+        #   m["rating"]         (float o None)
+        #   m["minutes_played"] (int o None)
+        #   m["goals"]          (int, default 0)
+        #   m["assists"]        (int, default 0)
+        # NON cercare m.get("playerStatistics").
+        rating_val = m.get("rating")  # già float o None
+        mins_val = m.get("minutes_played")  # già int o None
+        goals_val = m.get("goals", 0)
+        assists_val = m.get("assists", 0)
+        yellow_val = m.get("yellow_card", False)
+        red_val = m.get("red_card", False)
+
+        # ── BUG 3 FIX: home_score / away_score ────────────────────────
+        # _map_matches() ha già convertito homeScore.current → home_score (int)
+        # NON fare m.get("homeScore", {}).get("current").
+        home_score_val = m.get("home_score")  # già int o None
+        away_score_val = m.get("away_score")  # già int o None
+
+        # ── Altri campi disponibili dal mapping v9 ─────────────────────
+        tournament_val = m.get("tournament_name") or m.get("tournament", "")
+        home_team_val = m.get("home_team", "")
+        away_team_val = m.get("away_team", "")
+
+        # ── Upsert ────────────────────────────────────────────────────
+        existing = db.query(PlayerMatch).filter_by(
+            player_id=player_id,
+            event_id=event_id,
+        ).first()
+
+        if existing:
+            # Aggiorna sempre: potremmo avere record vecchi con campi NULL
+            # (precedente versione buggata), quindi forziamo la riscrittura.
+            if match_date is not None:
+                existing.date = match_date
+            if season_val:
+                existing.season = season_val
+            existing.rating = float(rating_val) if rating_val is not None else existing.rating
+            existing.minutes_played = int(mins_val) if mins_val is not None else existing.minutes_played
+            existing.goals = int(goals_val) if goals_val is not None else 0
+            existing.assists = int(assists_val) if assists_val is not None else 0
+            existing.yellow_card = 1 if yellow_val else 0
+            existing.red_card = 1 if red_val else 0
+            if home_score_val is not None:
+                existing.home_score = int(home_score_val)
+            if away_score_val is not None:
+                existing.away_score = int(away_score_val)
+            if tournament_val:
+                existing.tournament = tournament_val
+            if home_team_val:
+                existing.home_team = home_team_val
+            if away_team_val:
+                existing.away_team = away_team_val
+        else:
+            obj = PlayerMatch(
+                player_id=player_id,
+                event_id=int(event_id),
+                date=match_date,
+                season=season_val or None,
+                tournament=tournament_val,
+                home_team=home_team_val,
+                away_team=away_team_val,
+                home_score=int(home_score_val) if home_score_val is not None else None,
+                away_score=int(away_score_val) if away_score_val is not None else None,
+                rating=float(rating_val) if rating_val is not None else None,
+                minutes_played=int(mins_val) if mins_val is not None else None,
+                goals=int(goals_val) if goals_val is not None else 0,
+                assists=int(assists_val) if assists_val is not None else 0,
+                yellow_card=1 if yellow_val else 0,
+                red_card=1 if red_val else 0,
+                source="sofascore",
+            )
+            db.add(obj)
+
+    db.flush()
+
+def _upsert_career(db: Session, player_id: int, career: list) -> None:
+    """Upsert trasferimenti/carriera."""
+    try:
+        from app.models.models import PlayerCareer
+    except ImportError:
+        return
+
+    for t in career:
+        transfer_id = t.get("transfer_id")
+        if not transfer_id:
+            continue
+        existing = db.query(PlayerCareer).filter_by(
+            player_id=player_id,
+            from_team=t.get("from_team"),
+            to_team=t.get("to_team")
+        ).first()
+        if existing:
+            continue
+        obj = PlayerCareer(player_id=player_id, **{
+            k: v for k, v in t.items()
+            if k != "transfer_id" and hasattr(PlayerCareer, k)
+        })
+        obj.transfer_id = transfer_id
+        db.add(obj)
+

@@ -411,8 +411,12 @@ def get_player_detail(player_id: int, db: Session = Depends(get_db)):
                     break
         return entry if any(v is not None for v in entry.values()) else None
 
-    attrs_raw     = getattr(player, "sofascore_attributes_raw", None)
-    attrs_avg_raw = getattr(player, "sofascore_attributes_avg_raw", None)
+    latest_attrs = db.query(PlayerSofascoreStats).filter(
+        PlayerSofascoreStats.player_id == player_id,
+        PlayerSofascoreStats.attributes_raw.isnot(None)
+    ).order_by(desc(PlayerSofascoreStats.season)).first()
+    attrs_raw = latest_attrs.attributes_raw if latest_attrs else None
+    attrs_avg_raw = latest_attrs.attributes_avg_raw if latest_attrs else None
 
     sofa_attrs           = _extract_radar_attrs(attrs_raw)
     sofa_attrs_avg_entry = _extract_radar_avg(attrs_avg_raw) or _extract_radar_avg(attrs_raw)
@@ -652,5 +656,51 @@ def get_player_heatmap(player_id: int, db: Session = Depends(get_db)):
                 "point_count": h.point_count or 0,
             }
             for h in rows
+        ],
+    }
+
+# ─────────────────────────────────────────────────────────────────
+# MATCHES (Ultime partite)
+# ─────────────────────────────────────────────────────────────────
+
+@router.get("/{player_id}/matches")
+def get_player_matches(
+        player_id: int,
+        limit: int = Query(50, ge=1, le=100),
+        db: Session = Depends(get_db)
+):
+    matches = (
+        db.query(PlayerMatch)
+        .filter(PlayerMatch.player_id == player_id)
+        .order_by(desc(PlayerMatch.date))
+        .limit(limit)
+        .all()
+    )
+
+    return {
+        "player_id": player_id,
+        "matches": [
+            {
+                "date": m.date.strftime("%Y-%m-%d") if getattr(m, "date", None) else None,
+                # Proviamo i vari nomi possibili per il torneo e la stagione
+                "tournament": getattr(m, "tournament", None) or getattr(m, "tournament_name", ""),
+                "season": getattr(m, "season", None) or getattr(m, "season_year", ""),
+
+                "home_team": getattr(m, "home_team", ""),
+                "away_team": getattr(m, "away_team", ""),
+
+                # Gestione punteggi e statistiche (se None -> 0)
+                "home_score": getattr(m, "home_score") if getattr(m, "home_score") is not None else 0,
+                "away_score": getattr(m, "away_score") if getattr(m, "away_score") is not None else 0,
+                "minutes_played": getattr(m, "minutes_played") if getattr(m, "minutes_played") is not None else 0,
+                "goals": getattr(m, "goals") if getattr(m, "goals") is not None else 0,
+                "assists": getattr(m, "assists") if getattr(m, "assists") is not None else 0,
+                "yellow_card": getattr(m, "yellow_card") if getattr(m, "yellow_card") is not None else 0,
+                "red_card": getattr(m, "red_card") if getattr(m, "red_card") is not None else 0,
+
+                # Il Rating: lo formattiamo a 1 decimale (es: 7.2)
+                "rating": round(float(m.rating), 1) if getattr(m, "rating", None) else None,
+            }
+            for m in matches
         ],
     }

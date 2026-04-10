@@ -427,6 +427,36 @@ class SofaPlaywrightClient:
         log.warning('  [PW] Token non trovato — uso XMLHttpRequest (fallback)')
         return 'XMLHttpRequest'
 
+    async def _fetch_match_player_stats(
+            self,
+            page,
+            event_ids: list[int],
+            player_id: int,
+            max_concurrent: int = 3,
+    ) -> dict[int, dict]:
+
+        import asyncio
+        results: dict[int, dict] = {}
+        sem = asyncio.Semaphore(max_concurrent)
+
+        async def _fetch_one(eid: int):
+            async with sem:
+                ep = f'/api/v1/event/{eid}/player/{player_id}/statistics'
+                data = await self._js_fetch(page, ep)
+                if data and data.get('statistics'):
+                    results[eid] = data['statistics']
+                    log.info(f'      ✅ Match stats eid={eid}: '
+                             f'rating={data["statistics"].get("rating")} '
+                             f'min={data["statistics"].get("minutesPlayed")}')
+                else:
+                    log.debug(f'      ⚠️  Match stats eid={eid}: nessun dato')
+                # Piccolo delay per non stressare SofaScore
+                await asyncio.sleep(0.2)
+
+        await asyncio.gather(*[_fetch_one(eid) for eid in event_ids])
+        log.info(f'  [PW] Match stats: {len(results)}/{len(event_ids)} recuperate')
+        return results
+
     async def fetch_player_data(self, player_id: int, league_key: str) -> dict:
         result = {
             'player_id': player_id,
@@ -611,22 +641,22 @@ class SofaPlaywrightClient:
 
             # ── FASE 6: Estrai dati da captured ──────────────────
             for url, data in captured.items():
-                if re.search(r'/api/v1/player/\d+$', url):
+                if re.search(r'/api/v1/player/\\d+$', url):
                     if not result['profile']:
                         result['profile'] = data.get('player', {})
 
                 elif 'attribute-overviews' in url and not result['attributes']:
                     attrs_raw = (
-                        data.get('playerAttributeOverviews')
-                        or data.get('playerAttributeGroups')
-                        or data.get('playerAttributes')
-                        or (data if isinstance(data, list) else [])
+                            data.get('playerAttributeOverviews')
+                            or data.get('playerAttributeGroups')
+                            or data.get('playerAttributes')
+                            or (data if isinstance(data, list) else [])
                     )
                     mapped = _map_attributes(attrs_raw)
-                    result['attributes'] = mapped['player']  # ✅
-                    result['attributes_avg'] = mapped.get('average', {})  # ✅
+                    result['attributes'] = mapped['player']
+                    result['attributes_avg'] = mapped.get('average', {})
                     log.info(f'  [PW] Attributi da captured: {len(result["attributes"])} valori')
-                    log.info(f'  [PW] Attributi AVG da captured: {len(result["attributes_avg"])} valori')
+
                 elif re.search(r'/events/', url):
                     result['matches'] = data.get('events', [])
                     log.info(f'  [PW] Partite: {len(result["matches"])}')
@@ -639,6 +669,32 @@ class SofaPlaywrightClient:
                     nat = data.get('statistics', data if isinstance(data, list) else [])
                     result['national_stats'] = nat if isinstance(nat, list) else [nat]
                     log.info(f'  [PW] Nazionale: {len(result["national_stats"])}')
+
+            # ── FASE 6-BIS: Arricchisci partite con stats per-match ─────
+            # L'endpoint /events/ non include playerStatistics (rating,
+            # minutesPlayed, goals, assists). Vanno recuperati partita per partita
+            # tramite /api/v1/event/{event_id}/player/{player_id}/statistics.
+            matches_needing_stats = [
+                m for m in result['matches']
+                if m.get('hasEventPlayerStatistics') is True
+                   and m.get('status', {}).get('type') == 'finished'
+            ]
+            if matches_needing_stats:
+                log.info(
+                    f'  [PW] Fase 6-bis: recupero stats per '
+                    f'{len(matches_needing_stats)} partite...'
+                )
+                event_ids_to_fetch = [m['id'] for m in matches_needing_stats]
+                match_stats = await self._fetch_match_player_stats(
+                    page, event_ids_to_fetch, player_id
+                )
+                # Inietta i dati in ogni match del result
+                for m in result['matches']:
+                    eid = m.get('id')
+                    if eid in match_stats:
+                        m['playerStatistics'] = match_stats[eid]
+            else:
+                log.info('  [PW] Fase 6-bis: nessuna partita da arricchire')
 
             # ── FASE 7: Competizioni — stats + heatmap ────────────
             competitions = extract_competitions_from_matches(result['matches'])
@@ -906,13 +962,21 @@ def _map_profile(p: dict) -> dict:
 
 
 def _map_matches(matches_raw: list) -> list:
+    """
+    Mappa la lista di eventi grezzi SofaScore in dicts piatti per il backend.
+
+    AGGIORNAMENTO v9.6:
+    Legge playerStatistics sia come dict sotto 'playerStatistics' (iniettato
+    dalla Fase 6-bis) che come fallback sui campi diretti del match.
+    """
     result = []
     for m in matches_raw:
         t = m.get('tournament', {})
         ut = t.get('uniqueTournament', {})
         s = m.get('season', {})
-        ps = m.get('playerStatistics', {})
         ri = m.get('roundInfo', {})
+
+        # ── Data ──────────────────────────────────────────────────────
         match_date = None
         ts = m.get('startTimestamp')
         if ts:
@@ -920,6 +984,19 @@ def _map_matches(matches_raw: list) -> list:
                 match_date = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
             except Exception:
                 pass
+
+        # ── Statistiche giocatore ─────────────────────────────────────
+        # Fase 6-bis inietta playerStatistics nel dict grezzo del match.
+        # Se non disponibile, ps è {}
+        ps = m.get('playerStatistics') or {}
+
+        rating_val = ps.get('rating')
+        minutes_val = ps.get('minutesPlayed')
+        goals_val = ps.get('goals', 0)
+        assists_val = ps.get('goalAssist', 0)
+        yellow_val = bool(ps.get('yellowCard', False))
+        red_val = bool(ps.get('redCard', False))
+
         result.append({
             'event_id': m.get('id'),
             'sofascore_slug': m.get('slug'),
@@ -934,6 +1011,7 @@ def _map_matches(matches_raw: list) -> list:
             'home_team_id': m.get('homeTeam', {}).get('id'),
             'away_team': m.get('awayTeam', {}).get('name', ''),
             'away_team_id': m.get('awayTeam', {}).get('id'),
+            # Score: prendi .get('current') dalla struttura nested
             'home_score': m.get('homeScore', {}).get('current'),
             'away_score': m.get('awayScore', {}).get('current'),
             'winner_code': m.get('winnerCode'),
@@ -941,15 +1019,15 @@ def _map_matches(matches_raw: list) -> list:
             'has_xg': m.get('hasXg', False),
             'has_player_stats': m.get('hasEventPlayerStatistics', False),
             'has_heatmap': m.get('hasEventPlayerHeatMap', False),
-            'rating': ps.get('rating'),
-            'minutes_played': ps.get('minutesPlayed'),
-            'goals': ps.get('goals', 0),
-            'assists': ps.get('goalAssist', 0),
-            'yellow_card': bool(ps.get('yellowCard', False)),
-            'red_card': bool(ps.get('redCard', False)),
+            # Statistiche per-match (da Fase 6-bis)
+            'rating': rating_val,
+            'minutes_played': minutes_val,
+            'goals': goals_val,
+            'assists': assists_val,
+            'yellow_card': yellow_val,
+            'red_card': red_val,
         })
     return result
-
 
 def _map_transfers(transfers_raw: list) -> list:
     TYPE_MAP = {1: 'Transfer', 2: 'Loan', 3: 'Free', 4: 'Youth', 5: 'Return from loan'}

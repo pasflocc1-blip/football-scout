@@ -546,6 +546,11 @@ def import_file(db: Session, json_path: Path) -> bool:
         f"   match logs: {inserted_logs} inseriti, {skipped_logs} già presenti"
     )
 
+    # Aggiungi questo log temporaneo in import_json.py dopo aver caricato i match_log
+    for m in match_logs:
+        if str(m.get('cards_yellow', '0')) not in ('0', '', 'CrdY'):
+            print(f"YC: {m['date']} vs {m.get('opponent')} | comp={m.get('comp')} | venue={m.get('venue')}")
+
     # ── last_updated_fbref su ScoutingPlayer ─────────────────────
     player.last_updated_fbref = datetime.now(timezone.utc)
 
