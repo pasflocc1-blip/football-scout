@@ -1,0 +1,16 @@
+{
+  "direct_table_ids": [
+    "stats_standard_dom_lg",
+    "stats_shooting_dom_lg",
+    "stats_playing_time_dom_lg",
+    "stats_misc_dom_lg",
+    "stats_player_summary_18dd3219"
+  ],
+  "comments_with_stats": [],
+  "querySelector_tests": {
+    "stats_passing": null,
+    "stats_defense": null,
+    "stats_gca": null,
+    "stats_possession": null
+  }
+}

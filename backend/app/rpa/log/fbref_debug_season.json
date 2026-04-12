@@ -1,0 +1,63 @@
+[
+  {
+    "url": "https://fbref.com/en/players/6928979a/Nicolo-Barella",
+    "table_ids": [
+      "last_5_matchlogs",
+      "stats_standard_dom_lg",
+      "stats_shooting_dom_lg",
+      "stats_playing_time_dom_lg",
+      "stats_misc_dom_lg",
+      "stats_player_summary_6928979a",
+      "wages"
+    ],
+    "div_stats_ids": [
+      "div_stats_standard_dom_lg",
+      "div_stats_shooting_dom_lg",
+      "div_stats_playing_time_dom_lg",
+      "div_stats_misc_dom_lg",
+      "div_stats_player_summary_6928979a"
+    ],
+    "comments_stats_count": 0,
+    "comments_stats_ids": [],
+    "h1": "Nicolò Barella",
+    "tested_url": "https://fbref.com/en/players/6928979a/2025-2026/Nicolo-Barella"
+  },
+  {
+    "url": "https://fbref.com/en/players/6928979a/all_stats/Nicolo-Barella",
+    "table_ids": [],
+    "div_stats_ids": [],
+    "comments_stats_count": 0,
+    "comments_stats_ids": [],
+    "h1": "",
+    "tested_url": "https://fbref.com/en/players/6928979a/all_stats/Nicolo-Barella"
+  },
+  {
+    "url": "https://fbref.com/en/players/6928979a/matchlogs/2025-2026/Nicolo-Barella-Match-Logs",
+    "table_ids": [
+      "matchlogs_all"
+    ],
+    "div_stats_ids": [],
+    "comments_stats_count": 0,
+    "comments_stats_ids": [],
+    "h1": "Nicolò Barella 2025-2026 Match Logs",
+    "tested_url": "https://fbref.com/en/players/6928979a/matchlogs/2025-2026/summary/Nicolo-Barella-Match-Logs"
+  },
+  {
+    "url": "https://fbref.com/en/players/6928979a/passing/Nicolo-Barella",
+    "table_ids": [],
+    "div_stats_ids": [],
+    "comments_stats_count": 0,
+    "comments_stats_ids": [],
+    "h1": "",
+    "tested_url": "https://fbref.com/en/players/6928979a/passing/Nicolo-Barella"
+  },
+  {
+    "url": "https://fbref.com/en/players/6928979a/passing/2025-2026/Nicolo-Barella",
+    "table_ids": [],
+    "div_stats_ids": [],
+    "comments_stats_count": 0,
+    "comments_stats_ids": [],
+    "h1": "",
+    "tested_url": "https://fbref.com/en/players/6928979a/passing/2025-2026/Nicolo-Barella"
+  }
+]

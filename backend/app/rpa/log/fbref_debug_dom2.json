@@ -1,0 +1,180 @@
+{
+  "all_table_ids": [
+    "last_5_matchlogs",
+    "stats_standard_dom_lg",
+    "stats_shooting_dom_lg",
+    "stats_playing_time_dom_lg",
+    "stats_misc_dom_lg",
+    "stats_player_summary_6928979a",
+    "wages"
+  ],
+  "div_stats_ids": [
+    "div_stats_standard_dom_lg",
+    "div_stats_shooting_dom_lg",
+    "div_stats_playing_time_dom_lg",
+    "div_stats_misc_dom_lg",
+    "div_stats_player_summary_6928979a"
+  ],
+  "nav_items": [
+    {
+      "text": "Nicolò Barella Overview",
+      "href": "https://fbref.com/en/players/6928979a/Nicolo-Barella"
+    },
+    {
+      "text": "All Competitions",
+      "href": "https://fbref.com/en/players/6928979a/all_comps/Nicolo-Barella-Stats---All-Competitions"
+    },
+    {
+      "text": "Domestic Leagues",
+      "href": "https://fbref.com/en/players/6928979a/dom_lg/Nicolo-Barella-Domestic-League-Stats"
+    },
+    {
+      "text": "Domestic Cups",
+      "href": "https://fbref.com/en/players/6928979a/dom_cup/Nicolo-Barella-Domestic-Cup-Stats"
+    },
+    {
+      "text": "International Cups",
+      "href": "https://fbref.com/en/players/6928979a/intl_cup/Nicolo-Barella-International-Cup-Stats"
+    },
+    {
+      "text": "National Team",
+      "href": "https://fbref.com/en/players/6928979a/nat_tm/Nicolo-Barella-National-Team-Stats"
+    },
+    {
+      "text": "2013-2014",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2013-2014/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2014-2015",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2014-2015/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2015-2016",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2015-2016/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2016-2017",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2016-2017/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2017-2018",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2017-2018/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2018-2019",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2018-2019/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2019-2020",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2019-2020/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2020-2021",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2020-2021/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2021-2022",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2021-2022/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2022-2023",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2022-2023/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2023-2024",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2023-2024/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2024-2025",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2024-2025/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2025",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2025/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "2025-2026",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/2025-2026/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "National Team",
+      "href": "https://fbref.com/en/players/6928979a/matchlogs/nat_tm/summary/Nicolo-Barella-Match-Logs"
+    },
+    {
+      "text": "All Competitions",
+      "href": "https://fbref.com/en/players/6928979a/goallogs/all_comps/Nicolo-Barella-Goal-Log"
+    },
+    {
+      "text": "Domestic Leagues",
+      "href": "https://fbref.com/en/players/6928979a/goallogs/dom_lg/Nicolo-Barella-Goal-Log"
+    },
+    {
+      "text": "Domestic Cups",
+      "href": "https://fbref.com/en/players/6928979a/goallogs/dom_cup/Nicolo-Barella-Goal-Log"
+    },
+    {
+      "text": "International Cups",
+      "href": "https://fbref.com/en/players/6928979a/goallogs/intl_cup/Nicolo-Barella-Goal-Log"
+    },
+    {
+      "text": "National Team",
+      "href": "https://fbref.com/en/players/6928979a/goallogs/nat_tm/Nicolo-Barella-Goal-Log"
+    },
+    {
+      "text": "Player Match Finder",
+      "href": "https://www.sports-reference.com/stathead/fbref/player-match-finder.cgi?player_id=6928979a&comp_gender=m&utm_source=fb&utm_medium=sr_xsite&utm_campaign=2023_11_player_innernav_stathead"
+    },
+    {
+      "text": "Player Season Finder",
+      "href": "https://www.sports-reference.com/stathead/fbref/player-season-finder.cgi?player_id=6928979a&comp_gender=m&utm_source=fb&utm_medium=sr_xsite&utm_campaign=2023_11_player_innernav_stathead"
+    },
+    {
+      "text": "Player Comparison",
+      "href": "https://fbref.com/en/stathead/player_comparison.cgi?show_form=1&request=1&sum=0&comp_type=by_type&dom_lg=1&player_id1=6928979a&p1yrfrom=2025-2026&player_id2=de31038e&p2yrfrom=2025-2026&player_id3=c2731c10&p3yrfrom=2025-2026&player_id4=5ff4ab71&p4yrfrom=2025-2026&player_id5=0db169ae&p5yrfrom=2025-2026&player_id6=4b542852&p6yrfrom=2025-2026"
+    },
+    {
+      "text": "All Competitions",
+      "href": "https://fbref.com/en/players/6928979a/all_comps/Nicolo-Barella-Stats---All-Competitions"
+    }
+  ],
+  "stats_links": [],
+  "comments_total": 111,
+  "comments_with_stats": [],
+  "all_comments_preview": [
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$",
+    "?lit$259936962$"
+  ],
+  "iframes": [
+    "",
+    "",
+    ""
+  ]
+}
